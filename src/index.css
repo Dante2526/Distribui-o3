@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* === GENERAL STYLES === */
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background-color: #1A202C;
+    -webkit-overflow-scrolling: touch;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* === CUSTOM SCROLLBARS (PAINEL DSS STYLE) === */
 * {
     scrollbar-width: thin;
@@ -24,6 +39,37 @@
 
 *::-webkit-scrollbar-thumb:hover {
     background-color: #64748b;
+}
+
+/* === VIEWPORT & SCALABLE CONTAINER (PAINEL DSS) === */
+.viewport {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    cursor: grab;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+}
+
+.viewport:active {
+    cursor: grabbing;
+}
+
+.scalable-container {
+    transform-origin: 0 0;
+    transform-style: flat;
+    min-height: 100%;
+    width: fit-content;
+}
+
+/* Prevent zoom on double tap and ensure inputs behave well on touch */
+input,
+textarea,
+button,
+select,
+a {
+    touch-action: manipulation;
 }
 
 /* Esconder barra de rolagem onde especificado */

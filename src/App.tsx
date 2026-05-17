@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -142,6 +142,225 @@ export default function App() {
   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
 
+  // --- Viewport & Scale Refs (Painel DSS Pattern) ---
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
+  const scalableContainerRef = useRef<HTMLDivElement>(null);
+  const scaleStateRef = useRef({ currentScale: 1 });
+  const dragScrollRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    scrollLeft: 0,
+    scrollTop: 0,
+    moved: false
+  });
+
+  // --- Scale Function (Painel DSS) ---
+  const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
+    const viewport = viewportRef.current;
+    const scalableContainer = scalableContainerRef.current;
+    const contentWrapper = contentWrapperRef.current;
+    if (!viewport || !scalableContainer || !contentWrapper) return;
+
+    let minScale = 0.2;
+    if (scalableContainer.offsetWidth > 0) {
+      minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+    }
+
+    const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
+    scaleStateRef.current.currentScale = finalScale;
+
+    scalableContainer.style.transform = `scale(${finalScale})`;
+
+    const originalWidth = scalableContainer.offsetWidth;
+    const originalHeight = scalableContainer.offsetHeight;
+
+    contentWrapper.style.width = `${originalWidth * finalScale}px`;
+    contentWrapper.style.height = `${originalHeight * finalScale}px`;
+
+    if (scrollX !== undefined) viewport.scrollLeft = scrollX;
+    if (scrollY !== undefined) viewport.scrollTop = scrollY;
+  }, []);
+
+  // --- Initialize Scale (Painel DSS) ---
+  const initializeScale = useCallback(() => {
+    const viewport = viewportRef.current;
+    const scalableContainer = scalableContainerRef.current;
+    if (!viewport || !scalableContainer) return;
+
+    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366;
+
+    if (isMobileView) {
+      const oneColumnScale = viewport.clientWidth / 920;
+      const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
+      setScale(finalScale, 0, 0);
+    } else {
+      setScale(1.0, 0, 0);
+    }
+  }, [setScale]);
+
+  // --- Gesture & Event Handlers (Painel DSS) ---
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const scalableContainer = scalableContainerRef.current;
+    if (!viewport || !scalableContainer) return;
+
+    initializeScale();
+    const initTimer = setTimeout(initializeScale, 50);
+
+    let initialDistance = 0;
+    let initialScaleValue = 1;
+    let scrollStart = { x: 0, y: 0 };
+    let touchCenter = { x: 0, y: 0 };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        initialScaleValue = scaleStateRef.current.currentScale;
+        scrollStart = { x: viewport.scrollLeft, y: viewport.scrollTop };
+        touchCenter = {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+        };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const scaleRatio = currentDistance / initialDistance;
+        let newScale = initialScaleValue * scaleRatio;
+
+        let minScale = 0.2;
+        if (scalableContainer.offsetWidth > 0) {
+          minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+        }
+
+        if (newScale < minScale) {
+          newScale = minScale;
+          if (scaleStateRef.current.currentScale === minScale) return;
+        }
+
+        const originX = touchCenter.x - viewport.getBoundingClientRect().left;
+        const originY = touchCenter.y - viewport.getBoundingClientRect().top;
+
+        const contentOriginX = (scrollStart.x + originX) / initialScaleValue;
+        const contentOriginY = (scrollStart.y + originY) / initialScaleValue;
+
+        const newScrollX = (contentOriginX * newScale) - originX;
+        const newScrollY = (contentOriginY * newScale) - originY;
+
+        setScale(newScale, newScrollX, newScrollY);
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const zoomIntensity = 0.002;
+        const delta = -e.deltaY * zoomIntensity;
+        let newScale = scaleStateRef.current.currentScale + delta * scaleStateRef.current.currentScale;
+
+        let minScale = 0.2;
+        if (scalableContainer.offsetWidth > 0) {
+          minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+        }
+
+        if (newScale < minScale) {
+          newScale = minScale;
+          if (scaleStateRef.current.currentScale === minScale) return;
+        }
+
+        const originX = e.clientX - viewport.getBoundingClientRect().left;
+        const originY = e.clientY - viewport.getBoundingClientRect().top;
+
+        const contentOriginX = (viewport.scrollLeft + originX) / scaleStateRef.current.currentScale;
+        const contentOriginY = (viewport.scrollTop + originY) / scaleStateRef.current.currentScale;
+
+        const newScrollX = (contentOriginX * newScale) - originX;
+        const newScrollY = (contentOriginY * newScale) - originY;
+
+        setScale(newScale, newScrollX, newScrollY);
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button, input, select, textarea, a, [role="button"]')) return;
+
+      dragScrollRef.current.isDragging = true;
+      dragScrollRef.current.moved = false;
+      dragScrollRef.current.startX = e.pageX - viewport.offsetLeft;
+      dragScrollRef.current.startY = e.pageY - viewport.offsetTop;
+      dragScrollRef.current.scrollLeft = viewport.scrollLeft;
+      dragScrollRef.current.scrollTop = viewport.scrollTop;
+
+      viewport.style.cursor = 'grabbing';
+      viewport.style.userSelect = 'none';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragScrollRef.current.isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - viewport.offsetLeft;
+      const y = e.pageY - viewport.offsetTop;
+      const walkX = (x - dragScrollRef.current.startX);
+      const walkY = (y - dragScrollRef.current.startY);
+
+      if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
+        dragScrollRef.current.moved = true;
+      }
+
+      viewport.scrollLeft = dragScrollRef.current.scrollLeft - walkX;
+      viewport.scrollTop = dragScrollRef.current.scrollTop - walkY;
+    };
+
+    const handleMouseUp = () => {
+      if (!dragScrollRef.current.isDragging) return;
+      dragScrollRef.current.isDragging = false;
+      viewport.style.cursor = 'grab';
+      viewport.style.removeProperty('user-select');
+    };
+
+    let lastWidth = window.innerWidth;
+    const handleResize = () => {
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+      if (window.innerWidth !== lastWidth) {
+        lastWidth = window.innerWidth;
+        setScale(scaleStateRef.current.currentScale);
+        initializeScale();
+      }
+    };
+
+    window.addEventListener('load', initializeScale);
+    window.addEventListener('resize', handleResize);
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
+    viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
+    viewport.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    viewport.style.cursor = 'grab';
+
+    return () => {
+      clearTimeout(initTimer);
+      window.removeEventListener('load', initializeScale);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (viewport) {
+        viewport.removeEventListener('wheel', handleWheel);
+        viewport.removeEventListener('touchstart', handleTouchStart);
+        viewport.removeEventListener('touchmove', handleTouchMove);
+        viewport.removeEventListener('mousedown', handleMouseDown);
+      }
+    };
+  }, [initializeScale, setScale]);
+
   const handleUpdateSupportRole = (groupIndex: number, empIndex: number, newRole: string) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
@@ -212,70 +431,72 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-x-hidden">
-      {/* View Area (One UI prominent header - Painel DSS Style) */}
-      <div className="pt-8 pb-10 px-4 md:px-8 w-full max-w-[1800px] mx-auto flex flex-col items-center gap-4">
-        {/* Painel DSS Style Header Card - Dimensões flexíveis baseadas no Painel DSS */}
-        <div className="bg-[#2D3748] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
-          <div className="flex items-center gap-6">
-            {/* Ícone de Escudo brilhante - Mesmas dimensões do logo no Painel DSS */}
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
-              <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
+    <div className="bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
+      {/* Viewport - Scroll Container (Painel DSS Pattern) */}
+      <div ref={viewportRef} className="viewport fixed inset-0 bg-[#1A202C]">
+        {/* Content Wrapper - Carries the scaled dimensions for scroll area */}
+        <div ref={contentWrapperRef} className="origin-top-left">
+          {/* Scalable Container - The actual content that gets scaled */}
+          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-[#1A202C]">
+
+            {/* Header Card - Painel DSS Style */}
+            <div className="bg-[#2D3748] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
+              <div className="flex items-center gap-6">
+                <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
+                  <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Distribuição de Equipes
+                  </h1>
+                  <p className="text-lg md:text-xl font-medium text-[#a0aec0]">
+                    Controle Operacional - Gestão e monitoramento em tempo real
+                  </p>
+                </div>
+              </div>
+              <div className="hidden lg:flex items-center gap-6">
+              </div>
             </div>
-            
-            {/* Títulos com proporções do Painel DSS */}
-            <div className="flex flex-col gap-1">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-                Distribuição de Equipes
-              </h1>
-              <p className="text-lg md:text-xl font-medium text-[#a0aec0]">
-                Controle Operacional - Gestão e monitoramento em tempo real
-              </p>
+
+            {/* Main Content Area */}
+            <div className="space-y-8">
+              {/* Main Departments Grid - Always 3 columns */}
+              <div className="flex gap-6 w-max">
+                {departmentsData.map((dept) => (
+                  <div key={dept.id} className="w-[500px] shrink-0">
+                    <DepartmentCard 
+                      department={dept} 
+                      allDepartments={departmentsData}
+                      onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
+                      onUpdateEmployee={handleUpdateEmployeeField}
+                      onDelete={handleDelete}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Section Divider */}
+              <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
+                <Users className="text-[#a0aec0] w-6 h-6" />
+                <h2 className="text-2xl font-semibold text-white">Apoio (OOF)</h2>
+              </div>
+
+              {/* Support Roles Grid - Always 3 columns */}
+              <div className="flex gap-6 w-max pb-[50vh]">
+                {supportRolesData.map((group, index) => (
+                  <div key={index} className="w-[500px] shrink-0">
+                    <SupportCard 
+                      roles={group} 
+                      groupIndex={index} 
+                      onUpdateRole={handleUpdateSupportRole} 
+                      onMoveSupport={handleMoveSupport}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
+
           </div>
-          
-          {/* Espaço à direita para futuras métricas (como no DSS) */}
-          <div className="hidden lg:flex items-center gap-6">
-             {/* Pode ser preenchido com widgets de total de funcionários no futuro */}
-          </div>
-        </div>
-      </div>
-
-      {/* Interaction Area */}
-      <div className="px-4 md:px-8 w-full max-w-[1800px] mx-auto pb-20 space-y-8 block">
-        
-        {/* Main Departments Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full pb-6 items-start">
-          {departmentsData.map((dept) => (
-            <div key={dept.id} className="w-full shrink-0">
-              <DepartmentCard 
-                department={dept} 
-                allDepartments={departmentsData}
-                onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
-                onUpdateEmployee={handleUpdateEmployeeField}
-                onDelete={handleDelete}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Section Divider */}
-        <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
-          <Users className="text-[#a0aec0] w-6 h-6" />
-          <h2 className="text-2xl font-semibold text-white">Apoio (OOF)</h2>
-        </div>
-
-        {/* Support Roles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {supportRolesData.map((group, index) => (
-            <SupportCard 
-              key={index} 
-              roles={group} 
-              groupIndex={index} 
-              onUpdateRole={handleUpdateSupportRole} 
-              onMoveSupport={handleMoveSupport}
-            />
-          ))}
         </div>
       </div>
     </div>
