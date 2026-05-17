@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap } from 'lucide-react';
+import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // --- Data Models ---
@@ -23,6 +23,11 @@ type SupportRole = {
 };
 
 // --- Mock Data based on the provided image ---
+const PREDEFINED_LINES = [
+  'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 
+  'VIRADOR', 'GIROFLEX', 'PIAL', 'FORM - CIMA', 'FORM - BAIXO'
+];
+
 const initialDepartmentsData: Department[] = [
   {
     id: 'recepcao',
@@ -92,21 +97,31 @@ const initialDepartmentsData: Department[] = [
   },
 ];
 
-const supportData: SupportRole[][] = [
+const SUPPORT_ROLES_OPTIONS = [
+  'MIKE 02',
+  'VIRADOR',
+  'MIKE 03',
+  'AUX X5',
+  'AUX GIROFLEX',
+  'MIKE 06',
+  'AUX X6'
+];
+
+const initialSupportData: SupportRole[][] = [
   [
-    { name: 'BEATRIZ', role: 'MK2' },
-    { name: 'AMÉRICO', role: 'VV' },
-    { name: 'ESDRAS', role: 'VV' },
-    { name: 'LARISSA', role: 'VV' },
+    { name: 'BEATRIZ', role: 'MIKE 02' },
+    { name: 'AMÉRICO', role: 'VIRADOR' },
+    { name: 'ESDRAS', role: 'VIRADOR' },
+    { name: 'LARISSA', role: 'VIRADOR' },
   ],
   [
     { name: 'CAMILE', role: 'MIKE 03' },
-    { name: 'ALBERTO', role: 'GIROFLEX' },
-    { name: 'RICARDO', role: 'GIROFLEX' },
+    { name: 'ALBERTO', role: 'AUX GIROFLEX' },
+    { name: 'RICARDO', role: 'AUX GIROFLEX' },
   ],
   [
-    { name: 'LUANA', role: 'MIKE 6' },
-    { name: 'ROSA', role: 'APOIO MK6' },
+    { name: 'LUANA', role: 'MIKE 06' },
+    { name: 'ROSA', role: 'AUX X6' },
   ],
 ];
 
@@ -125,6 +140,30 @@ const getDeptTheme = (deptId: string) => {
 
 export default function App() {
   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
+  const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
+
+  const handleUpdateSupportRole = (groupIndex: number, empIndex: number, newRole: string) => {
+    setSupportRolesData(prev => {
+      const newGroups = [...prev];
+      const newGroup = [...newGroups[groupIndex]];
+      newGroup[empIndex] = { ...newGroup[empIndex], role: newRole };
+      newGroups[groupIndex] = newGroup;
+      return newGroups;
+    });
+  };
+
+  const handleMoveSupport = (sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
+    setSupportRolesData(prev => {
+      const newGroups = [...prev];
+      const sourceGroup = [...newGroups[sourceGroupIndex]];
+      const targetGroup = [...newGroups[targetGroupIndex]];
+      const [movedEmployee] = sourceGroup.splice(sourceEmpIndex, 1);
+      targetGroup.push(movedEmployee);
+      newGroups[sourceGroupIndex] = sourceGroup;
+      newGroups[targetGroupIndex] = targetGroup;
+      return newGroups;
+    });
+  };
 
   const handleMove = (sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
     setDepartmentsData(prev => {
@@ -173,30 +212,42 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans selection:bg-blue-500/30 overflow-x-hidden">
-      {/* View Area (One UI prominent header) */}
-      <div className="pt-16 pb-8 px-6 md:px-10 max-w-7xl mx-auto flex flex-col items-start gap-4">
-        <div className="w-full bg-[#1C1C1E] border border-[#2C2C2E] rounded-[20px] px-6 py-4 shadow-lg">
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
-            Distribuição de Equipes
-          </h1>
-        </div>
-        <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[16px] px-5 py-3.5 inline-flex items-center shadow-sm">
-          <p className="text-[#E5E5EA] text-[16px] font-medium tracking-wide">Toque no nome para mover de setor</p>
+    <div className="min-h-screen bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-x-hidden">
+      {/* View Area (One UI prominent header - Painel DSS Style) */}
+      <div className="pt-8 pb-10 px-4 md:px-8 w-full max-w-[1800px] mx-auto flex flex-col items-center gap-4">
+        {/* Painel DSS Style Header Card - Dimensões flexíveis baseadas no Painel DSS */}
+        <div className="bg-[#2D3748] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
+          <div className="flex items-center gap-6">
+            {/* Ícone de Escudo brilhante - Mesmas dimensões do logo no Painel DSS */}
+            <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
+              <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
+            </div>
+            
+            {/* Títulos com proporções do Painel DSS */}
+            <div className="flex flex-col gap-1">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+                Distribuição de Equipes
+              </h1>
+              <p className="text-lg md:text-xl font-medium text-[#a0aec0]">
+                Controle Operacional - Gestão e monitoramento em tempo real
+              </p>
+            </div>
+          </div>
+          
+          {/* Espaço à direita para futuras métricas (como no DSS) */}
+          <div className="hidden lg:flex items-center gap-6">
+             {/* Pode ser preenchido com widgets de total de funcionários no futuro */}
+          </div>
         </div>
       </div>
 
       {/* Interaction Area */}
-      <div className="px-4 md:px-8 max-w-7xl mx-auto pb-20 space-y-8 block">
+      <div className="px-4 md:px-8 w-full max-w-[1800px] mx-auto pb-20 space-y-8 block">
         
         {/* Main Departments Grid */}
-        <div className="flex overflow-x-auto items-stretch gap-6 pb-6 snap-x snap-mandatory scroll-smooth hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-          <style dangerouslySetInnerHTML={{__html: `
-            .hide-scrollbar::-webkit-scrollbar { display: none; }
-            .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          `}} />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full pb-6 items-start">
           {departmentsData.map((dept) => (
-            <div key={dept.id} className="w-[90vw] sm:w-[400px] lg:w-1/3 shrink-0 snap-center md:snap-start">
+            <div key={dept.id} className="w-full shrink-0">
               <DepartmentCard 
                 department={dept} 
                 allDepartments={departmentsData}
@@ -210,14 +261,20 @@ export default function App() {
 
         {/* Section Divider */}
         <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
-          <Users className="text-[#8E8E93] w-6 h-6" />
+          <Users className="text-[#a0aec0] w-6 h-6" />
           <h2 className="text-2xl font-semibold text-white">Apoio (OOF)</h2>
         </div>
 
         {/* Support Roles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {supportData.map((group, index) => (
-            <SupportCard key={index} roles={group} index={index + 1} />
+          {supportRolesData.map((group, index) => (
+            <SupportCard 
+              key={index} 
+              roles={group} 
+              groupIndex={index} 
+              onUpdateRole={handleUpdateSupportRole} 
+              onMoveSupport={handleMoveSupport}
+            />
           ))}
         </div>
       </div>
@@ -243,53 +300,36 @@ function DepartmentCard({
   const theme = getDeptTheme(department.id);
 
   return (
-    <div className="bg-[#1C1C1E] rounded-[28px] overflow-hidden flex flex-col h-full shadow-lg">
-      {/* Card Header */}
-      <div className="px-6 py-5 border-b border-[#2C2C2E] flex items-center space-x-4">
-        <div className={`w-[52px] h-[52px] shrink-0 rounded-[16px] flex items-center justify-center ${theme.bg} ${theme.color}`}>
-          {theme.icon}
-        </div>
-        <div>
-          <h3 className="text-[22px] font-semibold text-white tracking-tight">{department.title}</h3>
-          <div className="flex items-center mt-1 text-[15px] font-medium text-[#8E8E93]">
-            <span className="flex items-center">
-              <LayoutGrid className="w-4 h-4 mr-1.5" />
-              MAQ: {department.count}
-            </span>
+    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02]">
+      {/* Cabeçalho do Setor */}
+      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-between bg-[#242529]">
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.color}`}>
+            {React.cloneElement(theme.icon as React.ReactElement, { className: "w-6 h-6" })}
           </div>
+          <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">{department.title}</h3>
         </div>
-      </div>
-
-      {/* Table Headers (Simplified for One UI) */}
-      <div className="px-6 py-3 flex items-center justify-between bg-[#2C2C2E]/30 text-xs font-semibold text-[#8E8E93] uppercase tracking-wider">
-        <div className="flex-1">MAQ</div>
-        <div className="flex items-center space-x-3">
-          <div className="w-20 text-center">Linha</div>
-          <div className="w-20 text-center">Loco</div>
-        </div>
-      </div>
-
-      {/* List content */}
-      <div className="flex-1 p-4 space-y-3 bg-[#121212]/30">
-        {department.data.map((emp, i) => (
-          <EmployeeRow
-            key={`${department.id}-${i}-${emp.name}`}
-            emp={emp}
-            department={department}
-            allDepartments={allDepartments}
-            onMove={(targetId) => onMove(targetId, i)}
-            onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
-            onDelete={() => onDelete(department.id, i)}
-          />
-        ))}
-      </div>
-      
-      {/* Footer count indicator */}
-      <div className="px-6 py-4 bg-[#2C2C2E]/20 flex items-center justify-center border-t border-[#2C2C2E]">
-        <span className="text-[#34C759] font-medium flex items-center text-[15px]">
+        <div className="flex items-center text-[#34C759] font-semibold text-[14px] bg-[#34C759]/10 px-4 py-2 rounded-full">
           <CheckCircle2 className="w-4 h-4 mr-2" />
-          Quant MAQ: {department.count}
-        </span>
+          {department.count} Colab.
+        </div>
+      </div>
+
+      {/* Área Direita (Grade de Colaboradores) */}
+      <div className="flex-1 p-5 bg-[#121212]/30">
+        <div className="grid grid-cols-1 gap-4">
+          {department.data.map((emp, i) => (
+            <EmployeeRow
+              key={`${department.id}-${i}-${emp.name}`}
+              emp={emp}
+              department={department}
+              allDepartments={allDepartments}
+              onMove={(targetId) => onMove(targetId, i)}
+              onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
+              onDelete={() => onDelete(department.id, i)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -311,130 +351,343 @@ function EmployeeRow({
   onUpdateEmployee: (field: keyof Employee, value: string) => void;
   onDelete: () => void;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [showLineDropdown, setShowLineDropdown] = useState(false);
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showTransferMenu, setShowTransferMenu] = useState(false);
   const otherDepts = allDepartments.filter(d => d.id !== department.id);
 
   return (
     <div
-      onClick={() => setIsExpanded(!isExpanded)}
-      className={`relative flex flex-col cursor-pointer rounded-[20px] shadow-sm border border-[#2C2C2E]/60 hover:border-[#8E8E93]/40 transition-all ${
-        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818] border-red-500/50 hover:border-red-500' : 'bg-[#252525] hover:bg-[#2C2C2E]'
+      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm transition-all overflow-visible ${
+        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#1A202C] hover:bg-[#4a5568]'
       }`}
     >
       {/* Main Row Content */}
-      <div className="px-5 py-4 flex items-center justify-between">
-        {emp.error && (
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-[20px] bg-red-500" />
-        )}
+      <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
         
-        {/* Row Content */}
-        <div className="flex-1 flex items-center justify-between w-full">
-          <div className={`flex items-center px-4 py-2.5 rounded-[14px] shrink min-w-0 mr-3 shadow-md border ${
-            emp.error ? 'bg-[#4A1818] border-red-500/30' : 'bg-[#1A1A1C] border-[#2C2C2E]'
-          }`}>
-            <span className={`font-semibold text-[17px] tracking-wide truncate ${emp.error ? 'text-red-400' : 'text-[#E5E5EA]'}`}>
-              {emp.name}
-            </span>
+        {/* Top Row: Avatar, Nome e Botão de Expandir */}
+        <div className="flex items-center justify-between w-full bg-[#2D3748] border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+          <div className="flex items-center min-w-0">
+            {/* Avatar Container with Pop-up Menu */}
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAvatarMenu(!showAvatarMenu);
+                }}
+                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${
+                  emp.error ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-[#82B1FF] text-[#0D47A1] hover:bg-[#82B1FF]/80'
+                }`}
+              >
+                <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
+              </button>
+
+              <AnimatePresence>
+                {showAvatarMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={(e) => { e.stopPropagation(); setShowAvatarMenu(false); }}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-[110%] left-0 w-[120px] bg-[#1A202C] border border-[#FF3B30]/30 rounded-[12px] shadow-xl z-50 overflow-hidden flex flex-col"
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAvatarMenu(false);
+                          onDelete();
+                        }}
+                        className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
+                      >
+                        <Trash2 className="w-[16px] h-[16px] mr-2" />
+                        Deletar
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            <div className="flex flex-col min-w-0">
+              <span className={`font-bold text-[14px] tracking-wide truncate uppercase ${emp.error ? 'text-red-400' : 'text-white'}`}>
+                {emp.name}
+              </span>
+              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate">Matrícula: {emp.machine || 'N/A'}</span>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-2.5 shrink-0">
+          {/* Transfer Button */}
+          <div className="relative">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTransferMenu(!showTransferMenu);
+              }}
+              className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 ml-1 transition-colors outline-none ${emp.error ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' : 'bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white'}`}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+            </button>
+            
+            <AnimatePresence>
+              {showTransferMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[110%] right-0 w-[180px] bg-[#1A202C] border border-white/10 rounded-[12px] shadow-xl z-50 overflow-hidden flex flex-col py-1"
+                  >
+                    <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
+                    {otherDepts.map(d => {
+                      const theme = getDeptTheme(d.id);
+                      return (
+                        <button
+                          key={d.id}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            onMove(d.id); 
+                            setShowTransferMenu(false); 
+                          }}
+                          className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#4a5568] transition-colors w-full text-left"
+                        >
+                          <div className={`mr-2 p-1 rounded-md ${theme.bg} ${theme.color}`}>
+                            {React.cloneElement(theme.icon, { className: 'w-3 h-3' })}
+                          </div>
+                          {d.title}
+                        </button>
+                      );
+                    })}
+                    <div className="h-px bg-white/5 my-1 mx-2" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                      className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors w-full text-left"
+                    >
+                      <div className="mr-2 p-1 rounded-md bg-[#BF5AF2]/15 text-[#BF5AF2]">
+                        <Zap className="w-3 h-3" />
+                      </div>
+                      Tarefa Especial
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                      className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#00C7BE] hover:bg-[#00C7BE]/10 transition-colors w-full text-left"
+                    >
+                      <div className="mr-2 p-1 rounded-md bg-[#00C7BE]/15 text-[#00C7BE]">
+                        <Palmtree className="w-3 h-3" />
+                      </div>
+                      De Férias
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Bottom Row: Inputs "X3" e "238" menores */}
+        <div className="flex items-center justify-center gap-3 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col items-center relative">
             <input
               type="text"
               value={emp.line}
-              onChange={(e) => onUpdateEmployee('line', e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              className={`px-3 py-1.5 rounded-[10px] text-[15px] font-bold w-[65px] text-center shadow-sm placeholder-[#8E8E93]/50 focus:outline-none focus:ring-2 focus:ring-[#8E8E93]/50 ${
-                emp.error 
-                  ? 'bg-red-500 text-white' 
-                  : 'bg-[#1C1C1E] text-[#8E8E93] border border-[#2C2C2E]'
-              }`}
+              onFocus={() => setShowLineDropdown(true)}
+              onBlur={() => setTimeout(() => setShowLineDropdown(false), 200)}
+              onChange={(e) => {
+                onUpdateEmployee('line', e.target.value);
+                setShowLineDropdown(true);
+              }}
+              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all relative z-10"
             />
+            <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Linha</span>
+
+            {/* Menu Suspenso Customizado (Combobox) */}
+            <AnimatePresence>
+              {showLineDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-[38px] left-1/2 -translate-x-1/2 w-[130px] max-h-[150px] overflow-y-auto bg-[#2D3748] border border-white/10 rounded-[8px] shadow-2xl z-50 flex flex-col py-1 hide-scrollbar"
+                >
+                  {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
+                    <button
+                      key={linha}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); 
+                        onUpdateEmployee('line', linha);
+                        setShowLineDropdown(false);
+                      }}
+                      className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
+                    >
+                      {linha}
+                    </button>
+                  ))}
+                  {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).length === 0 && (
+                    <div className="px-2 py-1.5 text-[10px] text-[#a0aec0] text-center font-medium uppercase tracking-wide">Pressione Enter</div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex flex-col items-center">
             <input
               type="text"
               value={emp.machine}
               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              className={`px-3 py-1.5 rounded-[10px] text-[15px] font-extrabold w-[65px] text-center shadow-sm placeholder-[#FF9F0A]/50 focus:outline-none focus:ring-2 focus:ring-[#FF9F0A]/50 ${
-                emp.error 
-                  ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
-                  : 'bg-[#FF9F0A]/15 text-[#FF9F0A] border border-[#FF9F0A]/20'
-              }`}
+              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#F59E0B] text-white shadow-sm border-none hover:bg-[#D97706] transition-all"
             />
-            <ChevronDown className={`w-5 h-5 text-[#8E8E93] ml-1 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+            <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Loco</span>
           </div>
         </div>
       </div>
 
-      {/* Accordion Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 pt-1 flex flex-wrap gap-2 border-t border-[#2C2C2E]/50 mx-2 mt-1">
-              {otherDepts.map(d => {
-                const theme = getDeptTheme(d.id);
-                return (
-                  <button
-                    key={d.id}
-                    onClick={(e) => { e.stopPropagation(); onMove(d.id); setIsExpanded(false); }}
-                    className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl shrink-0 transition-transform active:scale-95 mt-3 ${theme.bg} ${theme.color} mix-blend-lighten`}
-                  >
-                    {React.cloneElement(theme.icon, { className: 'w-[18px] h-[18px]' })}
-                    <span className="text-[14px] font-semibold whitespace-nowrap opacity-90">{d.title}</span>
-                  </button>
-                )
-              })}
-              
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
-                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl shrink-0 transition-transform active:scale-95 mt-3 bg-[#BF5AF2]/15 text-[#BF5AF2] mix-blend-lighten"
-              >
-                <Zap className="w-[18px] h-[18px]" />
-                <span className="text-[14px] font-semibold whitespace-nowrap opacity-90">TE</span>
-              </button>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(); setIsExpanded(false); }}
-                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl shrink-0 transition-transform active:scale-95 mt-3 bg-red-500/15 text-red-500 mix-blend-lighten"
-              >
-                <Trash2 className="w-[18px] h-[18px]" />
-                <span className="text-[14px] font-semibold whitespace-nowrap opacity-90">Deletar</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
-function SupportCard({ roles, index }: { key?: string | number, roles: SupportRole[], index: number }) {
+function SupportCard({ 
+  roles, 
+  groupIndex, 
+  onUpdateRole,
+  onMoveSupport
+}: { 
+  roles: SupportRole[]; 
+  groupIndex: number; 
+  onUpdateRole: (groupIndex: number, empIndex: number, newRole: string) => void;
+  onMoveSupport: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
+}) {
   return (
-    <div className="bg-[#1C1C1E] rounded-[24px] overflow-hidden flex flex-col">
+    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col">
       {/* Support Card Header */}
-      <div className="px-5 py-4 border-b border-[#2C2C2E] bg-[#2C2C2E]/20">
-        <h4 className="text-[#8E8E93] text-sm uppercase tracking-wider font-semibold">Grupo {index}</h4>
+      <div className="px-5 py-4 border-b border-[#1A202C] bg-[#1A202C]/20">
+        <h4 className="text-[#a0aec0] text-sm uppercase tracking-wider font-semibold">Grupo {groupIndex + 1}</h4>
       </div>
       
       {/* Support List */}
       <div className="p-2 space-y-1">
         {roles.map((emp, i) => (
-          <div 
+          <SupportRoleRow 
             key={i} 
-            className="px-4 py-3 flex items-center justify-between rounded-[16px] hover:bg-[#2C2C2E]/50 transition-colors"
-          >
-            <span className="font-medium text-[16px] text-white">
-              {emp.name}
-            </span>
-            <span className="text-[#8E8E93] text-sm font-medium bg-[#2C2C2E] px-3 py-1 rounded-lg">
-              {emp.role}
-            </span>
-          </div>
+            emp={emp} 
+            groupIndex={groupIndex}
+            onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
+            onMove={(targetGroupIndex) => onMoveSupport(groupIndex, targetGroupIndex, i)}
+          />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function SupportRoleRow({ 
+  emp, 
+  groupIndex,
+  onUpdateRole,
+  onMove
+}: { 
+  emp: SupportRole; 
+  groupIndex: number;
+  onUpdateRole: (newRole: string) => void;
+  onMove: (targetGroupIndex: number) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+  
+  const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
+  
+  return (
+    <div className="px-4 py-2.5 flex items-center justify-between rounded-[16px] hover:bg-[#1A202C]/50 transition-colors relative">
+      <span className="font-medium text-[15px] text-white">
+        {emp.name}
+      </span>
+      <div className="flex items-center gap-2 relative">
+        {/* Transfer Button */}
+        <div className="relative">
+          <button
+            onClick={() => setIsTransferOpen(!isTransferOpen)}
+            className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5" />
+          </button>
+          
+          <AnimatePresence>
+            {isTransferOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsTransferOpen(false)} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-[115%] w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
+                >
+                  <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
+                  {groupsList.map(g => (
+                    <button
+                      key={g}
+                      onClick={() => {
+                        onMove(g);
+                        setIsTransferOpen(false);
+                      }}
+                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
+                    >
+                      Grupo {g + 1}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Role Tag Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors outline-none shadow-sm"
+          >
+            {emp.role}
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+
+          <AnimatePresence>
+            {isOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-[115%] w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
+                >
+                  {SUPPORT_ROLES_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        onUpdateRole(opt);
+                        setIsOpen(false);
+                      }}
+                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
