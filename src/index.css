@@ -10,7 +10,7 @@ body,
     width: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-    background-color: #1A202C;
+    background-color: #111217;
     -webkit-overflow-scrolling: touch;
     transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }

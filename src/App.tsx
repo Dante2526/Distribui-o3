@@ -1,6 +1,24 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+// --- Portal Popup Anchor: calcula posição real na tela para renderizar fora do overflow-hidden ---
+function useAnchoredRect(triggerRef: React.RefObject<HTMLElement | null>, open: boolean) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      setRect(triggerRef.current.getBoundingClientRect());
+    } else {
+      setRect(null);
+    }
+  }, [open, triggerRef]);
+  return rect;
+}
+
+function PortalMenu({ children }: { children: React.ReactNode }) {
+  return createPortal(children, document.body);
+}
 
 // --- Data Models ---
 type Employee = {
@@ -20,6 +38,16 @@ type Department = {
 type SupportRole = {
   name: string;
   role: string;
+};
+
+type AnnotationItem = {
+  name: string;
+  status: string;
+};
+
+type AnnotationGroup = {
+  title: string;
+  items: AnnotationItem[];
 };
 
 // --- Mock Data based on the provided image ---
@@ -99,6 +127,68 @@ const initialSupportData: SupportRole[][] = [
   ],
 ];
 
+const initialAnnotationsLeft: AnnotationGroup[] = [
+  {
+    title: 'FÉRIAS/ATM/TE/TREIN./REVEZA',
+    items: [
+      { name: 'WEBERTH', status: 'TREINAMENTO' },
+      { name: 'RAFAEL', status: 'TREINAMENTO' },
+      { name: 'ARTHUR', status: 'TREINAMENTO' },
+      { name: 'GERALDO', status: 'TREINAMENTO' },
+      { name: '', status: '' },
+      { name: '', status: '' },
+    ]
+  },
+  {
+    title: 'AUSENTES/FORA/FÉRIAS',
+    items: [
+      { name: 'ALDO', status: 'FÉRIAS' },
+      { name: 'KEYLSON', status: 'FÉRIAS' },
+      { name: 'JOANDERSON', status: 'FÉRIAS' },
+      { name: '', status: '' },
+      { name: '', status: '' },
+      { name: '', status: '' },
+    ]
+  }
+];
+
+const initialAnnotationsRight: AnnotationGroup[] = [
+  {
+    title: 'MAQ/OOF ESTÁGIO',
+    items: [
+      { name: 'THAIS', status: 'ESTÁGIO' },
+      { name: 'ELIAS', status: 'ESTÁGIO' },
+      { name: 'JESSICA', status: 'ESTÁGIO' },
+      { name: 'GIANFRANCO', status: 'ESTÁGIO' },
+      { name: 'THAIS', status: 'ESTÁGIO' },
+      { name: 'BEATRIZ', status: 'ESTÁGIO' },
+      { name: 'DENISSON', status: '' },
+    ]
+  },
+  {
+    title: 'TREINAMENTO / FÉRIAS/ ATM / TE',
+    items: [
+      { name: 'ANA PAULA', status: 'RESTRIÇÃO' },
+      { name: 'JONH', status: 'RESTRIÇÃO' },
+      { name: 'ANA BEATRIZ', status: 'INSS' },
+      { name: 'CAMILE', status: 'ATM' },
+      { name: '', status: '' },
+      { name: 'MARCO POLO', status: 'FÉRIAS' },
+      { name: 'ADRYELLEN', status: 'FÉRIAS' },
+      { name: 'LARISSA', status: 'FORA' },
+      { name: '', status: '' },
+    ]
+  },
+  {
+    title: 'FÉRIAS/IN SP/LICENÇA',
+    items: [
+      { name: 'EDNELSON', status: 'INSS' },
+      { name: '', status: '' },
+      { name: '', status: '' },
+    ]
+  }
+];
+
 const getDeptTheme = (deptId: string) => {
   switch (deptId) {
     case 'recepcao':
@@ -112,9 +202,117 @@ const getDeptTheme = (deptId: string) => {
   }
 };
 
+function AnnotationsBoard({ 
+  leftGroups, 
+  rightGroups,
+  onUpdateLeft,
+  onUpdateRight
+}: { 
+  leftGroups: AnnotationGroup[];
+  rightGroups: AnnotationGroup[];
+  onUpdateLeft: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
+  onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
+}) {
+  return (
+    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-center bg-[#15171E]">
+        <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">ANOTAÇÕES MINÉRIO</h3>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-row gap-6">
+        {/* Left Column */}
+        <div className="flex-1 flex flex-col gap-6">
+          {leftGroups.map((group, groupIdx) => (
+            <div key={groupIdx} className="flex flex-col">
+              <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 text-[#FF9F0A] py-2 px-3 rounded-t-[10px] text-[12px] font-bold uppercase tracking-wider text-center">
+                {group.title}
+              </div>
+              <div className="flex flex-col gap-1 mt-1">
+                {group.items.map((item, itemIdx) => (
+                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
+                    <input 
+                      type="text" 
+                      value={item.name} 
+                      onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
+                      placeholder="Nome..."
+                      className="bg-transparent text-white text-[13px] font-bold uppercase w-1/2 focus:outline-none placeholder:text-[#a0aec0]/30" 
+                    />
+                    <input 
+                      type="text" 
+                      value={item.status} 
+                      onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'status', e.target.value)}
+                      placeholder="Status"
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-1/2 text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Column */}
+        <div className="flex-1 flex flex-col gap-6">
+          {rightGroups.map((group, groupIdx) => (
+            <div key={groupIdx} className="flex flex-col">
+              <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 text-[#FF9F0A] py-2 px-3 rounded-t-[10px] text-[12px] font-bold uppercase tracking-wider text-center">
+                {group.title}
+              </div>
+              <div className="flex flex-col gap-1 mt-1">
+                {group.items.map((item, itemIdx) => (
+                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
+                    <input 
+                      type="text" 
+                      value={item.name} 
+                      onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
+                      placeholder="Nome..."
+                      className="bg-transparent text-white text-[13px] font-bold uppercase w-1/2 focus:outline-none placeholder:text-[#a0aec0]/30" 
+                    />
+                    <input 
+                      type="text" 
+                      value={item.status} 
+                      onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'status', e.target.value)}
+                      placeholder="Status"
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-1/2 text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
+  const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>(initialAnnotationsLeft);
+  const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>(initialAnnotationsRight);
+
+  const handleUpdateAnnotationLeft = (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
+    setAnnotationsLeft(prev => {
+      const newGroups = [...prev];
+      const newItems = [...newGroups[groupIndex].items];
+      newItems[itemIndex] = { ...newItems[itemIndex], [field]: value };
+      newGroups[groupIndex] = { ...newGroups[groupIndex], items: newItems };
+      return newGroups;
+    });
+  };
+
+  const handleUpdateAnnotationRight = (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
+    setAnnotationsRight(prev => {
+      const newGroups = [...prev];
+      const newItems = [...newGroups[groupIndex].items];
+      newItems[itemIndex] = { ...newItems[itemIndex], [field]: value };
+      newGroups[groupIndex] = { ...newGroups[groupIndex], items: newItems };
+      return newGroups;
+    });
+  };
 
   // --- Viewport & Scale Refs (Painel DSS Pattern) ---
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -404,17 +602,19 @@ export default function App() {
     });
   };
 
+  const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
+
   return (
-    <div className="bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
+    <div className="bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
       {/* Viewport - Scroll Container (Painel DSS Pattern) */}
-      <div ref={viewportRef} className="viewport fixed inset-0 bg-[#1A202C]">
+      <div ref={viewportRef} className="viewport fixed inset-0 bg-[#111217]">
         {/* Content Wrapper - Carries the scaled dimensions for scroll area */}
         <div ref={contentWrapperRef} className="origin-top-left">
           {/* Scalable Container - The actual content that gets scaled */}
-          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-[#1A202C]">
+          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-[#111217]">
 
             {/* Header Card - Painel DSS Style */}
-            <div className="bg-[#2D3748] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
+            <div className="bg-[#1E2029] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
               <div className="flex items-center gap-6">
                 <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
                   <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
@@ -434,19 +634,30 @@ export default function App() {
 
             {/* Main Content Area */}
             <div className="space-y-8">
-              {/* Main Departments Grid - Always 3 columns */}
+              {/* Main Departments Grid - Always 3 columns + Annotations */}
               <div className="flex gap-6 w-max">
                 {departmentsData.map((dept) => (
                   <div key={dept.id} className="w-[500px] shrink-0">
                     <DepartmentCard 
                       department={dept} 
                       allDepartments={departmentsData}
+                      maxCount={maxCount}
                       onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
                       onUpdateEmployee={handleUpdateEmployeeField}
                       onDelete={handleDelete}
                     />
                   </div>
                 ))}
+
+                {/* NOVO ESPAÇO: ANOTAÇÕES MINÉRIO */}
+                <div className="w-[560px] shrink-0">
+                  <AnnotationsBoard 
+                    leftGroups={annotationsLeft} 
+                    rightGroups={annotationsRight} 
+                    onUpdateLeft={handleUpdateAnnotationLeft}
+                    onUpdateRight={handleUpdateAnnotationRight}
+                  />
+                </div>
               </div>
 
               {/* Section Divider */}
@@ -482,12 +693,14 @@ export default function App() {
 function DepartmentCard({ 
   department, 
   allDepartments,
+  maxCount,
   onMove,
   onUpdateEmployee,
   onDelete
 }: { 
   department: Department;
   allDepartments: Department[];
+  maxCount: number;
   onMove: (targetDeptId: string, empIndex: number) => void;
   onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
   onDelete: (deptId: string, empIndex: number) => void;
@@ -495,24 +708,24 @@ function DepartmentCard({
   const theme = getDeptTheme(department.id);
 
   return (
-    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02]">
+    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
       {/* Cabeçalho do Setor */}
-      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-between bg-[#242529]">
+      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.color}`}>
             {React.cloneElement(theme.icon as React.ReactElement, { className: "w-6 h-6" })}
           </div>
           <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">{department.title}</h3>
         </div>
-        <div className="flex items-center text-[#34C759] font-semibold text-[14px] bg-[#34C759]/10 px-4 py-2 rounded-full">
+        <div className={`flex items-center font-semibold text-[14px] px-4 py-2 rounded-full ${theme.color} ${theme.bg}`}>
           <CheckCircle2 className="w-4 h-4 mr-2" />
           {department.count} Colab.
         </div>
       </div>
 
       {/* Área Direita (Grade de Colaboradores) */}
-      <div className="flex-1 p-5 bg-[#121212]/30">
-        <div className="grid grid-cols-1 gap-4">
+      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
+        <div className="grid grid-cols-1 gap-4 flex-1">
           {department.data.map((emp, i) => (
             <EmployeeRow
               key={`${department.id}-${i}-${emp.name}`}
@@ -522,6 +735,13 @@ function DepartmentCard({
               onMove={(targetId) => onMove(targetId, i)}
               onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
               onDelete={() => onDelete(department.id, i)}
+            />
+          ))}
+          {/* Slots vazios de preenchimento para igualar a altura máxima */}
+          {Array.from({ length: Math.max(0, maxCount - department.data.length) }).map((_, idx) => (
+            <div
+              key={`empty-${department.id}-${idx}`}
+              className="min-h-[140px] select-none pointer-events-none"
             />
           ))}
         </div>
@@ -551,24 +771,35 @@ function EmployeeRow({
   const [showTransferMenu, setShowTransferMenu] = useState(false);
   const otherDepts = allDepartments.filter(d => d.id !== department.id);
 
+  // Refs para ancorar os portals à posição real na tela
+  const avatarBtnRef = useRef<HTMLButtonElement>(null);
+  const transferBtnRef = useRef<HTMLButtonElement>(null);
+  const lineInputRef = useRef<HTMLInputElement>(null);
+
+  const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
+  const transferRect = useAnchoredRect(transferBtnRef, showTransferMenu);
+  const lineRect = useAnchoredRect(lineInputRef, showLineDropdown);
+
   return (
     <div
-      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm transition-all overflow-visible ${
-        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#1A202C] hover:bg-[#4a5568]'
+      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm transition-all ${
+        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
       }`}
     >
       {/* Main Row Content */}
       <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
         
         {/* Top Row: Avatar, Nome e Botão de Expandir */}
-        <div className="flex items-center justify-between w-full bg-[#2D3748] border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+        <div className="flex items-center justify-between w-full bg-[#1E2029] border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
           <div className="flex items-center min-w-0">
             {/* Avatar Container with Pop-up Menu */}
             <div className="relative">
               <button 
+                ref={avatarBtnRef}
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowAvatarMenu(!showAvatarMenu);
+                  setShowTransferMenu(false);
                 }}
                 className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${
                   emp.error ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-[#82B1FF] text-[#0D47A1] hover:bg-[#82B1FF]/80'
@@ -576,36 +807,6 @@ function EmployeeRow({
               >
                 <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
               </button>
-
-              <AnimatePresence>
-                {showAvatarMenu && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={(e) => { e.stopPropagation(); setShowAvatarMenu(false); }}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-[110%] left-0 w-[120px] bg-[#1A202C] border border-[#FF3B30]/30 rounded-[12px] shadow-xl z-50 overflow-hidden flex flex-col"
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAvatarMenu(false);
-                          onDelete();
-                        }}
-                        className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
-                      >
-                        <Trash2 className="w-[16px] h-[16px] mr-2" />
-                        Deletar
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
             </div>
             
             <div className="flex flex-col min-w-0">
@@ -619,79 +820,24 @@ function EmployeeRow({
           {/* Transfer Button */}
           <div className="relative">
             <button 
+              ref={transferBtnRef}
               onClick={(e) => {
                 e.stopPropagation();
                 setShowTransferMenu(!showTransferMenu);
+                setShowAvatarMenu(false);
               }}
               className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 ml-1 transition-colors outline-none ${emp.error ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' : 'bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white'}`}
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
             </button>
-            
-            <AnimatePresence>
-              {showTransferMenu && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-[110%] right-0 w-[180px] bg-[#1A202C] border border-white/10 rounded-[12px] shadow-xl z-50 overflow-hidden flex flex-col py-1"
-                  >
-                    <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
-                    {otherDepts.map(d => {
-                      const theme = getDeptTheme(d.id);
-                      return (
-                        <button
-                          key={d.id}
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            onMove(d.id); 
-                            setShowTransferMenu(false); 
-                          }}
-                          className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#4a5568] transition-colors w-full text-left"
-                        >
-                          <div className={`mr-2 p-1 rounded-md ${theme.bg} ${theme.color}`}>
-                            {React.cloneElement(theme.icon, { className: 'w-3 h-3' })}
-                          </div>
-                          {d.title}
-                        </button>
-                      );
-                    })}
-                    <div className="h-px bg-white/5 my-1 mx-2" />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
-                      className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors w-full text-left"
-                    >
-                      <div className="mr-2 p-1 rounded-md bg-[#BF5AF2]/15 text-[#BF5AF2]">
-                        <Zap className="w-3 h-3" />
-                      </div>
-                      Tarefa Especial
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
-                      className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#00C7BE] hover:bg-[#00C7BE]/10 transition-colors w-full text-left"
-                    >
-                      <div className="mr-2 p-1 rounded-md bg-[#00C7BE]/15 text-[#00C7BE]">
-                        <Palmtree className="w-3 h-3" />
-                      </div>
-                      De Férias
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
           </div>
         </div>
 
-        {/* Bottom Row: Inputs "X3" e "238" menores */}
+        {/* Bottom Row: Inputs "Linha" e "Loco" */}
         <div className="flex items-center justify-center gap-3 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
           <div className="flex flex-col items-center relative">
             <input
+              ref={lineInputRef}
               type="text"
               value={emp.line}
               onFocus={() => setShowLineDropdown(true)}
@@ -700,39 +846,9 @@ function EmployeeRow({
                 onUpdateEmployee('line', e.target.value);
                 setShowLineDropdown(true);
               }}
-              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all relative z-10"
+              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Linha</span>
-
-            {/* Menu Suspenso Customizado (Combobox) */}
-            <AnimatePresence>
-              {showLineDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-[38px] left-1/2 -translate-x-1/2 w-[130px] max-h-[150px] overflow-y-auto bg-[#2D3748] border border-white/10 rounded-[8px] shadow-2xl z-50 flex flex-col py-1 hide-scrollbar"
-                >
-                  {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
-                    <button
-                      key={linha}
-                      onMouseDown={(e) => {
-                        e.preventDefault(); 
-                        onUpdateEmployee('line', linha);
-                        setShowLineDropdown(false);
-                      }}
-                      className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
-                    >
-                      {linha}
-                    </button>
-                  ))}
-                  {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).length === 0 && (
-                    <div className="px-2 py-1.5 text-[10px] text-[#a0aec0] text-center font-medium uppercase tracking-wide">Pressione Enter</div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
           <div className="flex flex-col items-center">
             <input
@@ -745,6 +861,142 @@ function EmployeeRow({
           </div>
         </div>
       </div>
+
+      {/* === PORTALS: renderizados fora do overflow-hidden === */}
+
+      {/* Portal: Menu Deletar (Avatar) */}
+      <AnimatePresence>
+        {showAvatarMenu && avatarRect && (
+          <PortalMenu>
+            <div className="fixed inset-0 z-[999]" onClick={() => setShowAvatarMenu(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: 'fixed',
+                top: avatarRect.bottom + 6,
+                left: avatarRect.left,
+                zIndex: 1000,
+              }}
+              className="w-[120px] bg-[#1E2029] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAvatarMenu(false);
+                  onDelete();
+                }}
+                className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
+              >
+                <Trash2 className="w-[16px] h-[16px] mr-2" />
+                Deletar
+              </button>
+            </motion.div>
+          </PortalMenu>
+        )}
+      </AnimatePresence>
+
+      {/* Portal: Menu Transferir */}
+      <AnimatePresence>
+        {showTransferMenu && transferRect && (
+          <PortalMenu>
+            <div className="fixed inset-0 z-[999]" onClick={() => setShowTransferMenu(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: 'fixed',
+                top: transferRect.bottom + 6,
+                left: transferRect.right - 180,
+                zIndex: 1000,
+              }}
+              className="w-[180px] bg-[#1E2029] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+            >
+              <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
+              {otherDepts.map(d => {
+                const theme = getDeptTheme(d.id);
+                return (
+                  <button
+                    key={d.id}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      onMove(d.id); 
+                      setShowTransferMenu(false); 
+                    }}
+                    className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#252836] transition-colors w-full text-left"
+                  >
+                    <div className={`mr-2 p-1 rounded-md ${theme.bg} ${theme.color}`}>
+                      {React.cloneElement(theme.icon, { className: 'w-3 h-3' })}
+                    </div>
+                    {d.title}
+                  </button>
+                );
+              })}
+              <div className="h-px bg-white/5 my-1 mx-2" />
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors w-full text-left"
+              >
+                <div className="mr-2 p-1 rounded-md bg-[#BF5AF2]/15 text-[#BF5AF2]">
+                  <Zap className="w-3 h-3" />
+                </div>
+                Tarefa Especial
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#00C7BE] hover:bg-[#00C7BE]/10 transition-colors w-full text-left"
+              >
+                <div className="mr-2 p-1 rounded-md bg-[#00C7BE]/15 text-[#00C7BE]">
+                  <Palmtree className="w-3 h-3" />
+                </div>
+                De Férias
+              </button>
+            </motion.div>
+          </PortalMenu>
+        )}
+      </AnimatePresence>
+
+      {/* Portal: Dropdown de Linhas */}
+      <AnimatePresence>
+        {showLineDropdown && lineRect && (
+          <PortalMenu>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: 'fixed',
+                top: lineRect.bottom + 4,
+                left: lineRect.left + lineRect.width / 2 - 65,
+                zIndex: 1000,
+              }}
+              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
+            >
+              {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
+                <button
+                  key={linha}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); 
+                    onUpdateEmployee('line', linha);
+                    setShowLineDropdown(false);
+                  }}
+                  className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
+                >
+                  {linha}
+                </button>
+              ))}
+              {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).length === 0 && (
+                <div className="px-2 py-1.5 text-[10px] text-[#a0aec0] text-center font-medium uppercase tracking-wide">Pressione Enter</div>
+              )}
+            </motion.div>
+          </PortalMenu>
+        )}
+      </AnimatePresence>
 
     </div>
   );
@@ -762,9 +1014,9 @@ function SupportCard({
   onMoveSupport: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
 }) {
   return (
-    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col">
+    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col">
       {/* Support Card Header */}
-      <div className="px-5 py-4 border-b border-[#1A202C] bg-[#1A202C]/20">
+      <div className="px-5 py-4 border-b border-[#111217] bg-[#111217]/20">
         <h4 className="text-[#a0aec0] text-sm uppercase tracking-wider font-semibold">Grupo {groupIndex + 1}</h4>
       </div>
       
@@ -801,7 +1053,7 @@ function SupportRoleRow({
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
   
   return (
-    <div className="px-4 py-2.5 flex items-center justify-between rounded-[16px] hover:bg-[#1A202C]/50 transition-colors relative">
+    <div className="px-4 py-2.5 flex items-center justify-between rounded-[16px] hover:bg-[#111217]/50 transition-colors relative">
       <span className="font-medium text-[15px] text-white">
         {emp.name}
       </span>
@@ -824,7 +1076,7 @@ function SupportRoleRow({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -5 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-[115%] w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
+                  className="absolute right-0 top-[115%] w-[150px] bg-[#1E2029] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
                 >
                   <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
                   {groupsList.map(g => (
