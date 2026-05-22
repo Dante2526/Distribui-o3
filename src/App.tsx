@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield } from 'lucide-react';
+import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // --- Portal Popup Anchor: calcula posição real na tela para renderizar fora do overflow-hidden ---
@@ -26,6 +26,10 @@ type Employee = {
   line: string;
   machine: string;
   error?: boolean;
+  originalDeptId?: string;
+  originalSupportGroupIndex?: number;
+  originalSupportRole?: string;
+  tagType?: 'MAQUINISTA' | 'OOF';
 };
 
 type Department = {
@@ -62,12 +66,12 @@ const initialDepartmentsData: Department[] = [
     title: 'Recepção',
     count: 6,
     data: [
-      { name: 'LUCIANO', line: 'X3', machine: '238' },
-      { name: 'RUFINO', line: 'X2', machine: '231' },
-      { name: 'GERALDO', line: 'X2', machine: '220' },
-      { name: 'RAFAEL', line: 'X1', machine: '848' },
-      { name: 'ARTHUR', line: 'X1', machine: '819' },
-      { name: 'WALTERILSON', line: '1º CORTE', machine: '253' },
+      { name: 'LUCIANO ALVES', line: 'X3', machine: '238' },
+      { name: 'RUFINO SANTOS', line: 'X2', machine: '231' },
+      { name: 'GERALDO COSTA', line: 'X2', machine: '220' },
+      { name: 'RAFAEL LIMA', line: 'X1', machine: '848' },
+      { name: 'ARTHUR SOUZA', line: 'X1', machine: '819' },
+      { name: 'WALTERILSON SILVA', line: '1º CORTE', machine: '253' },
     ],
   },
   {
@@ -75,14 +79,14 @@ const initialDepartmentsData: Department[] = [
     title: 'Classificação',
     count: 8,
     data: [
-      { name: 'NAIMARA', line: 'X04', machine: '805', error: true },
-      { name: 'DANIELLE', line: 'X04', machine: '257' },
-      { name: 'CID', line: 'X04', machine: '259' },
+      { name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
+      { name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
+      { name: 'CID PINTO', line: 'X04', machine: '259' },
       { name: 'IGOR RABELO', line: 'X04', machine: '3949' },
-      { name: 'NAYLAN', line: 'X05', machine: '847' },
-      { name: 'HUMBERTO', line: 'X05', machine: '743' },
-      { name: 'PEDRO JR', line: 'X05', machine: '712' },
-      { name: 'NAYRON', line: 'X05', machine: '284' },
+      { name: 'NAYLAN ROCHA', line: 'X05', machine: '847' },
+      { name: 'HUMBERTO NUNES', line: 'X05', machine: '743' },
+      { name: 'PEDRO JUNIOR', line: 'X05', machine: '712' },
+      { name: 'NAYRON DIAS', line: 'X05', machine: '284' },
     ],
   },
   {
@@ -90,11 +94,11 @@ const initialDepartmentsData: Department[] = [
     title: 'Formação',
     count: 5,
     data: [
-      { name: 'JESSICA', line: 'CTR2', machine: '2003' },
-      { name: 'DANIEL', line: 'CTR3', machine: '270' },
-      { name: 'GABRIEL', line: '4C', machine: '288' },
-      { name: 'PEDRO C.', line: '4C', machine: '260' },
-      { name: 'ROSANA', line: '201 B', machine: '277' },
+      { name: 'JESSICA BARROS', line: 'CTR2', machine: '2003' },
+      { name: 'DANIEL ALMEIDA', line: 'CTR3', machine: '270' },
+      { name: 'GABRIEL CARVALHO', line: '4C', machine: '288' },
+      { name: 'PEDRO CARDOSO', line: '4C', machine: '260' },
+      { name: 'ROSANA TEIXEIRA', line: '201 B', machine: '277' },
     ],
   },
 ];
@@ -111,19 +115,19 @@ const SUPPORT_ROLES_OPTIONS = [
 
 const initialSupportData: SupportRole[][] = [
   [
-    { name: 'BEATRIZ', role: 'MIKE 02' },
-    { name: 'AMÉRICO', role: 'VIRADOR' },
-    { name: 'ESDRAS', role: 'VIRADOR' },
-    { name: 'LARISSA', role: 'VIRADOR' },
+    { name: 'BEATRIZ SILVA', role: 'MIKE 02' },
+    { name: 'AMÉRICO SANTOS', role: 'VIRADOR' },
+    { name: 'ESDRAS SOUZA', role: 'VIRADOR' },
+    { name: 'LARISSA COSTA', role: 'VIRADOR' },
   ],
   [
-    { name: 'CAMILE', role: 'MIKE 03' },
-    { name: 'ALBERTO', role: 'AUX GIROFLEX' },
-    { name: 'RICARDO', role: 'AUX GIROFLEX' },
+    { name: 'CAMILE BARROS', role: 'MIKE 03' },
+    { name: 'ALBERTO LIMA', role: 'AUX GIROFLEX' },
+    { name: 'RICARDO ROCHA', role: 'AUX GIROFLEX' },
   ],
   [
-    { name: 'LUANA', role: 'MIKE 06' },
-    { name: 'ROSA', role: 'AUX X6' },
+    { name: 'LUANA ALVES', role: 'MIKE 06' },
+    { name: 'ROSA MENDES', role: 'AUX X6' },
   ],
 ];
 
@@ -131,10 +135,10 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
   {
     title: 'FÉRIAS/ATM/TE/TREIN./REVEZA',
     items: [
-      { name: 'WEBERTH', status: 'TREINAMENTO' },
-      { name: 'RAFAEL', status: 'TREINAMENTO' },
-      { name: 'ARTHUR', status: 'TREINAMENTO' },
-      { name: 'GERALDO', status: 'TREINAMENTO' },
+      { name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
+      { name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
+      { name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
+      { name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
       { name: '', status: '' },
       { name: '', status: '' },
     ]
@@ -142,9 +146,9 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
   {
     title: 'AUSENTES/FORA/FÉRIAS',
     items: [
-      { name: 'ALDO', status: 'FÉRIAS' },
-      { name: 'KEYLSON', status: 'FÉRIAS' },
-      { name: 'JOANDERSON', status: 'FÉRIAS' },
+      { name: 'ALDO RIBEIRO', status: 'FÉRIAS' },
+      { name: 'KEYLSON LIMA', status: 'FÉRIAS' },
+      { name: 'JOANDERSON ALVES', status: 'FÉRIAS' },
       { name: '', status: '' },
       { name: '', status: '' },
       { name: '', status: '' },
@@ -154,35 +158,35 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
 
 const initialAnnotationsRight: AnnotationGroup[] = [
   {
-    title: 'MAQ/OOF ESTÁGIO',
+    title: 'MAQ/OFF - ESTÁGIO',
     items: [
-      { name: 'THAIS', status: 'ESTÁGIO' },
-      { name: 'ELIAS', status: 'ESTÁGIO' },
-      { name: 'JESSICA', status: 'ESTÁGIO' },
-      { name: 'GIANFRANCO', status: 'ESTÁGIO' },
-      { name: 'THAIS', status: 'ESTÁGIO' },
-      { name: 'BEATRIZ', status: 'ESTÁGIO' },
-      { name: 'DENISSON', status: '' },
+      { name: 'THAIS OLIVEIRA', status: 'ESTÁGIO' },
+      { name: 'ELIAS PEREIRA', status: 'ESTÁGIO' },
+      { name: 'JESSICA RODRIGUES', status: 'ESTÁGIO' },
+      { name: 'GIANFRANCO NUNES', status: 'ESTÁGIO' },
+      { name: 'THAIS GOMES', status: 'ESTÁGIO' },
+      { name: 'BEATRIZ BARBOSA', status: 'ESTÁGIO' },
+      { name: 'DENISSON MARTINS', status: '' },
     ]
   },
   {
     title: 'TREINAMENTO / FÉRIAS/ ATM / TE',
     items: [
-      { name: 'ANA PAULA', status: 'RESTRIÇÃO' },
-      { name: 'JONH', status: 'RESTRIÇÃO' },
-      { name: 'ANA BEATRIZ', status: 'INSS' },
-      { name: 'CAMILE', status: 'ATM' },
+      { name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO' },
+      { name: 'JONH CARDOSO', status: 'RESTRIÇÃO' },
+      { name: 'ANA BEATRIZ LIMA', status: 'INSS' },
+      { name: 'CAMILE MOREIRA', status: 'ATM' },
       { name: '', status: '' },
-      { name: 'MARCO POLO', status: 'FÉRIAS' },
-      { name: 'ADRYELLEN', status: 'FÉRIAS' },
-      { name: 'LARISSA', status: 'FORA' },
+      { name: 'MARCO POLO SOUZA', status: 'FÉRIAS' },
+      { name: 'ADRYELLEN VIEIRA', status: 'FÉRIAS' },
+      { name: 'LARISSA DIAS', status: 'FORA' },
       { name: '', status: '' },
     ]
   },
   {
     title: 'FÉRIAS/IN SP/LICENÇA',
     items: [
-      { name: 'EDNELSON', status: 'INSS' },
+      { name: 'EDNELSON MELO', status: 'INSS' },
       { name: '', status: '' },
       { name: '', status: '' },
     ]
@@ -236,15 +240,15 @@ function AnnotationsBoard({
                       type="text" 
                       value={item.name} 
                       onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
-                      placeholder="Nome..."
-                      className="bg-transparent text-white text-[13px] font-bold uppercase w-1/2 focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      placeholder="NOME E SOBRENOME"
+                      className="bg-transparent text-white text-[13px] font-bold uppercase w-[68%] focus:outline-none placeholder:text-[#a0aec0]/30" 
                     />
                     <input 
                       type="text" 
                       value={item.status} 
                       onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'status', e.target.value)}
                       placeholder="Status"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-1/2 text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[32%] text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
                     />
                   </div>
                 ))}
@@ -267,15 +271,15 @@ function AnnotationsBoard({
                       type="text" 
                       value={item.name} 
                       onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
-                      placeholder="Nome..."
-                      className="bg-transparent text-white text-[13px] font-bold uppercase w-1/2 focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      placeholder="NOME E SOBRENOME"
+                      className="bg-transparent text-white text-[13px] font-bold uppercase w-[68%] focus:outline-none placeholder:text-[#a0aec0]/30" 
                     />
                     <input 
                       type="text" 
                       value={item.status} 
                       onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'status', e.target.value)}
                       placeholder="Status"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-1/2 text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[32%] text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
                     />
                   </div>
                 ))}
@@ -288,11 +292,252 @@ function AnnotationsBoard({
   );
 }
 
+// --- Admin Modal Component ---
+const ADMIN_PASSWORD = 'adm2025';
+
+function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+  isOpen: boolean;
+  onClose: () => void;
+  isAdmin: boolean;
+  onLogin: (password: string) => void;
+  onLogout: () => void;
+}) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setError('');
+      setPassword('');
+      onLogin(password);
+    } else {
+      setError('Senha incorreta. Tente novamente.');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#1E2029] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4 animate-[fadeInScale_0.25s_ease-out_forwards]"
+        onClick={(e) => e.stopPropagation()}
+        style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[#a0aec0] hover:text-white text-3xl z-10 transition-colors"
+        >
+          &times;
+        </button>
+
+        {/* Icon */}
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/30">
+          <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+          </svg>
+        </div>
+
+        {isAdmin ? (
+          // Painel de opções do administrador
+          <>
+            <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Painel do Administrador</h2>
+            <p className="text-sm text-[#a0aec0] mb-6">Você está logado como administrador</p>
+            <div className="flex flex-col gap-3">
+              <div className="bg-[#111217] rounded-xl p-4 border border-white/5 text-left">
+                <p className="text-xs text-[#a0aec0] uppercase tracking-wider font-bold mb-2">Sessão Ativa</p>
+                <p className="text-white font-semibold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span>
+                  Administrador autenticado
+                </p>
+              </div>
+              <button
+                onClick={onLogout}
+                className="w-full py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-red-500/30"
+              >
+                ENCERRAR SESSÃO
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full py-3 bg-white/5 border border-white/10 text-[#a0aec0] font-bold rounded-xl hover:bg-white/10 transition-all"
+              >
+                FECHAR
+              </button>
+            </div>
+          </>
+        ) : (
+          // Formulário de login
+          <>
+            <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Acesso Administrativo</h2>
+            <p className="text-sm text-[#a0aec0] mb-6">Digite a senha para continuar</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="password"
+                placeholder="Senha do Administrador"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-4 bg-[#111217] border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/30 transition-all"
+                autoFocus
+              />
+              {error && (
+                <p className="text-sm text-red-400 font-semibold text-left px-1">{error}</p>
+              )}
+              <button
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-purple-500/30"
+              >
+                ENTRAR
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
   const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>(initialAnnotationsLeft);
   const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>(initialAnnotationsRight);
+  const [specialShiftData, setSpecialShiftData] = useState<Employee[]>([
+    { name: 'FABIANO SILVA', line: 'X4', machine: '222', tagType: 'MAQUINISTA' },
+    { name: 'MAURICIO SOUZA', line: 'X6', machine: '280', tagType: 'MAQUINISTA' }
+  ]);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('distribui-theme');
+    return saved !== 'light'; // padrão é modo escuro
+  });
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const handleAdminLogin = useCallback(() => {
+    setIsAdmin(true);
+  }, []);
+
+  const handleAdminLogout = useCallback(() => {
+    setIsAdmin(false);
+    setIsAdminModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('distribui-theme', isDarkMode ? 'dark' : 'light');
+    // Atualiza o background do body para evitar flash branco no overscroll
+    document.body.style.backgroundColor = isDarkMode ? '#111217' : '#eef2f7';
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
+
+  const handleUpdateSpecialShiftEmployee = (empIndex: number, field: keyof Employee, value: any) => {
+    setSpecialShiftData(prev => {
+      const newData = [...prev];
+      newData[empIndex] = { ...newData[empIndex], [field]: value };
+      if (field === 'name' && value.trim() && !newData[empIndex].tagType) {
+        newData[empIndex].tagType = 'MAQUINISTA';
+      }
+      return newData;
+    });
+  };
+
+  const handleTransferToSpecialShift = (sourceDeptId: string, sourceEmpIndex: number) => {
+    const sourceDept = departmentsData.find(d => d.id === sourceDeptId);
+    if (!sourceDept) return;
+
+    const movedEmployee = sourceDept.data[sourceEmpIndex];
+    if (!movedEmployee) return;
+
+    // Remove da origem
+    setDepartmentsData(prev => {
+      const newDepts = [...prev];
+      const idx = newDepts.findIndex(d => d.id === sourceDeptId);
+      if (idx === -1) return prev;
+      const newData = [...newDepts[idx].data];
+      newData.splice(sourceEmpIndex, 1);
+      newDepts[idx] = { ...newDepts[idx], data: newData, count: newData.length };
+      return newDepts;
+    });
+
+    // Adiciona no Turno Especial
+    setSpecialShiftData(prev => [
+      ...prev,
+      { ...movedEmployee, originalDeptId: sourceDeptId, tagType: 'MAQUINISTA' }
+    ]);
+  };
+
+  const handleTransferSupportToSpecialShift = (sourceGroupIndex: number, sourceEmpIndex: number) => {
+    const sourceGroup = supportRolesData[sourceGroupIndex];
+    if (!sourceGroup) return;
+
+    const movedRole = sourceGroup[sourceEmpIndex];
+    if (!movedRole) return;
+
+    // Remove do grupo de apoio
+    setSupportRolesData(prev => {
+      const newSupport = prev.map(group => [...group]);
+      newSupport[sourceGroupIndex].splice(sourceEmpIndex, 1);
+      return newSupport;
+    });
+
+    // Adiciona no Turno Especial
+    setSpecialShiftData(prev => [
+      ...prev,
+      {
+        name: movedRole.name,
+        line: '',
+        machine: '',
+        originalSupportGroupIndex: sourceGroupIndex,
+        originalSupportRole: movedRole.role,
+        tagType: 'OOF'
+      }
+    ]);
+  };
+
+  const handleTransferFromSpecialShift = (empIndex: number, targetDeptId: string) => {
+    const movedEmployee = specialShiftData[empIndex];
+    if (!movedEmployee.name.trim()) return;
+
+    setSpecialShiftData(prev => {
+      const newSpecial = [...prev];
+      newSpecial.splice(empIndex, 1);
+      return newSpecial;
+    });
+
+    if (movedEmployee.originalSupportGroupIndex !== undefined) {
+      const groupIdx = movedEmployee.originalSupportGroupIndex;
+      const roleStr = movedEmployee.originalSupportRole || 'VIRADOR';
+      setSupportRolesData(prev => {
+        const newSupport = prev.map(group => [...group]);
+        newSupport[groupIdx].push({
+          name: movedEmployee.name,
+          role: roleStr
+        });
+        return newSupport;
+      });
+    } else {
+      setDepartmentsData(prev => {
+        const newDepts = [...prev];
+        const targetDeptIndex = newDepts.findIndex(d => d.id === targetDeptId);
+        if (targetDeptIndex === -1) return prev;
+        
+        const cleanedEmp: Employee = {
+          name: movedEmployee.name,
+          line: movedEmployee.line,
+          machine: movedEmployee.machine,
+          error: movedEmployee.error
+        };
+        
+        const targetData = [...newDepts[targetDeptIndex].data];
+        targetData.push(cleanedEmp);
+        newDepts[targetDeptIndex] = { ...newDepts[targetDeptIndex], data: targetData, count: targetData.length };
+        return newDepts;
+      });
+    }
+  };
 
   const handleUpdateAnnotationLeft = (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
     setAnnotationsLeft(prev => {
@@ -543,6 +788,16 @@ export default function App() {
     });
   };
 
+  const handleUpdateSupportName = (groupIndex: number, empIndex: number, newName: string) => {
+    setSupportRolesData(prev => {
+      const newGroups = [...prev];
+      const newGroup = [...newGroups[groupIndex]];
+      newGroup[empIndex] = { ...newGroup[empIndex], name: newName };
+      newGroups[groupIndex] = newGroup;
+      return newGroups;
+    });
+  };
+
   const handleMoveSupport = (sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
@@ -605,9 +860,10 @@ export default function App() {
   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
 
   return (
-    <div className="bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
+    <>
+    <div className={`bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative${!isDarkMode ? ' light-mode' : ''}`}>
       {/* Viewport - Scroll Container (Painel DSS Pattern) */}
-      <div ref={viewportRef} className="viewport fixed inset-0 bg-[#111217]">
+      <div ref={viewportRef} className={`viewport fixed inset-0${isDarkMode ? ' bg-[#111217]' : ' bg-[#eef2f7]'}`}>
         {/* Content Wrapper - Carries the scaled dimensions for scroll area */}
         <div ref={contentWrapperRef} className="origin-top-left">
           {/* Scalable Container - The actual content that gets scaled */}
@@ -629,6 +885,97 @@ export default function App() {
                 </div>
               </div>
               <div className="hidden lg:flex items-center gap-6">
+              {/* BB-8 Dark/Light Mode Toggle */}
+                <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
+                  <input
+                    className="bb8-toggle__checkbox"
+                    type="checkbox"
+                    id="darkModeToggle"
+                    checked={isDarkMode}
+                    onChange={handleToggleDarkMode}
+                  />
+                  <div className="bb8-toggle__container">
+                    <div className="bb8-toggle__scenery">
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="tatto-1" aria-hidden="true"></div>
+                      <div className="tatto-2" aria-hidden="true"></div>
+                      <div className="gomrassen"></div>
+                      <div className="hermes"></div>
+                      <div className="chenini"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                    </div>
+                    <div className="bb8">
+                      <div className="bb8__head-container">
+                        <div className="bb8__antenna"></div>
+                        <div className="bb8__antenna"></div>
+                        <div className="bb8__head"></div>
+                      </div>
+                      <div className="bb8__body"></div>
+                    </div>
+                    <div className="artificial__hidden" aria-hidden="true">
+                      <div className="bb8__shadow"></div>
+                    </div>
+                  </div>
+                </label>
+
+                {/* Admin Button - mesmo formato do BB-8 */}
+                <button
+                  id="admin-access-btn"
+                  onClick={() => setIsAdminModalOpen(true)}
+                  className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
+                  style={{
+                    width: '170px',
+                    height: '90px',
+                    borderRadius: '99em',
+                    margin: '10px',
+                    color: '#ffffff',
+                  }}
+                  aria-label="Acesso Administrativo"
+                >
+                  {/* Badge verde quando admin ativo */}
+                  {isAdmin && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#1E2029] rounded-full animate-pulse" />
+                  )}
+                  <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                  </svg>
+                  <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
+                    {isAdmin ? 'ADM ✓' : 'ACESSO ADM'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Special Shift Section */}
+            <div className="bg-[#1E2029] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-[#BF5AF2]" />
+              <div className="flex items-center gap-4 mb-5 ml-2">
+                <div className="p-3 rounded-xl bg-[#BF5AF2]/15 text-[#BF5AF2]">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white tracking-wide uppercase">TURNO 6H</h2>
+                </div>
+              </div>
+              <div className="flex gap-4 pb-2 ml-2 pr-2">
+                {specialShiftData.map((emp, idx) => (
+                  <SpecialShiftSlot 
+                    key={idx} 
+                    emp={emp} 
+                    index={idx} 
+                    allDepartments={departmentsData}
+                    onUpdate={(field, value) => handleUpdateSpecialShiftEmployee(idx, field, value)}
+                    onTransfer={(targetDeptId) => handleTransferFromSpecialShift(idx, targetDeptId)}
+                  />
+                ))}
               </div>
             </div>
 
@@ -645,12 +992,13 @@ export default function App() {
                       onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
                       onUpdateEmployee={handleUpdateEmployeeField}
                       onDelete={handleDelete}
+                      onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
                     />
                   </div>
                 ))}
 
                 {/* NOVO ESPAÇO: ANOTAÇÕES MINÉRIO */}
-                <div className="w-[560px] shrink-0">
+                <div className="w-[680px] shrink-0">
                   <AnnotationsBoard 
                     leftGroups={annotationsLeft} 
                     rightGroups={annotationsRight} 
@@ -674,7 +1022,9 @@ export default function App() {
                       roles={group} 
                       groupIndex={index} 
                       onUpdateRole={handleUpdateSupportRole} 
+                      onUpdateName={handleUpdateSupportName} 
                       onMoveSupport={handleMoveSupport}
+                      onMoveToSpecial={handleTransferSupportToSpecialShift}
                     />
                   </div>
                 ))}
@@ -685,6 +1035,16 @@ export default function App() {
         </div>
       </div>
     </div>
+
+    {/* Admin Modal */}
+    <AdminModal
+      isOpen={isAdminModalOpen}
+      onClose={() => setIsAdminModalOpen(false)}
+      isAdmin={isAdmin}
+      onLogin={handleAdminLogin}
+      onLogout={handleAdminLogout}
+    />
+    </>
   );
 }
 
@@ -704,6 +1064,7 @@ function DepartmentCard({
   onMove: (targetDeptId: string, empIndex: number) => void;
   onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
   onDelete: (deptId: string, empIndex: number) => void;
+  onTransferToSpecial: (empIndex: number) => void;
 }) {
   const theme = getDeptTheme(department.id);
 
@@ -735,6 +1096,7 @@ function DepartmentCard({
               onMove={(targetId) => onMove(targetId, i)}
               onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
               onDelete={() => onDelete(department.id, i)}
+              onTransferToSpecial={() => onTransferToSpecial(i)}
             />
           ))}
           {/* Slots vazios de preenchimento para igualar a altura máxima */}
@@ -765,11 +1127,34 @@ function EmployeeRow({
   onMove: (targetId: string) => void;
   onUpdateEmployee: (field: keyof Employee, value: string) => void;
   onDelete: () => void;
+  onTransferToSpecial: () => void;
 }) {
   const [showLineDropdown, setShowLineDropdown] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showTransferMenu, setShowTransferMenu] = useState(false);
+  const theme = getDeptTheme(department.id);
   const otherDepts = allDepartments.filter(d => d.id !== department.id);
+
+  // Helper para borda lateral de destaque conforme o setor no modo claro/escuro
+  const getBorderLeftClass = (deptId: string, hasError?: boolean) => {
+    if (hasError) return 'border-l-4 border-l-[#FF3B30]';
+    switch (deptId) {
+      case 'recepcao': return 'border-l-4 border-l-[#0A84FF]';
+      case 'classificacao': return 'border-l-4 border-l-[#FF9F0A]';
+      case 'formacao': return 'border-l-4 border-l-[#30D158]';
+      default: return 'border-l-4 border-l-[#5E5CE6]';
+    }
+  };
+
+  // Helper para hover do botão de troca conforme o setor
+  const getSwapHoverClass = (deptId: string) => {
+    switch (deptId) {
+      case 'recepcao': return 'hover:text-[#0A84FF] hover:bg-[#0A84FF]/10';
+      case 'classificacao': return 'hover:text-[#FF9F0A] hover:bg-[#FF9F0A]/10';
+      case 'formacao': return 'hover:text-[#30D158] hover:bg-[#30D158]/10';
+      default: return 'hover:text-[#5E5CE6] hover:bg-[#5E5CE6]/10';
+    }
+  };
 
   // Refs para ancorar os portals à posição real na tela
   const avatarBtnRef = useRef<HTMLButtonElement>(null);
@@ -782,15 +1167,15 @@ function EmployeeRow({
 
   return (
     <div
-      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm transition-all ${
+      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 dept-${department.id} ${
         emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
-      }`}
+      } ${getBorderLeftClass(department.id, emp.error)}`}
     >
       {/* Main Row Content */}
       <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
         
         {/* Top Row: Avatar, Nome e Botão de Expandir */}
-        <div className="flex items-center justify-between w-full bg-[#1E2029] border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+        <div className="flex items-center justify-between w-full bg-[#1E2029] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
           <div className="flex items-center min-w-0">
             {/* Avatar Container with Pop-up Menu */}
             <div className="relative">
@@ -801,8 +1186,10 @@ function EmployeeRow({
                   setShowAvatarMenu(!showAvatarMenu);
                   setShowTransferMenu(false);
                 }}
-                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${
-                  emp.error ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-[#82B1FF] text-[#0D47A1] hover:bg-[#82B1FF]/80'
+                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
+                  emp.error 
+                    ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' 
+                    : `${theme.bg} ${theme.color} hover:opacity-80`
                 }`}
               >
                 <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
@@ -810,15 +1197,31 @@ function EmployeeRow({
             </div>
             
             <div className="flex flex-col min-w-0">
-              <span className={`font-bold text-[14px] tracking-wide truncate uppercase ${emp.error ? 'text-red-400' : 'text-white'}`}>
-                {emp.name}
-              </span>
-              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate">Matrícula: {emp.machine || 'N/A'}</span>
+              <input
+                type="text"
+                value={emp.name}
+                onChange={(e) => onUpdateEmployee('name', e.target.value.toUpperCase())}
+                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
+                placeholder="NOME SOBRENOME"
+              />
+              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matrícula: {emp.machine || 'N/A'}</span>
             </div>
           </div>
           
-          {/* Transfer Button */}
-          <div className="relative">
+          {/* Action Buttons */}
+          <div className="relative flex items-center gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); onUpdateEmployee('error', !emp.error); }}
+              className="h-[34px] w-[60px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1"
+            >
+              {emp.error ? 'PRESENTE' : 'AUSENTE'}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onTransferToSpecial(); }}
+              className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1"
+            >
+              TURNO 6H
+            </button>
             <button 
               ref={transferBtnRef}
               onClick={(e) => {
@@ -826,7 +1229,11 @@ function EmployeeRow({
                 setShowTransferMenu(!showTransferMenu);
                 setShowAvatarMenu(false);
               }}
-              className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 ml-1 transition-colors outline-none ${emp.error ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' : 'bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white'}`}
+              className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap ${
+                emp.error 
+                  ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' 
+                  : `bg-white/5 text-[#a0aec0] hover:bg-white/10 ${getSwapHoverClass(department.id)}`
+              }`}
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
             </button>
@@ -846,7 +1253,7 @@ function EmployeeRow({
                 onUpdateEmployee('line', e.target.value);
                 setShowLineDropdown(true);
               }}
-              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
+              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Linha</span>
           </div>
@@ -855,7 +1262,7 @@ function EmployeeRow({
               type="text"
               value={emp.machine}
               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
-              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[110px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#F59E0B] text-white shadow-sm border-none hover:bg-[#D97706] transition-all"
+              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Loco</span>
           </div>
@@ -938,7 +1345,7 @@ function EmployeeRow({
               })}
               <div className="h-px bg-white/5 my-1 mx-2" />
               <button
-                onClick={(e) => { e.stopPropagation(); setShowTransferMenu(false); }}
+                onClick={(e) => { e.stopPropagation(); onTransferToSpecial(); setShowTransferMenu(false); }}
                 className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors w-full text-left"
               >
                 <div className="mr-2 p-1 rounded-md bg-[#BF5AF2]/15 text-[#BF5AF2]">
@@ -1006,29 +1413,52 @@ function SupportCard({
   roles, 
   groupIndex, 
   onUpdateRole,
-  onMoveSupport
+  onUpdateName,
+  onMoveSupport,
+  onMoveToSpecial
 }: { 
   roles: SupportRole[]; 
   groupIndex: number; 
   onUpdateRole: (groupIndex: number, empIndex: number, newRole: string) => void;
+  onUpdateName: (groupIndex: number, empIndex: number, newName: string) => void;
   onMoveSupport: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
+  onMoveToSpecial: (groupIndex: number, empIndex: number) => void;
 }) {
+  const themes = [
+    { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
+    { bg: "bg-[#FF9F0A]/10", border: "border-[#FF9F0A]/20", text: "text-[#FF9F0A]", bar: "bg-[#FF9F0A]" },
+    { bg: "bg-[#30D158]/10", border: "border-[#30D158]/20", text: "text-[#30D158]", bar: "bg-[#30D158]" }
+  ];
+  const theme = themes[groupIndex] || themes[0];
+
   return (
-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col">
+    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative">
+      
       {/* Support Card Header */}
-      <div className="px-5 py-4 border-b border-[#111217] bg-[#111217]/20">
-        <h4 className="text-[#a0aec0] text-sm uppercase tracking-wider font-semibold">Grupo {groupIndex + 1}</h4>
+      <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
+        <div className="flex items-center gap-3.5">
+          <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.text}`}>
+            <Users className="w-5 h-5" />
+          </div>
+          <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">Grupo {groupIndex + 1}</h4>
+        </div>
+        <div className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.text} ${theme.bg}`}>
+          <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+          {roles.length} Colab.
+        </div>
       </div>
       
       {/* Support List */}
-      <div className="p-2 space-y-1">
+      <div className="p-3 space-y-2">
         {roles.map((emp, i) => (
           <SupportRoleRow 
             key={i} 
             emp={emp} 
             groupIndex={groupIndex}
             onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
+            onUpdateName={(newName) => onUpdateName(groupIndex, i, newName)} 
             onMove={(targetGroupIndex) => onMoveSupport(groupIndex, targetGroupIndex, i)}
+            onMoveToSpecial={() => onMoveToSpecial(groupIndex, i)}
           />
         ))}
       </div>
@@ -1040,12 +1470,16 @@ function SupportRoleRow({
   emp, 
   groupIndex,
   onUpdateRole,
-  onMove
+  onUpdateName,
+  onMove,
+  onMoveToSpecial
 }: { 
   emp: SupportRole; 
   groupIndex: number;
   onUpdateRole: (newRole: string) => void;
+  onUpdateName: (newName: string) => void;
   onMove: (targetGroupIndex: number) => void;
+  onMoveToSpecial?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -1053,11 +1487,21 @@ function SupportRoleRow({
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
   
   return (
-    <div className="px-4 py-2.5 flex items-center justify-between rounded-[16px] hover:bg-[#111217]/50 transition-colors relative">
-      <span className="font-medium text-[15px] text-white">
-        {emp.name}
-      </span>
+    <div className="px-4 py-2.5 flex items-center justify-between rounded-[12px] bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative">
+      <input
+        type="text"
+        value={emp.name}
+        onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
+        className="font-bold text-[14px] text-white bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none"
+        placeholder="NOME SOBRENOME"
+      />
       <div className="flex items-center gap-2 relative">
+        <button
+          onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
+          className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
+        >
+          TURNO 6H
+        </button>
         {/* Transfer Button */}
         <div className="relative">
           <button
@@ -1091,6 +1535,19 @@ function SupportRoleRow({
                       Grupo {g + 1}
                     </button>
                   ))}
+                  <div className="h-px bg-white/5 my-0.5 mx-2" />
+                  <button
+                    onClick={() => {
+                      if (onMoveToSpecial) {
+                        onMoveToSpecial();
+                      }
+                      setIsTransferOpen(false);
+                    }}
+                    className="px-3.5 py-2 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors text-left flex items-center gap-1.5 w-full"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-[#BF5AF2]" />
+                    Turno Especial
+                  </button>
                 </motion.div>
               </>
             )}
@@ -1136,6 +1593,108 @@ function SupportRoleRow({
           </AnimatePresence>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SpecialShiftSlot({
+  emp,
+  index,
+  allDepartments,
+  onUpdate,
+  onTransfer
+}: {
+  emp: Employee;
+  index: number;
+  allDepartments: Department[];
+  onUpdate: (field: keyof Employee, value: string) => void;
+  onTransfer: (targetDeptId: string) => void;
+}) {
+
+  return (
+    <div className="w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center min-w-0">
+          <div className="w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">
+            <User className="w-3 h-3" strokeWidth={2.5} />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <input
+              type="text"
+              value={emp.name}
+              onChange={(e) => onUpdate('name', e.target.value.toUpperCase())}
+              className="font-bold text-[12px] text-white bg-transparent outline-none w-[130px] truncate uppercase leading-none"
+              placeholder="NOME SOBRENOME"
+            />
+            {emp.tagType && (
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate('tagType', emp.tagType === 'MAQUINISTA' ? 'OOF' : 'MAQUINISTA');
+                }}
+                className={`text-[8px] font-extrabold uppercase px-1 py-0.5 rounded w-max mt-0.5 tracking-wider cursor-pointer transition-all hover:scale-105 active:scale-95 select-none ${
+                  emp.tagType === 'MAQUINISTA' 
+                    ? 'bg-[#0A84FF]/10 text-[#0A84FF] border border-[#0A84FF]/20 hover:bg-[#0A84FF]/20' 
+                    : 'bg-[#BF5AF2]/10 text-[#BF5AF2] border border-[#BF5AF2]/20 hover:bg-[#BF5AF2]/20'
+                }`}
+              >
+                {emp.tagType === 'MAQUINISTA' ? 'MAQ' : emp.tagType}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); onTransfer(emp.originalDeptId || 'recepcao'); }}
+            className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
+          >
+            TURNO 7H
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mt-auto">
+        {emp.tagType === 'OOF' ? (
+          <div className="flex flex-col items-center">
+            <input
+              type="text"
+              list="oof-options"
+              value={emp.line}
+              onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
+              placeholder="LOCAL DE APOIO"
+              className="h-[26px] px-2 rounded-md text-[10px] font-bold w-[120px] text-center uppercase placeholder-white/40 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
+            />
+            <datalist id="oof-options">
+              <option value="RECEPÇÃO" />
+              <option value="VIRADOR" />
+              <option value="CLASSIFICAÇÃO" />
+              <option value="FORMAÇÃO" />
+            </datalist>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center">
+              <input
+                type="text"
+                value={emp.line}
+                onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
+                placeholder="LINHA"
+                className="h-[26px] px-1 rounded-md text-[10px] font-bold w-[70px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
+              />
+            </div>
+            <div className="flex flex-col items-center">
+              <input
+                type="text"
+                value={emp.machine}
+                onChange={(e) => onUpdate('machine', e.target.value.toUpperCase())}
+                placeholder="LOCO"
+                className="h-[26px] px-1 rounded-md text-[10px] font-bold w-[70px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
+              />
+            </div>
+          </>
+        )}
+      </div>
+
     </div>
   );
 }
