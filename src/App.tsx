@@ -884,7 +884,7 @@ export default function App() {
                   </p>
                 </div>
               </div>
-              <div className="hidden lg:flex items-center gap-6">
+              <div className="flex items-center gap-6">
               {/* BB-8 Dark/Light Mode Toggle */}
                 <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
                   <input
