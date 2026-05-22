@@ -1212,9 +1212,9 @@ function EmployeeRow({
           <div className="relative flex items-center gap-2">
             <button
               onClick={(e) => { e.stopPropagation(); onUpdateEmployee('error', !emp.error); }}
-              className="h-[34px] w-[60px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1"
+              className="h-[34px] w-[60px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
             >
-              {emp.error ? 'PRESENTE' : 'AUSENTE'}
+              AUSENTE
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onTransferToSpecial(); }}
