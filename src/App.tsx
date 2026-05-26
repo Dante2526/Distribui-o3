@@ -1652,9 +1652,10 @@ function EmployeeRow({
     disabled: isDragOverlay,
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(isDragging ? null : transform),
     transition: isDragging ? undefined : transition,
+    touchAction: 'none',
     ...(activeEdit && !isDragOverlay ? { outline: `2px solid ${activeEdit.color}`, outlineOffset: '1px' } : {})
   };
 
