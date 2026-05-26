@@ -1,7 +1,27 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock } from 'lucide-react';
+import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock, LogOut, Activity, ShieldAlert, FileText, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import {
+  DndContext,
+  closestCorners,
+  pointerWithin,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  useDroppable,
+  Modifier,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // --- Portal Popup Anchor: calcula posição real na tela para renderizar fora do overflow-hidden ---
 function useAnchoredRect(triggerRef: React.RefObject<HTMLElement | null>, open: boolean) {
@@ -20,8 +40,81 @@ function PortalMenu({ children }: { children: React.ReactNode }) {
   return createPortal(children, document.body);
 }
 
+// --- Custom Icons from PAINEL-DSS ---
+const ExchangeIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 1l4 4-4 4"></path>
+    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+    <path d="M7 23l-4-4 4-4"></path>
+    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+  </svg>
+);
+
+const HelpIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+);
+
+const StatCard = ({ label, value, colorClass, bgClass }: { label: string; value: number; colorClass: string; bgClass: string }) => (
+  <div className={`text-center py-2 px-3.5 rounded-xl min-w-[95px] border border-white/5 transition-all shadow-sm ${bgClass}`}>
+    <div className={`text-[24px] font-black mb-0.5 tracking-tight ${colorClass}`}>{value}</div>
+    <div className="text-[10px] text-[#a0aec0] uppercase font-bold tracking-wider">{label}</div>
+  </div>
+);
+
+// --- Status Types and Predefined Styles ---
+export type StatusType = 'FÉRIAS' | 'FORA' | 'ATM' | 'RESTRIÇÃO' | 'INSS';
+
+export const STATUS_METADATA: Record<StatusType, {
+  label: string;
+  colorDark: string;    // cor para modo escuro
+  colorLight: string;   // cor com mais contraste/escura para modo claro
+  dotColor: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = {
+  'FÉRIAS': {
+    label: 'FÉRIAS',
+    colorDark: 'text-[#30D158]',      // Verde vibrante no escuro (iOS Green)
+    colorLight: 'text-[#16A34A]',     // Verde forte de ótimo contraste no claro (Tailwind green-600)
+    dotColor: 'bg-[#30D158]',
+    icon: Palmtree,
+  },
+  'FORA': {
+    label: 'FORA',
+    colorDark: 'text-[#FF453A]',
+    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro (Tailwind red-500)
+    dotColor: 'bg-[#FF453A]',
+    icon: LogOut,
+  },
+  'ATM': {
+    label: 'ATM',
+    colorDark: 'text-[#FFD60A]',      // Amarelo no escuro
+    colorLight: 'text-[#D97706]',     // Âmbar/Dourado equilibrado no claro (Tailwind amber-600)
+    dotColor: 'bg-[#FFD60A]',
+    icon: Activity,
+  },
+  'RESTRIÇÃO': {
+    label: 'RESTRIÇÃO',
+    colorDark: 'text-[#BF5AF2]',
+    colorLight: 'text-[#8B5CF6]',     // Violeta vibrante no claro (Tailwind violet-500)
+    dotColor: 'bg-[#BF5AF2]',
+    icon: ShieldAlert,
+  },
+  'INSS': {
+    label: 'INSS',
+    colorDark: 'text-[#FF453A]',
+    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro
+    dotColor: 'bg-[#FF453A]',
+    icon: FileText,
+  }
+};
+
 // --- Data Models ---
 type Employee = {
+  id: string;
   name: string;
   line: string;
   machine: string;
@@ -40,11 +133,13 @@ type Department = {
 };
 
 type SupportRole = {
+  id?: string;
   name: string;
   role: string;
 };
 
 type AnnotationItem = {
+  id?: string;
   name: string;
   status: string;
 };
@@ -66,12 +161,12 @@ const initialDepartmentsData: Department[] = [
     title: 'Recepção',
     count: 6,
     data: [
-      { name: 'LUCIANO ALVES', line: 'X3', machine: '238' },
-      { name: 'RUFINO SANTOS', line: 'X2', machine: '231' },
-      { name: 'GERALDO COSTA', line: 'X2', machine: '220' },
-      { name: 'RAFAEL LIMA', line: 'X1', machine: '848' },
-      { name: 'ARTHUR SOUZA', line: 'X1', machine: '819' },
-      { name: 'WALTERILSON SILVA', line: '1º CORTE', machine: '253' },
+      { id: 'emp-' + (1), name: 'LUCIANO ALVES', line: 'X3', machine: '238' },
+      { id: 'emp-' + (2), name: 'RUFINO SANTOS', line: 'X2', machine: '231' },
+      { id: 'emp-' + (3), name: 'GERALDO COSTA', line: 'X2', machine: '220' },
+      { id: 'emp-' + (4), name: 'RAFAEL LIMA', line: 'X1', machine: '848' },
+      { id: 'emp-' + (5), name: 'ARTHUR SOUZA', line: 'X1', machine: '819' },
+      { id: 'emp-' + (6), name: 'WALTERILSON SILVA', line: '1º CORTE', machine: '253' },
     ],
   },
   {
@@ -79,14 +174,14 @@ const initialDepartmentsData: Department[] = [
     title: 'Classificação',
     count: 8,
     data: [
-      { name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
-      { name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
-      { name: 'CID PINTO', line: 'X04', machine: '259' },
-      { name: 'IGOR RABELO', line: 'X04', machine: '3949' },
-      { name: 'NAYLAN ROCHA', line: 'X05', machine: '847' },
-      { name: 'HUMBERTO NUNES', line: 'X05', machine: '743' },
-      { name: 'PEDRO JUNIOR', line: 'X05', machine: '712' },
-      { name: 'NAYRON DIAS', line: 'X05', machine: '284' },
+      { id: 'emp-' + (7), name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
+      { id: 'emp-' + (8), name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
+      { id: 'emp-' + (9), name: 'CID PINTO', line: 'X04', machine: '259' },
+      { id: 'emp-' + (10), name: 'IGOR RABELO', line: 'X04', machine: '3949' },
+      { id: 'emp-' + (11), name: 'NAYLAN ROCHA', line: 'X05', machine: '847' },
+      { id: 'emp-' + (12), name: 'HUMBERTO NUNES', line: 'X05', machine: '743' },
+      { id: 'emp-' + (13), name: 'PEDRO JUNIOR', line: 'X05', machine: '712' },
+      { id: 'emp-' + (14), name: 'NAYRON DIAS', line: 'X05', machine: '284' },
     ],
   },
   {
@@ -94,11 +189,11 @@ const initialDepartmentsData: Department[] = [
     title: 'Formação',
     count: 5,
     data: [
-      { name: 'JESSICA BARROS', line: 'CTR2', machine: '2003' },
-      { name: 'DANIEL ALMEIDA', line: 'CTR3', machine: '270' },
-      { name: 'GABRIEL CARVALHO', line: '4C', machine: '288' },
-      { name: 'PEDRO CARDOSO', line: '4C', machine: '260' },
-      { name: 'ROSANA TEIXEIRA', line: '201 B', machine: '277' },
+      { id: 'emp-' + (15), name: 'JESSICA BARROS', line: 'CTR2', machine: '2003' },
+      { id: 'emp-' + (16), name: 'DANIEL ALMEIDA', line: 'CTR3', machine: '270' },
+      { id: 'emp-' + (17), name: 'GABRIEL CARVALHO', line: '4C', machine: '288' },
+      { id: 'emp-' + (18), name: 'PEDRO CARDOSO', line: '4C', machine: '260' },
+      { id: 'emp-' + (19), name: 'ROSANA TEIXEIRA', line: '201 B', machine: '277' },
     ],
   },
 ];
@@ -115,19 +210,19 @@ const SUPPORT_ROLES_OPTIONS = [
 
 const initialSupportData: SupportRole[][] = [
   [
-    { name: 'BEATRIZ SILVA', role: 'MIKE 02' },
-    { name: 'AMÉRICO SANTOS', role: 'VIRADOR' },
-    { name: 'ESDRAS SOUZA', role: 'VIRADOR' },
-    { name: 'LARISSA COSTA', role: 'VIRADOR' },
+    { id: 'emp-' + (20), name: 'BEATRIZ SILVA', role: 'MIKE 02' },
+    { id: 'emp-' + (21), name: 'AMÉRICO SANTOS', role: 'VIRADOR' },
+    { id: 'emp-' + (22), name: 'ESDRAS SOUZA', role: 'VIRADOR' },
+    { id: 'emp-' + (23), name: 'LARISSA COSTA', role: 'VIRADOR' },
   ],
   [
-    { name: 'CAMILE BARROS', role: 'MIKE 03' },
-    { name: 'ALBERTO LIMA', role: 'AUX GIROFLEX' },
-    { name: 'RICARDO ROCHA', role: 'AUX GIROFLEX' },
+    { id: 'emp-' + (24), name: 'CAMILE BARROS', role: 'MIKE 03' },
+    { id: 'emp-' + (25), name: 'ALBERTO LIMA', role: 'AUX GIROFLEX' },
+    { id: 'emp-' + (26), name: 'RICARDO ROCHA', role: 'AUX GIROFLEX' },
   ],
   [
-    { name: 'LUANA ALVES', role: 'MIKE 06' },
-    { name: 'ROSA MENDES', role: 'AUX X6' },
+    { id: 'emp-' + (27), name: 'LUANA ALVES', role: 'MIKE 06' },
+    { id: 'emp-' + (28), name: 'ROSA MENDES', role: 'AUX X6' },
   ],
 ];
 
@@ -135,23 +230,23 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
   {
     title: 'FÉRIAS/ATM/TE/TREIN./REVEZA',
     items: [
-      { name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
-      { name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
-      { name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
-      { name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
-      { name: '', status: '' },
-      { name: '', status: '' },
+      { id: 'emp-' + (29), name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
+      { id: 'emp-' + (30), name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
+      { id: 'emp-' + (31), name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
+      { id: 'emp-' + (32), name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
+      { id: 'emp-' + (33), name: '', status: '' },
+      { id: 'emp-' + (34), name: '', status: '' },
     ]
   },
   {
     title: 'AUSENTES/FORA/FÉRIAS',
     items: [
-      { name: 'ALDO RIBEIRO', status: 'FÉRIAS' },
-      { name: 'KEYLSON LIMA', status: 'FÉRIAS' },
-      { name: 'JOANDERSON ALVES', status: 'FÉRIAS' },
-      { name: '', status: '' },
-      { name: '', status: '' },
-      { name: '', status: '' },
+      { id: 'emp-' + (35), name: 'ALDO RIBEIRO', status: 'FÉRIAS' },
+      { id: 'emp-' + (36), name: 'KEYLSON LIMA', status: 'FÉRIAS' },
+      { id: 'emp-' + (37), name: 'JOANDERSON ALVES', status: 'FÉRIAS' },
+      { id: 'emp-' + (38), name: '', status: '' },
+      { id: 'emp-' + (39), name: '', status: '' },
+      { id: 'emp-' + (40), name: '', status: '' },
     ]
   }
 ];
@@ -160,35 +255,35 @@ const initialAnnotationsRight: AnnotationGroup[] = [
   {
     title: 'MAQ/OFF - ESTÁGIO',
     items: [
-      { name: 'THAIS OLIVEIRA', status: 'ESTÁGIO' },
-      { name: 'ELIAS PEREIRA', status: 'ESTÁGIO' },
-      { name: 'JESSICA RODRIGUES', status: 'ESTÁGIO' },
-      { name: 'GIANFRANCO NUNES', status: 'ESTÁGIO' },
-      { name: 'THAIS GOMES', status: 'ESTÁGIO' },
-      { name: 'BEATRIZ BARBOSA', status: 'ESTÁGIO' },
-      { name: 'DENISSON MARTINS', status: '' },
+      { id: 'emp-' + (41), name: 'THAIS OLIVEIRA', status: 'ESTÁGIO' },
+      { id: 'emp-' + (42), name: 'ELIAS PEREIRA', status: 'ESTÁGIO' },
+      { id: 'emp-' + (43), name: 'JESSICA RODRIGUES', status: 'ESTÁGIO' },
+      { id: 'emp-' + (44), name: 'GIANFRANCO NUNES', status: 'ESTÁGIO' },
+      { id: 'emp-' + (45), name: 'THAIS GOMES', status: 'ESTÁGIO' },
+      { id: 'emp-' + (46), name: 'BEATRIZ BARBOSA', status: 'ESTÁGIO' },
+      { id: 'emp-' + (47), name: 'DENISSON MARTINS', status: '' },
     ]
   },
   {
     title: 'TREINAMENTO / FÉRIAS/ ATM / TE',
     items: [
-      { name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO' },
-      { name: 'JONH CARDOSO', status: 'RESTRIÇÃO' },
-      { name: 'ANA BEATRIZ LIMA', status: 'INSS' },
-      { name: 'CAMILE MOREIRA', status: 'ATM' },
-      { name: '', status: '' },
-      { name: 'MARCO POLO SOUZA', status: 'FÉRIAS' },
-      { name: 'ADRYELLEN VIEIRA', status: 'FÉRIAS' },
-      { name: 'LARISSA DIAS', status: 'FORA' },
-      { name: '', status: '' },
+      { id: 'emp-' + (48), name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO' },
+      { id: 'emp-' + (49), name: 'JONH CARDOSO', status: 'RESTRIÇÃO' },
+      { id: 'emp-' + (50), name: 'ANA BEATRIZ LIMA', status: 'INSS' },
+      { id: 'emp-' + (51), name: 'CAMILE MOREIRA', status: 'ATM' },
+      { id: 'emp-' + (52), name: '', status: '' },
+      { id: 'emp-' + (53), name: 'MARCO POLO SOUZA', status: 'FÉRIAS' },
+      { id: 'emp-' + (54), name: 'ADRYELLEN VIEIRA', status: 'FÉRIAS' },
+      { id: 'emp-' + (55), name: 'LARISSA DIAS', status: 'FORA' },
+      { id: 'emp-' + (56), name: '', status: '' },
     ]
   },
   {
     title: 'FÉRIAS/IN SP/LICENÇA',
     items: [
-      { name: 'EDNELSON MELO', status: 'INSS' },
-      { name: '', status: '' },
-      { name: '', status: '' },
+      { id: 'emp-' + (57), name: 'EDNELSON MELO', status: 'INSS' },
+      { id: 'emp-' + (58), name: '', status: '' },
+      { id: 'emp-' + (59), name: '', status: '' },
     ]
   }
 ];
@@ -218,7 +313,7 @@ function AnnotationsBoard({
   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
 }) {
   return (
-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
+    <div className="annotations-board-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
       {/* Header */}
       <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-center bg-[#15171E]">
         <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">ANOTAÇÕES MINÉRIO</h3>
@@ -235,7 +330,7 @@ function AnnotationsBoard({
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
+                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
                     <input 
                       type="text" 
                       value={item.name} 
@@ -266,7 +361,7 @@ function AnnotationsBoard({
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
+                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
                     <input 
                       type="text" 
                       value={item.name} 
@@ -400,14 +495,31 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
   );
 }
 
+export interface ActiveEdit {
+  empId: string;
+  userName: string;
+  color: string;
+  timestamp: number;
+}
+
+export const MOCK_USERS = [
+  { name: 'Ana (Simulado)', color: '#0A84FF' }, // Azul
+  { name: 'Carlos (Simulado)', color: '#30D158' }, // Verde
+  { name: 'João (Simulado)', color: '#FF9F0A' }, // Laranja
+  { name: 'Maria (Simulado)', color: '#FF2D55' }, // Rosa
+  { name: 'Pedro (Simulado)', color: '#FFD60A' }, // Amarelo
+  { name: 'Lucas (Simulado)', color: '#FF3B30' }, // Vermelho
+  { name: 'Naylan (Você)', color: '#BF5AF2' }, // Roxo
+];
+
 export default function App() {
   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
   const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>(initialAnnotationsLeft);
   const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>(initialAnnotationsRight);
   const [specialShiftData, setSpecialShiftData] = useState<Employee[]>([
-    { name: 'FABIANO SILVA', line: 'X4', machine: '222', tagType: 'MAQUINISTA' },
-    { name: 'MAURICIO SOUZA', line: 'X6', machine: '280', tagType: 'MAQUINISTA' }
+    { id: 'emp-' + (60), name: 'FABIANO SILVA', line: 'X4', machine: '222', tagType: 'MAQUINISTA' },
+    { id: 'emp-' + (61), name: 'MAURICIO SOUZA', line: 'X6', machine: '280', tagType: 'MAQUINISTA' }
   ]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('distribui-theme');
@@ -415,6 +527,188 @@ export default function App() {
   });
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const [activeEdits, setActiveEdits] = useState<Record<string, ActiveEdit>>({});
+  const departmentsRef = useRef(departmentsData);
+  useEffect(() => {
+    departmentsRef.current = departmentsData;
+  }, [departmentsData]);
+
+  useEffect(() => {
+    const simulate = () => {
+      const allEmps = departmentsRef.current.flatMap(d => d.data);
+      if (allEmps.length === 0) return;
+      
+      // Quantos bots vão editar agora? (1 a 2)
+      const numBots = Math.floor(Math.random() * 2) + 1;
+      
+      for (let i = 0; i < numBots; i++) {
+        const randomEmp = allEmps[Math.floor(Math.random() * allEmps.length)];
+        const randomUser = MOCK_USERS[Math.floor(Math.random() * 6)];
+        
+        setActiveEdits((prev) => ({
+          ...prev,
+          [randomEmp.id]: {
+            empId: randomEmp.id,
+            userName: randomUser.name,
+            color: randomUser.color,
+            timestamp: Date.now()
+          }
+        }));
+
+        setTimeout(() => {
+          setActiveEdits((prev) => {
+            const newEdits = { ...prev };
+            delete newEdits[randomEmp.id];
+            return newEdits;
+          });
+        }, 5000 + Math.random() * 7000); // Fica de 5 a 12s
+      }
+    };
+
+    // Dispara logo no início
+    simulate();
+
+    const interval = setInterval(() => {
+      if (Math.random() > 0.2) simulate();
+    }, 4000); // Tenta a cada 4 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleStartEdit = useCallback((empId: string) => {
+    setActiveEdits((prev) => {
+      const newEdits = { ...prev };
+      // Remove edições anteriores do próprio usuário (Naylan)
+      Object.keys(newEdits).forEach(key => {
+        if (newEdits[key].userName === MOCK_USERS[6].name) {
+          delete newEdits[key];
+        }
+      });
+      // Adiciona a nova edição
+      newEdits[empId] = {
+        empId,
+        userName: MOCK_USERS[6].name,
+        color: MOCK_USERS[6].color,
+        timestamp: Date.now()
+      };
+      return newEdits;
+    });
+
+    setTimeout(() => {
+      setActiveEdits((prev) => {
+        const newEdits = { ...prev };
+        if (newEdits[empId] && Date.now() - newEdits[empId].timestamp >= 11500) {
+          delete newEdits[empId];
+        }
+        return newEdits;
+      });
+    }, 12000);
+  }, []);
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const clonedDepartmentsRef = useRef<Department[] | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
+
+  const findContainer = (id: string, departments: Department[]) => {
+    if (departments.some(d => d.id === id)) return id;
+    const dept = departments.find(d => d.data.some(e => e.id === id));
+    return dept ? dept.id : null;
+  };
+
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+    clonedDepartmentsRef.current = departmentsData;
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+    if (clonedDepartmentsRef.current) {
+      setDepartmentsData(clonedDepartmentsRef.current);
+    }
+  };
+
+  const handleDragOver = (event: any) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    setDepartmentsData((prev) => {
+      const activeContainer = findContainer(activeId, prev);
+      const overContainer = findContainer(overId, prev);
+
+      if (!activeContainer || !overContainer) {
+        return prev;
+      }
+
+      const activeItems = prev.find((d) => d.id === activeContainer)?.data || [];
+      const overItems = prev.find((d) => d.id === overContainer)?.data || [];
+
+      const activeIndex = activeItems.findIndex((e) => e.id === activeId);
+      const overIndex = overItems.findIndex((e) => e.id === overId);
+
+      const movedItem = activeItems[activeIndex];
+      if (!movedItem) return prev;
+
+      let newIndex;
+      if (overIndex >= 0) {
+        newIndex = overIndex;
+      } else {
+        newIndex = overItems.length;
+      }
+
+      return prev.map((dept) => {
+        if (activeContainer === overContainer) {
+          if (dept.id === activeContainer) {
+            const newData = [...dept.data];
+            const itemToMove = newData.splice(activeIndex, 1)[0];
+            newData.splice(newIndex, 0, itemToMove);
+            return { ...dept, data: newData };
+          }
+          return dept;
+        } else {
+          if (dept.id === activeContainer) {
+            return { ...dept, data: dept.data.filter((e) => e.id !== activeId), count: dept.data.length - 1 };
+          }
+          if (dept.id === overContainer) {
+            const newData = [...dept.data];
+            newData.splice(newIndex, 0, movedItem);
+            return { ...dept, data: newData, count: newData.length };
+          }
+          return dept;
+        }
+      });
+    });
+  };
+
+  const handleDragEnd = (event: any) => {
+    setActiveId(null);
+  };
+
+  const activeEmployee = activeId 
+    ? departmentsData.flatMap(d => d.data).find(e => e.id === activeId)
+    : null;
+  const activeDepartment = activeEmployee
+    ? departmentsData.find(d => d.data.some(e => e.id === activeId))
+    : null;
+
 
   const handleAdminLogin = useCallback(() => {
     setIsAdmin(true);
@@ -429,6 +723,13 @@ export default function App() {
     localStorage.setItem('distribui-theme', isDarkMode ? 'dark' : 'light');
     // Atualiza o background do body para evitar flash branco no overscroll
     document.body.style.backgroundColor = isDarkMode ? '#111217' : '#eef2f7';
+    
+    // Aplica a classe light-mode ao body para que os portais herdem os estilos corretos
+    if (!isDarkMode) {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
   }, [isDarkMode]);
 
   const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
@@ -525,6 +826,7 @@ export default function App() {
         if (targetDeptIndex === -1) return prev;
         
         const cleanedEmp: Employee = {
+          id: movedEmployee.id,
           name: movedEmployee.name,
           line: movedEmployee.line,
           machine: movedEmployee.machine,
@@ -564,6 +866,11 @@ export default function App() {
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const scalableContainerRef = useRef<HTMLDivElement>(null);
   const scaleStateRef = useRef({ currentScale: 1 });
+  const scaleCompensationModifier: Modifier = useCallback(({ transform }) => ({
+    ...transform,
+    x: transform.x / scaleStateRef.current.currentScale,
+    y: transform.y / scaleStateRef.current.currentScale,
+  }), []);
   const dragScrollRef = useRef({
     isDragging: false,
     startX: 0,
@@ -606,14 +913,18 @@ export default function App() {
     const scalableContainer = scalableContainerRef.current;
     if (!viewport || !scalableContainer) return;
 
-    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366;
+    const isMobileView = window.innerWidth < 1024;
 
     if (isMobileView) {
       const oneColumnScale = viewport.clientWidth / 920;
-      const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
+      const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 0.85);
       setScale(finalScale, 0, 0);
     } else {
-      setScale(1.0, 0, 0);
+      // Auto-fit para focar nas 3 colunas principais (cada uma com 500px + gaps = ~1600px de área alvo)
+      const targetViewWidth = 1600;
+      const fitScale = viewport.clientWidth / targetViewWidth;
+      const finalScale = Math.min(Math.max(fitScale, 0.4), 0.85);
+      setScale(finalScale, 0, 0);
     }
   }, [setScale]);
 
@@ -706,7 +1017,7 @@ export default function App() {
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('button, input, select, textarea, a, [role="button"]')) return;
+      if (target.closest('button, input, select, textarea, a, [role="button"], .employee-row-card')) return;
 
       dragScrollRef.current.isDragging = true;
       dragScrollRef.current.moved = false;
@@ -857,7 +1168,116 @@ export default function App() {
     });
   };
 
+  const handleMarkEmployeeAbsent = (
+    deptId: string,
+    empIndex: number,
+    absenceType: StatusType
+  ) => {
+    const dept = departmentsData.find(d => d.id === deptId);
+    if (!dept) return;
+    const emp = dept.data[empIndex];
+    if (!emp) return;
+    const empName = emp.name;
+    const empMatricula = emp.machine || ''; // No modelo atual, machine guarda a Matrícula
+    
+    if (!empName || !empName.trim()) return;
+
+    // 1. Remover o colaborador do departamento
+    setDepartmentsData(prev => {
+      const newDepts = [...prev];
+      const idx = newDepts.findIndex(d => d.id === deptId);
+      if (idx === -1) return prev;
+      const newData = [...newDepts[idx].data];
+      newData.splice(empIndex, 1);
+      newDepts[idx] = { ...newDepts[idx], data: newData, count: newData.length };
+      return newDepts;
+    });
+
+    // 2. Direcionar para a tabela de anotações adequada
+    let targetLeftGroupIndex = -1;
+    let targetRightGroupIndex = -1;
+
+    if (absenceType === 'FÉRIAS') {
+      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+    } else if (absenceType === 'FORA') {
+      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+    } else if (absenceType === 'ATM') {
+      targetLeftGroupIndex = 0; // "FÉRIAS/ATM/TE/TREIN./REVEZA"
+    } else if (absenceType === 'RESTRIÇÃO') {
+      targetRightGroupIndex = 1; // "TREINAMENTO / FÉRIAS/ ATM / TE"
+    } else if (absenceType === 'INSS') {
+      targetRightGroupIndex = 2; // "FÉRIAS/IN SP/LICENÇA"
+    }
+
+    if (targetLeftGroupIndex !== -1) {
+      setAnnotationsLeft(prev => {
+        const newGroups = [...prev];
+        const group = newGroups[targetLeftGroupIndex];
+        const items = [...group.items];
+        
+        // Achar o primeiro slot vazio (name sem texto)
+        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
+        if (emptyIdx !== -1) {
+          items[emptyIdx] = { name: empName, status: absenceType };
+        } else {
+          // Se não houver slot vazio, faz push
+          items.push({ name: empName, status: absenceType });
+        }
+        newGroups[targetLeftGroupIndex] = { ...group, items };
+        return newGroups;
+      });
+    } else if (targetRightGroupIndex !== -1) {
+      setAnnotationsRight(prev => {
+        const newGroups = [...prev];
+        const group = newGroups[targetRightGroupIndex];
+        const items = [...group.items];
+        
+        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
+        if (emptyIdx !== -1) {
+          items[emptyIdx] = { name: empName, status: absenceType };
+        } else {
+          items.push({ name: empName, status: absenceType });
+        }
+        newGroups[targetRightGroupIndex] = { ...group, items };
+        return newGroups;
+      });
+    }
+  };
+
   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
+
+  // --- Dynamic Statistical Calculations ---
+  const totalMaquinistas = departmentsData.reduce((acc, dept) => acc + dept.data.filter(emp => emp.name.trim() !== '').length, 0);
+  const totalApoio = supportRolesData.reduce((acc, group) => acc + group.filter(emp => emp.name.trim() !== '').length, 0);
+  const totalTurno6H = specialShiftData.filter(emp => emp.name.trim() !== '').length;
+  const totalFuncionarios = totalMaquinistas + totalApoio + totalTurno6H;
+
+  const todasAnotacoes = [
+    ...annotationsLeft.flatMap(g => g.items),
+    ...annotationsRight.flatMap(g => g.items)
+  ].filter(item => item.name && item.name.trim() !== '');
+
+  const totalFerias = todasAnotacoes.filter(item => item.status.toUpperCase().includes('FÉRIA') || item.status.toUpperCase().includes('FERIA')).length;
+  const totalFora = todasAnotacoes.filter(item => item.status.toUpperCase() === 'FORA').length;
+  
+  const totalATM = todasAnotacoes.filter(item => 
+    item.status.toUpperCase().includes('ATM') || 
+    item.status.toUpperCase().includes('ATESTADO') || 
+    item.status.toUpperCase().includes('MÉDICO') || 
+    item.status.toUpperCase().includes('MEDICO')
+  ).length;
+
+  const totalRestricao = todasAnotacoes.filter(item => 
+    item.status.toUpperCase().includes('RESTRI') || 
+    item.status.toUpperCase().includes('RESTRICAO')
+  ).length;
+
+  const totalEstagio = todasAnotacoes.filter(item => 
+    item.status.toUpperCase().includes('ESTÁGIO') || 
+    item.status.toUpperCase().includes('ESTAGIO')
+  ).length;
+
+  const totalINSS = todasAnotacoes.filter(item => item.status.toUpperCase() === 'INSS').length;
 
   return (
     <>
@@ -884,78 +1304,115 @@ export default function App() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
-              {/* BB-8 Dark/Light Mode Toggle */}
-                <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
-                  <input
-                    className="bb8-toggle__checkbox"
-                    type="checkbox"
-                    id="darkModeToggle"
-                    checked={isDarkMode}
-                    onChange={handleToggleDarkMode}
-                  />
-                  <div className="bb8-toggle__container">
-                    <div className="bb8-toggle__scenery">
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="tatto-1" aria-hidden="true"></div>
-                      <div className="tatto-2" aria-hidden="true"></div>
-                      <div className="gomrassen"></div>
-                      <div className="hermes"></div>
-                      <div className="chenini"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                    </div>
-                    <div className="bb8">
-                      <div className="bb8__head-container">
-                        <div className="bb8__antenna"></div>
-                        <div className="bb8__antenna"></div>
-                        <div className="bb8__head"></div>
-                      </div>
-                      <div className="bb8__body"></div>
-                    </div>
-                    <div className="artificial__hidden" aria-hidden="true">
-                      <div className="bb8__shadow"></div>
-                    </div>
-                  </div>
-                </label>
+              <div className="flex flex-col items-end gap-5">
+                <div className="flex items-center gap-6">
+                  {/* Botão TROCAR TURMA */}
+                  <button
+                    id="change-turma-btn"
+                    onClick={() => {}}
+                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300 cursor-pointer"
+                    aria-label="Trocar Turma"
+                    title="Voltar para seleção de turma"
+                  >
+                    <ExchangeIcon className="w-7 h-7" />
+                    <span className="tracking-wide">TROCAR TURMA</span>
+                  </button>
 
-                {/* Admin Button - mesmo formato do BB-8 */}
-                <button
-                  id="admin-access-btn"
-                  onClick={() => setIsAdminModalOpen(true)}
-                  className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
-                  style={{
-                    width: '170px',
-                    height: '90px',
-                    borderRadius: '99em',
-                    margin: '10px',
-                    color: '#ffffff',
-                  }}
-                  aria-label="Acesso Administrativo"
-                >
-                  {/* Badge verde quando admin ativo */}
-                  {isAdmin && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#1E2029] rounded-full animate-pulse" />
-                  )}
-                  <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                  </svg>
-                  <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
-                    {isAdmin ? 'ADM ✓' : 'ACESSO ADM'}
-                  </span>
-                </button>
+                  {/* Botão TUTORIAL */}
+                  <button
+                    id="tutorial-btn"
+                    onClick={() => {}}
+                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 cursor-pointer"
+                    aria-label="Iniciar Tutorial"
+                    title="Como usar o sistema"
+                  >
+                    <HelpIcon className="w-7 h-7" />
+                    <span className="tracking-wide">TUTORIAL</span>
+                  </button>
+
+                {/* BB-8 Dark/Light Mode Toggle */}
+                  <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
+                    <input
+                      className="bb8-toggle__checkbox"
+                      type="checkbox"
+                      id="darkModeToggle"
+                      checked={isDarkMode}
+                      onChange={handleToggleDarkMode}
+                    />
+                    <div className="bb8-toggle__container">
+                      <div className="bb8-toggle__scenery">
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="bb8-toggle__star"></div>
+                        <div className="tatto-1" aria-hidden="true"></div>
+                        <div className="tatto-2" aria-hidden="true"></div>
+                        <div className="gomrassen"></div>
+                        <div className="hermes"></div>
+                        <div className="chenini"></div>
+                        <div className="bb8-toggle__cloud"></div>
+                        <div className="bb8-toggle__cloud"></div>
+                        <div className="bb8-toggle__cloud"></div>
+                      </div>
+                      <div className="bb8">
+                        <div className="bb8__head-container">
+                          <div className="bb8__antenna"></div>
+                          <div className="bb8__antenna"></div>
+                          <div className="bb8__head"></div>
+                        </div>
+                        <div className="bb8__body"></div>
+                      </div>
+                      <div className="artificial__hidden" aria-hidden="true">
+                        <div className="bb8__shadow"></div>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Admin Button - mesmo formato do BB-8 */}
+                  <button
+                    id="admin-access-btn"
+                    onClick={() => setIsAdminModalOpen(true)}
+                    className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
+                    style={{
+                      width: '190px',
+                      height: '90px',
+                      borderRadius: '99em',
+                      margin: '10px',
+                      color: '#ffffff',
+                    }}
+                    aria-label="Acesso Administrativo"
+                  >
+                    {/* Badge verde quando admin ativo */}
+                    {isAdmin && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#1E2029] rounded-full animate-pulse" />
+                    )}
+                    <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                    </svg>
+                    <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
+                      {isAdmin ? 'ADM ✓' : 'ACESSO ADM'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Stats Container (Painel DSS Style) */}
+                <div className="flex gap-4 pr-[10px]">
+                  <StatCard label="Ativos" value={totalFuncionarios} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
+                  <StatCard label="Férias" value={totalFerias} colorClass="text-[#FF9F0A]" bgClass="bg-[#FF9F0A]/10" />
+                  <StatCard label="Fora" value={totalFora} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
+                  <StatCard label="ATM" value={totalATM} colorClass="text-[#FFD60A]" bgClass="bg-[#FFD60A]/10" />
+                  <StatCard label="Restrição" value={totalRestricao} colorClass="text-[#BF5AF2]" bgClass="bg-[#BF5AF2]/10" />
+                  <StatCard label="Estágio" value={totalEstagio} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
+                  <StatCard label="INSS" value={totalINSS} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
+                </div>
               </div>
             </div>
 
             {/* Special Shift Section */}
-            <div className="bg-[#1E2029] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
+            <div className="special-shift-card bg-[#1E2029] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
               <div className="absolute top-0 left-0 w-2 h-full bg-[#BF5AF2]" />
               <div className="flex items-center gap-4 mb-5 ml-2">
                 <div className="p-3 rounded-xl bg-[#BF5AF2]/15 text-[#BF5AF2]">
@@ -968,7 +1425,7 @@ export default function App() {
               <div className="flex gap-4 pb-2 ml-2 pr-2">
                 {specialShiftData.map((emp, idx) => (
                   <SpecialShiftSlot 
-                    key={idx} 
+                    key={emp.id || idx} 
                     emp={emp} 
                     index={idx} 
                     allDepartments={departmentsData}
@@ -982,6 +1439,14 @@ export default function App() {
             {/* Main Content Area */}
             <div className="space-y-8">
               {/* Main Departments Grid - Always 3 columns + Annotations */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={pointerWithin}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+                onDragCancel={handleDragCancel}
+              >
               <div className="flex gap-6 w-max">
                 {departmentsData.map((dept) => (
                   <div key={dept.id} className="w-[500px] shrink-0">
@@ -993,6 +1458,10 @@ export default function App() {
                       onUpdateEmployee={handleUpdateEmployeeField}
                       onDelete={handleDelete}
                       onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
+                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent(dept.id, empIndex, absenceType)}
+                      isDarkMode={isDarkMode}
+                      activeEdits={activeEdits}
+                      onStartEdit={handleStartEdit}
                     />
                   </div>
                 ))}
@@ -1007,6 +1476,7 @@ export default function App() {
                   />
                 </div>
               </div>
+              </DndContext>
 
               {/* Section Divider */}
               <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
@@ -1056,7 +1526,12 @@ function DepartmentCard({
   maxCount,
   onMove,
   onUpdateEmployee,
-  onDelete
+  onDelete,
+  onTransferToSpecial,
+  onMarkAbsent,
+  isDarkMode,
+  activeEdits,
+  onStartEdit
 }: { 
   department: Department;
   allDepartments: Department[];
@@ -1065,11 +1540,18 @@ function DepartmentCard({
   onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
   onDelete: (deptId: string, empIndex: number) => void;
   onTransferToSpecial: (empIndex: number) => void;
+  onMarkAbsent: (empIndex: number, absenceType: StatusType) => void;
+  isDarkMode: boolean;
+  activeEdits: Record<string, ActiveEdit>;
+  onStartEdit: (empId: string) => void;
 }) {
   const theme = getDeptTheme(department.id);
+  const { setNodeRef } = useDroppable({
+    id: department.id,
+  });
 
   return (
-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
+    <div className="dept-card-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
       {/* Cabeçalho do Setor */}
       <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
         <div className="flex items-center gap-4">
@@ -1085,11 +1567,12 @@ function DepartmentCard({
       </div>
 
       {/* Área Direita (Grade de Colaboradores) */}
-      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
+      <div ref={setNodeRef} className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
+        <SortableContext id={department.id} items={department.data.map(e => e.id)} strategy={verticalListSortingStrategy}>
         <div className="grid grid-cols-1 gap-4 flex-1">
           {department.data.map((emp, i) => (
             <EmployeeRow
-              key={`${department.id}-${i}-${emp.name}`}
+              key={emp.id}
               emp={emp}
               department={department}
               allDepartments={allDepartments}
@@ -1097,6 +1580,10 @@ function DepartmentCard({
               onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
               onDelete={() => onDelete(department.id, i)}
               onTransferToSpecial={() => onTransferToSpecial(i)}
+              onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
+              isDarkMode={isDarkMode}
+              activeEdit={activeEdits[emp.id]}
+              onStartEdit={() => onStartEdit(emp.id)}
             />
           ))}
           {/* Slots vazios de preenchimento para igualar a altura máxima */}
@@ -1106,7 +1593,8 @@ function DepartmentCard({
               className="min-h-[140px] select-none pointer-events-none"
             />
           ))}
-        </div>
+          </div>
+        </SortableContext>
       </div>
     </div>
   );
@@ -1118,7 +1606,13 @@ function EmployeeRow({
   allDepartments,
   onMove,
   onUpdateEmployee,
-  onDelete
+  onDelete,
+  onTransferToSpecial,
+  onMarkAbsent,
+  isDarkMode,
+  isDragOverlay,
+  activeEdit,
+  onStartEdit
 }: {
   key?: string | number;
   emp: Employee;
@@ -1128,12 +1622,41 @@ function EmployeeRow({
   onUpdateEmployee: (field: keyof Employee, value: string) => void;
   onDelete: () => void;
   onTransferToSpecial: () => void;
+  onMarkAbsent: (absenceType: StatusType) => void;
+  isDarkMode: boolean;
+  isDragOverlay?: boolean;
+  activeEdit?: ActiveEdit;
+  onStartEdit?: () => void;
 }) {
   const [showLineDropdown, setShowLineDropdown] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showTransferMenu, setShowTransferMenu] = useState(false);
+  const [showAbsentMenu, setShowAbsentMenu] = useState(false);
   const theme = getDeptTheme(department.id);
   const otherDepts = allDepartments.filter(d => d.id !== department.id);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: emp.id,
+    data: {
+      type: 'Employee',
+      employee: emp,
+      departmentId: department.id,
+    },
+    disabled: isDragOverlay,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(isDragging ? null : transform),
+    transition: isDragging ? undefined : transition,
+    ...(activeEdit && !isDragOverlay ? { outline: `2px solid ${activeEdit.color}`, outlineOffset: '1px' } : {})
+  };
 
   // Helper para borda lateral de destaque conforme o setor no modo claro/escuro
   const getBorderLeftClass = (deptId: string, hasError?: boolean) => {
@@ -1160,17 +1683,49 @@ function EmployeeRow({
   const avatarBtnRef = useRef<HTMLButtonElement>(null);
   const transferBtnRef = useRef<HTMLButtonElement>(null);
   const lineInputRef = useRef<HTMLInputElement>(null);
+  const absentBtnRef = useRef<HTMLButtonElement>(null);
 
   const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
   const transferRect = useAnchoredRect(transferBtnRef, showTransferMenu);
   const lineRect = useAnchoredRect(lineInputRef, showLineDropdown);
+  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
 
   return (
-    <div
-      className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 dept-${department.id} ${
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      initial={{ scale: 0.98, opacity: 0.4 }}
+      animate={{ 
+        scale: isDragging ? 0.98 : 1, 
+        opacity: isDragging ? 0.4 : 1 
+      }}
+      transition={{ 
+        type: 'spring', 
+        stiffness: 400, 
+        damping: 25 
+      }}
+      className={`employee-row-card relative flex flex-col min-h-[140px] justify-between rounded-[14px] transition-all duration-300 dept-${department.id} ${
         emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
-      } ${getBorderLeftClass(department.id, emp.error)}`}
+      } ${getBorderLeftClass(department.id, emp.error)} ${
+        isDragOverlay 
+          ? 'shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] ring-1 ring-white/10 opacity-95 cursor-grabbing z-[9999] !transition-none' 
+          : isDragging 
+            ? 'opacity-30 z-50 shadow-none' 
+            : 'shadow-sm hover:shadow-md hover:-translate-y-1 cursor-grab'
+      }`}
     >
+      {/* Active Edit Badge */}
+      {activeEdit && !isDragOverlay && (
+        <div className="absolute -top-3 -right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-full z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeEdit.color }} />
+          <span className="text-[10px] text-white font-bold whitespace-nowrap">
+            {activeEdit.userName} editando...
+          </span>
+        </div>
+      )}
+
       {/* Main Row Content */}
       <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
         
@@ -1211,7 +1766,13 @@ function EmployeeRow({
           {/* Action Buttons */}
           <div className="relative flex items-center gap-2">
             <button
-              onClick={(e) => { e.stopPropagation(); onUpdateEmployee('error', !emp.error); }}
+              ref={absentBtnRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAbsentMenu(!showAbsentMenu);
+                setShowTransferMenu(false);
+                setShowAvatarMenu(false);
+              }}
               className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
             >
               AUSENTE
@@ -1247,7 +1808,10 @@ function EmployeeRow({
               ref={lineInputRef}
               type="text"
               value={emp.line}
-              onFocus={() => setShowLineDropdown(true)}
+              onFocus={() => {
+                setShowLineDropdown(true);
+                onStartEdit?.();
+              }}
               onBlur={() => setTimeout(() => setShowLineDropdown(false), 200)}
               onChange={(e) => {
                 onUpdateEmployee('line', e.target.value);
@@ -1261,6 +1825,7 @@ function EmployeeRow({
             <input
               type="text"
               value={emp.machine}
+              onFocus={() => onStartEdit?.()}
               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
               className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
             />
@@ -1287,7 +1852,7 @@ function EmployeeRow({
                 left: avatarRect.left,
                 zIndex: 1000,
               }}
-              className="w-[120px] bg-[#1E2029] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+              className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
             >
               <button
                 onClick={(e) => {
@@ -1321,7 +1886,7 @@ function EmployeeRow({
                 left: transferRect.right - 180,
                 zIndex: 1000,
               }}
-              className="w-[180px] bg-[#1E2029] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+              className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
             >
               <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
               {otherDepts.map(d => {
@@ -1382,7 +1947,7 @@ function EmployeeRow({
                 left: lineRect.left + lineRect.width / 2 - 65,
                 zIndex: 1000,
               }}
-              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
+              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
             >
               {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
                 <button
@@ -1405,7 +1970,77 @@ function EmployeeRow({
         )}
       </AnimatePresence>
 
-    </div>
+      {/* Portal: Menu Ausente */}
+      <AnimatePresence>
+        {showAbsentMenu && absentRect && (
+          <PortalMenu>
+            <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
+            <div
+              style={{
+                position: 'fixed',
+                top: absentRect.bottom + 10, // Abaixo do botão com espaçamento nítido de 10px
+                left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do botão
+                transform: 'translateX(-50%)', // Centraliza horizontalmente
+                zIndex: 1000,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
+                  isDarkMode 
+                    ? 'bg-slate-950/40 border border-white/10' 
+                    : 'bg-white/40 border border-slate-300/50'
+                }`}
+              >
+                {[
+                  { type: 'FÉRIAS' },
+                  { type: 'FORA' },
+                  { type: 'ATM' },
+                  { type: 'RESTRIÇÃO' },
+                  { type: 'INSS' }
+                ].map((opt) => {
+                  const meta = STATUS_METADATA[opt.type as StatusType];
+                  const Icon = meta.icon;
+                  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
+
+                  return (
+                    <button
+                      key={opt.type}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAbsentMenu(false);
+                        onMarkAbsent(opt.type as StatusType);
+                      }}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
+                        isDarkMode 
+                          ? 'text-white hover:bg-white/10 active:bg-white/15' 
+                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
+                        <span className={colorClass}>{meta.label}</span>
+                      </div>
+                      <ChevronRight 
+                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
+                          isDarkMode 
+                            ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
+                            : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
+                        }`} 
+                      />
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </div>
+          </PortalMenu>
+        )}
+      </AnimatePresence>
+
+    </motion.div>
   );
 }
 
@@ -1452,7 +2087,7 @@ function SupportCard({
       <div className="p-3 space-y-2">
         {roles.map((emp, i) => (
           <SupportRoleRow 
-            key={i} 
+            key={emp.id || i} 
             emp={emp} 
             groupIndex={groupIndex}
             onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
@@ -1474,6 +2109,7 @@ function SupportRoleRow({
   onMove,
   onMoveToSpecial
 }: { 
+  key?: string | number;
   emp: SupportRole; 
   groupIndex: number;
   onUpdateRole: (newRole: string) => void;
@@ -1603,10 +2239,7 @@ function SpecialShiftSlot({
   allDepartments,
   onUpdate,
   onTransfer
-}: {
-  emp: Employee;
-  index: number;
-  allDepartments: Department[];
+}: { key?: string | number; emp: Employee; index: number; allDepartments: Department[];
   onUpdate: (field: keyof Employee, value: string) => void;
   onTransfer: (targetDeptId: string) => void;
 }) {
@@ -1698,4 +2331,5 @@ function SpecialShiftSlot({
     </div>
   );
 }
+
 

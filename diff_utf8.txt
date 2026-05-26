@@ -1,0 +1,1972 @@
+﻿diff --git a/src/App.tsx b/src/App.tsx
+index 69ff187..6be2a56 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,8 +1,102 @@
+ import React, { useState, useRef, useCallback, useEffect } from 'react';
+ import { createPortal } from 'react-dom';
+-import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock } from 'lucide-react';
++import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock, LogOut, Activity, ShieldAlert, FileText, Palette, Eye, EyeOff } from 'lucide-react';
+ import { motion, AnimatePresence } from 'motion/react';
+ 
++// --- Status Types and Predefined Styles ---
++export type StatusType = 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS';
++
++export const STATUS_METADATA: Record<StatusType, {
++  label: string;
++  colorDark: string;    // cor para modo escuro
++  colorLight: string;   // cor com mais contraste/escura para modo claro
++  dotColor: string;
++  icon: React.ComponentType<{ className?: string }>;
++}> = {
++  'F├ëRIAS': {
++    label: 'F├ëRIAS',
++    colorDark: 'text-[#30D158]',      // Verde vibrante no escuro (iOS Green)
++    colorLight: 'text-[#16A34A]',     // Verde forte de ├│timo contraste no claro (Tailwind green-600)
++    dotColor: 'bg-[#30D158]',
++    icon: Palmtree,
++  },
++  'FORA': {
++    label: 'FORA',
++    colorDark: 'text-[#FF453A]',
++    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro (Tailwind red-500)
++    dotColor: 'bg-[#FF453A]',
++    icon: LogOut,
++  },
++  'ATM': {
++    label: 'ATM',
++    colorDark: 'text-[#FFD60A]',      // Amarelo no escuro
++    colorLight: 'text-[#D97706]',     // ├émbar/Dourado equilibrado no claro (Tailwind amber-600)
++    dotColor: 'bg-[#FFD60A]',
++    icon: Activity,
++  },
++  'RESTRI├ç├âO': {
++    label: 'RESTRI├ç├âO',
++    colorDark: 'text-[#BF5AF2]',
++    colorLight: 'text-[#8B5CF6]',     // Violeta vibrante no claro (Tailwind violet-500)
++    dotColor: 'bg-[#BF5AF2]',
++    icon: ShieldAlert,
++  },
++  'INSS': {
++    label: 'INSS',
++    colorDark: 'text-[#FF453A]',
++    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro
++    dotColor: 'bg-[#FF453A]',
++    icon: FileText,
++  }
++};
++
++export function StatusIndicator({
++  type,
++  isDarkMode
++}: {
++  type: StatusType;
++  isDarkMode: boolean;
++}) {
++  const meta = STATUS_METADATA[type];
++  if (!meta) return <span>{type}</span>;
++
++  const Icon = meta.icon;
++  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
++
++  return (
++    <span className={`flex items-center gap-1.5 font-bold text-[11px] ${colorClass}`}>
++      <Icon className="w-3.5 h-3.5" />
++      <span className="status-icon-text">{meta.label}</span>
++    </span>
++  );
++}
++
++
++// --- Custom Icons from PAINEL-DSS ---
++const ExchangeIcon: React.FC<{ className?: string }> = ({ className }) => (
++  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++    <path d="M17 1l4 4-4 4"></path>
++    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
++    <path d="M7 23l-4-4 4-4"></path>
++    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
++  </svg>
++);
++
++const HelpIcon: React.FC<{ className?: string }> = ({ className }) => (
++  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++    <circle cx="12" cy="12" r="10"></circle>
++    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
++    <line x1="12" y1="17" x2="12.01" y2="17"></line>
++  </svg>
++);
++
++const StatCard = ({ label, value, colorClass, bgClass }: { label: string; value: number; colorClass: string; bgClass: string }) => (
++  <div className={`text-center py-2 px-3.5 rounded-xl min-w-[95px] border border-white/5 transition-all shadow-sm ${bgClass}`}>
++    <div className={`text-[24px] font-black mb-0.5 tracking-tight ${colorClass}`}>{value}</div>
++    <div className="text-[10px] text-[#a0aec0] uppercase font-bold tracking-wider">{label}</div>
++  </div>
++);
++
+ // --- Portal Popup Anchor: calcula posi├º├úo real na tela para renderizar fora do overflow-hidden ---
+ function useAnchoredRect(triggerRef: React.RefObject<HTMLElement | null>, open: boolean) {
+   const [rect, setRect] = useState<DOMRect | null>(null);
+@@ -20,9 +114,46 @@ function PortalMenu({ children }: { children: React.ReactNode }) {
+   return createPortal(children, document.body);
+ }
+ 
++const radialMenuVariants = {
++  hidden: { scale: 0, x: 0, y: 0, opacity: 0 },
++  visible: (i: number) => {
++    const radius = 65; // Raio One UI ÔÇö espa├ºamento confort├ível entre ├¡cones de 38px
++    // 5 posi├º├Áes de 90 a -90 graus para abrir pela direita:
++    // i = 0 -> 90deg, i = 1 -> 45deg, i = 2 -> 0deg, i = 3 -> -45deg, i = 4 -> -90deg
++    const angleRad = (90 - i * 45) * (Math.PI / 180);
++    const x = Math.round(radius * Math.cos(angleRad));
++    const y = Math.round(-radius * Math.sin(angleRad)); // inverte Y para coordenadas de tela
++    return {
++      scale: 1,
++      x,
++      y,
++      opacity: 1,
++      transition: {
++        type: 'spring',
++        stiffness: 300,
++        damping: 22,
++        delay: i * 0.03
++      }
++    };
++  },
++  exit: (i: number) => ({
++    scale: 0,
++    x: 0,
++    y: 0,
++    opacity: 0,
++    transition: {
++      type: 'spring',
++      stiffness: 400,
++      damping: 25,
++      delay: (4 - i) * 0.02
++    }
++  })
++};
++
+ // --- Data Models ---
+ type Employee = {
+   name: string;
++  matricula?: string;
+   line: string;
+   machine: string;
+   error?: boolean;
+@@ -41,11 +172,14 @@ type Department = {
+ 
+ type SupportRole = {
+   name: string;
++  matricula?: string;
+   role: string;
++  error?: boolean;
+ };
+ 
+ type AnnotationItem = {
+   name: string;
++  matricula?: string;
+   status: string;
+ };
+ 
+@@ -66,12 +200,12 @@ const initialDepartmentsData: Department[] = [
+     title: 'Recep├º├úo',
+     count: 6,
+     data: [
+-      { name: 'LUCIANO ALVES', line: 'X3', machine: '238' },
+-      { name: 'RUFINO SANTOS', line: 'X2', machine: '231' },
+-      { name: 'GERALDO COSTA', line: 'X2', machine: '220' },
+-      { name: 'RAFAEL LIMA', line: 'X1', machine: '848' },
+-      { name: 'ARTHUR SOUZA', line: 'X1', machine: '819' },
+-      { name: 'WALTERILSON SILVA', line: '1┬║ CORTE', machine: '253' },
++      { name: 'LUCIANO ALVES', matricula: '73849102', line: 'X3', machine: '238' },
++      { name: 'RUFINO SANTOS', matricula: '58201934', line: 'X2', machine: '231' },
++      { name: 'GERALDO COSTA', matricula: '91028374', line: 'X2', machine: '220' },
++      { name: 'RAFAEL LIMA', matricula: '34910285', line: 'X1', machine: '848' },
++      { name: 'ARTHUR SOUZA', matricula: '85920193', line: 'X1', machine: '819' },
++      { name: 'WALTERILSON SILVA', matricula: '29384756', line: '1┬║ CORTE', machine: '253' },
+     ],
+   },
+   {
+@@ -79,14 +213,14 @@ const initialDepartmentsData: Department[] = [
+     title: 'Classifica├º├úo',
+     count: 8,
+     data: [
+-      { name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
+-      { name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
+-      { name: 'CID PINTO', line: 'X04', machine: '259' },
+-      { name: 'IGOR RABELO', line: 'X04', machine: '3949' },
+-      { name: 'NAYLAN ROCHA', line: 'X05', machine: '847' },
+-      { name: 'HUMBERTO NUNES', line: 'X05', machine: '743' },
+-      { name: 'PEDRO JUNIOR', line: 'X05', machine: '712' },
+-      { name: 'NAYRON DIAS', line: 'X05', machine: '284' },
++      { name: 'NAIMARA MENDES', matricula: '48572910', line: 'X04', machine: '805', error: true },
++      { name: 'DANIELLE OLIVEIRA', matricula: '19283746', line: 'X04', machine: '257' },
++      { name: 'CID PINTO', matricula: '56473829', line: 'X04', machine: '259' },
++      { name: 'IGOR RABELO', matricula: '30495867', line: 'X04', machine: '3949' },
++      { name: 'NAYLAN ROCHA', matricula: '82736450', line: 'X05', machine: '847' },
++      { name: 'HUMBERTO NUNES', matricula: '61524389', line: 'X05', machine: '743' },
++      { name: 'PEDRO JUNIOR', matricula: '94857102', line: 'X05', machine: '712' },
++      { name: 'NAYRON DIAS', matricula: '20394857', line: 'X05', machine: '284' },
+     ],
+   },
+   {
+@@ -94,11 +228,11 @@ const initialDepartmentsData: Department[] = [
+     title: 'Forma├º├úo',
+     count: 5,
+     data: [
+-      { name: 'JESSICA BARROS', line: 'CTR2', machine: '2003' },
+-      { name: 'DANIEL ALMEIDA', line: 'CTR3', machine: '270' },
+-      { name: 'GABRIEL CARVALHO', line: '4C', machine: '288' },
+-      { name: 'PEDRO CARDOSO', line: '4C', machine: '260' },
+-      { name: 'ROSANA TEIXEIRA', line: '201 B', machine: '277' },
++      { name: 'JESSICA BARROS', matricula: '47582910', line: 'CTR2', machine: '2003' },
++      { name: 'DANIEL ALMEIDA', matricula: '83920157', line: 'CTR3', machine: '270' },
++      { name: 'GABRIEL CARVALHO', matricula: '10293847', line: '4C', machine: '288' },
++      { name: 'PEDRO CARDOSO', matricula: '56473829', line: '4C', machine: '260' },
++      { name: 'ROSANA TEIXEIRA', matricula: '92837465', line: '201 B', machine: '277' },
+     ],
+   },
+ ];
+@@ -108,37 +242,48 @@ const SUPPORT_ROLES_OPTIONS = [
+   'VIRADOR',
+   'MIKE 03',
+   'AUX X5',
+-  'AUX GIROFLEX',
++  'GIROFLEX',
+   'MIKE 06',
+   'AUX X6'
+ ];
+ 
+ const initialSupportData: SupportRole[][] = [
+   [
+-    { name: 'BEATRIZ SILVA', role: 'MIKE 02' },
+-    { name: 'AM├ëRICO SANTOS', role: 'VIRADOR' },
+-    { name: 'ESDRAS SOUZA', role: 'VIRADOR' },
+-    { name: 'LARISSA COSTA', role: 'VIRADOR' },
++    { name: 'BEATRIZ SILVA', matricula: '48573920', role: 'MIKE 02' },
++    { name: 'AM├ëRICO SANTOS', matricula: '10293847', role: 'VIRADOR' },
++    { name: 'ESDRAS SOUZA', matricula: '56473829', role: 'VIRADOR' },
++    { name: 'LARISSA COSTA', matricula: '92837465', role: 'VIRADOR' },
+   ],
+   [
+-    { name: 'CAMILE BARROS', role: 'MIKE 03' },
+-    { name: 'ALBERTO LIMA', role: 'AUX GIROFLEX' },
+-    { name: 'RICARDO ROCHA', role: 'AUX GIROFLEX' },
++    { name: 'CAMILE BARROS', matricula: '38475610', role: 'MIKE 03' },
++    { name: 'ALBERTO LIMA', matricula: '72839405', role: 'GIROFLEX' },
++    { name: 'RICARDO ROCHA', matricula: '19283746', role: 'GIROFLEX' },
+   ],
+   [
+-    { name: 'LUANA ALVES', role: 'MIKE 06' },
+-    { name: 'ROSA MENDES', role: 'AUX X6' },
++    { name: 'LUANA ALVES', matricula: '50694837', role: 'MIKE 06' },
++    { name: 'ROSA MENDES', matricula: '28374650', role: 'AUX X6' },
+   ],
+ ];
+ 
+ const initialAnnotationsLeft: AnnotationGroup[] = [
++  {
++    title: 'MAQUINISTA / EST├üGIO',
++    items: [
++      { name: 'WEBERTH SILVA', matricula: '39485761', status: 'EST├üGIO' },
++      { name: 'RAFAEL SOUZA', matricula: '20394857', status: 'EST├üGIO' },
++      { name: 'ARTHUR COSTA', matricula: '94857612', status: 'EST├üGIO' },
++      { name: 'GERALDO SANTOS', matricula: '48576192', status: 'EST├üGIO' },
++      { name: '', status: '' },
++      { name: '', status: '' },
++    ]
++  },
+   {
+     title: 'F├ëRIAS/ATM/TE/TREIN./REVEZA',
+     items: [
+-      { name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
+-      { name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
+-      { name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
+-      { name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
++      { name: 'WEBERTH SILVA', matricula: '39485761', status: 'TREINAMENTO' },
++      { name: 'RAFAEL SOUZA', matricula: '20394857', status: 'TREINAMENTO' },
++      { name: 'ARTHUR COSTA', matricula: '94857612', status: 'TREINAMENTO' },
++      { name: 'GERALDO SANTOS', matricula: '48576192', status: 'TREINAMENTO' },
+       { name: '', status: '' },
+       { name: '', status: '' },
+     ]
+@@ -146,9 +291,9 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
+   {
+     title: 'AUSENTES/FORA/F├ëRIAS',
+     items: [
+-      { name: 'ALDO RIBEIRO', status: 'F├ëRIAS' },
+-      { name: 'KEYLSON LIMA', status: 'F├ëRIAS' },
+-      { name: 'JOANDERSON ALVES', status: 'F├ëRIAS' },
++      { name: 'ALDO RIBEIRO', matricula: '19283746', status: 'F├ëRIAS' },
++      { name: 'KEYLSON LIMA', matricula: '56473829', status: 'F├ëRIAS' },
++      { name: 'JOANDERSON ALVES', matricula: '30495867', status: 'F├ëRIAS' },
+       { name: '', status: '' },
+       { name: '', status: '' },
+       { name: '', status: '' },
+@@ -158,35 +303,35 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
+ 
+ const initialAnnotationsRight: AnnotationGroup[] = [
+   {
+-    title: 'MAQ/OFF - EST├üGIO',
++    title: 'OFF / EST├üGIO',
+     items: [
+-      { name: 'THAIS OLIVEIRA', status: 'EST├üGIO' },
+-      { name: 'ELIAS PEREIRA', status: 'EST├üGIO' },
+-      { name: 'JESSICA RODRIGUES', status: 'EST├üGIO' },
+-      { name: 'GIANFRANCO NUNES', status: 'EST├üGIO' },
+-      { name: 'THAIS GOMES', status: 'EST├üGIO' },
+-      { name: 'BEATRIZ BARBOSA', status: 'EST├üGIO' },
+-      { name: 'DENISSON MARTINS', status: '' },
++      { name: 'THAIS OLIVEIRA', matricula: '82736450', status: 'EST├üGIO' },
++      { name: 'ELIAS PEREIRA', matricula: '61524389', status: 'EST├üGIO' },
++      { name: 'JESSICA RODRIGUES', matricula: '94857102', status: 'EST├üGIO' },
++      { name: 'GIANFRANCO NUNES', matricula: '20394857', status: 'EST├üGIO' },
++      { name: 'THAIS GOMES', matricula: '47582910', status: 'EST├üGIO' },
++      { name: 'BEATRIZ BARBOSA', matricula: '83920157', status: 'EST├üGIO' },
++      { name: 'DENISSON MARTINS', matricula: '10293847', status: 'EST├üGIO' },
+     ]
+   },
+   {
+     title: 'TREINAMENTO / F├ëRIAS/ ATM / TE',
+     items: [
+-      { name: 'ANA PAULA SILVA', status: 'RESTRI├ç├âO' },
+-      { name: 'JONH CARDOSO', status: 'RESTRI├ç├âO' },
+-      { name: 'ANA BEATRIZ LIMA', status: 'INSS' },
+-      { name: 'CAMILE MOREIRA', status: 'ATM' },
++      { name: 'ANA PAULA SILVA', matricula: '56473829', status: 'RESTRI├ç├âO' },
++      { name: 'JONH CARDOSO', matricula: '92837465', status: 'RESTRI├ç├âO' },
++      { name: 'ANA BEATRIZ LIMA', matricula: '38475610', status: 'INSS' },
++      { name: 'CAMILE MOREIRA', matricula: '72839405', status: 'ATM' },
+       { name: '', status: '' },
+-      { name: 'MARCO POLO SOUZA', status: 'F├ëRIAS' },
+-      { name: 'ADRYELLEN VIEIRA', status: 'F├ëRIAS' },
+-      { name: 'LARISSA DIAS', status: 'FORA' },
++      { name: 'MARCO POLO SOUZA', matricula: '19283746', status: 'F├ëRIAS' },
++      { name: 'ADRYELLEN VIEIRA', matricula: '50694837', status: 'F├ëRIAS' },
++      { name: 'LARISSA DIAS', matricula: '28374650', status: 'FORA' },
+       { name: '', status: '' },
+     ]
+   },
+   {
+     title: 'F├ëRIAS/IN SP/LICEN├çA',
+     items: [
+-      { name: 'EDNELSON MELO', status: 'INSS' },
++      { name: 'EDNELSON MELO', matricula: '39485761', status: 'INSS' },
+       { name: '', status: '' },
+       { name: '', status: '' },
+     ]
+@@ -218,14 +363,14 @@ function AnnotationsBoard({
+   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
+ }) {
+   return (
+-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
++    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
+       {/* Header */}
+-      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-center bg-[#15171E]">
++      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-center bg-[#2D3748]">
+         <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">ANOTA├ç├òES MIN├ëRIO</h3>
+       </div>
+ 
+       {/* Body */}
+-      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-row gap-6">
++      <div className="flex-1 p-5 bg-[#1A202C]/30 flex flex-row gap-6">
+         {/* Left Column */}
+         <div className="flex-1 flex flex-col gap-6">
+           {leftGroups.map((group, groupIdx) => (
+@@ -235,7 +380,7 @@ function AnnotationsBoard({
+               </div>
+               <div className="flex flex-col gap-1 mt-1">
+                 {group.items.map((item, itemIdx) => (
+-                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
++                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#1A202C] rounded-[8px] border border-white/[0.03]">
+                     <input 
+                       type="text" 
+                       value={item.name} 
+@@ -266,7 +411,7 @@ function AnnotationsBoard({
+               </div>
+               <div className="flex flex-col gap-1 mt-1">
+                 {group.items.map((item, itemIdx) => (
+-                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
++                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#1A202C] rounded-[8px] border border-white/[0.03]">
+                     <input 
+                       type="text" 
+                       value={item.name} 
+@@ -304,6 +449,16 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+ }) {
+   const [password, setPassword] = useState('');
+   const [error, setError] = useState('');
++  const [showPassword, setShowPassword] = useState(false);
++
++  // Resetar estados ao fechar/abrir modal
++  useEffect(() => {
++    if (!isOpen) {
++      setPassword('');
++      setError('');
++      setShowPassword(false);
++    }
++  }, [isOpen]);
+ 
+   const handleSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
+@@ -324,7 +479,7 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+       onClick={onClose}
+     >
+       <div
+-        className="bg-[#1E2029] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4 animate-[fadeInScale_0.25s_ease-out_forwards]"
++        className="bg-[#2D3748] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4 animate-[fadeInScale_0.25s_ease-out_forwards]"
+         onClick={(e) => e.stopPropagation()}
+         style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
+       >
+@@ -348,7 +503,7 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+             <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Painel do Administrador</h2>
+             <p className="text-sm text-[#a0aec0] mb-6">Voc├¬ est├í logado como administrador</p>
+             <div className="flex flex-col gap-3">
+-              <div className="bg-[#111217] rounded-xl p-4 border border-white/5 text-left">
++              <div className="bg-[#1A202C] rounded-xl p-4 border border-white/5 text-left">
+                 <p className="text-xs text-[#a0aec0] uppercase tracking-wider font-bold mb-2">Sess├úo Ativa</p>
+                 <p className="text-white font-semibold flex items-center gap-2">
+                   <span className="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span>
+@@ -375,14 +530,29 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+             <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Acesso Administrativo</h2>
+             <p className="text-sm text-[#a0aec0] mb-6">Digite a senha para continuar</p>
+             <form onSubmit={handleSubmit} className="space-y-4">
+-              <input
+-                type="password"
+-                placeholder="Senha do Administrador"
+-                value={password}
+-                onChange={(e) => setPassword(e.target.value)}
+-                className="w-full p-4 bg-[#111217] border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/30 transition-all"
+-                autoFocus
+-              />
++              <div className="relative">
++                <input
++                  type={showPassword ? "text" : "password"}
++                  placeholder="Senha do Administrador"
++                  value={password}
++                  onChange={(e) => setPassword(e.target.value)}
++                  className="w-full p-4 pr-12 bg-[#1A202C] border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/30 transition-all text-left"
++                  autoFocus
++                />
++                <button
++                  type="button"
++                  onClick={() => setShowPassword(!showPassword)}
++                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a0aec0] hover:text-white transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center p-1 rounded-md hover:bg-white/5 active:scale-95 transition-all"
++                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
++                  title={showPassword ? "Ocultar senha" : "Mostrar senha"}
++                >
++                  {showPassword ? (
++                    <EyeOff className="w-5 h-5" />
++                  ) : (
++                    <Eye className="w-5 h-5" />
++                  )}
++                </button>
++              </div>
+               {error && (
+                 <p className="text-sm text-red-400 font-semibold text-left px-1">{error}</p>
+               )}
+@@ -400,6 +570,12 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
+   );
+ }
+ 
++export type ActiveEditor = {
++  employeeName: string;
++  editorName: string;
++  color: string;
++};
++
+ export default function App() {
+   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
+   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
+@@ -416,6 +592,43 @@ export default function App() {
+   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+   const [isAdmin, setIsAdmin] = useState(false);
+ 
++  const [activeEditors, setActiveEditors] = useState<ActiveEditor[]>([]);
++
++  // Simula├º├úo de altera├º├úo simult├ónea por m├║ltiplos usu├írios em tempo real
++  useEffect(() => {
++    const editorsPool = [
++      { name: 'LUCAS M.', color: '#0A84FF' }, // Azul (antes Roxo)
++      { name: 'ANA K.', color: '#FF375F' }    // Rosa
++    ];
++
++    const interval = setInterval(() => {
++      // 1 ou 2 editores ativos concorrentemente
++      const numActive = Math.floor(Math.random() * 2) + 1;
++      const newEditors: ActiveEditor[] = [];
++      
++      const allNames: string[] = [];
++      departmentsData.forEach(d => d.data.forEach(e => { if (e.name) allNames.push(e.name); }));
++      supportRolesData.forEach(g => g.forEach(s => { if (s.name) allNames.push(s.name); }));
++      
++      if (allNames.length > 0) {
++        for (let i = 0; i < numActive; i++) {
++          const randName = allNames[Math.floor(Math.random() * allNames.length)];
++          const editor = editorsPool[i % editorsPool.length];
++          if (!newEditors.some(e => e.employeeName === randName)) {
++            newEditors.push({
++              employeeName: randName,
++              editorName: editor.name,
++              color: editor.color
++            });
++          }
++        }
++        setActiveEditors(newEditors);
++      }
++    }, 12000); // Rotaciona a cada 12 segundos para a simula├º├úo org├ónica
++
++    return () => clearInterval(interval);
++  }, [departmentsData, supportRolesData]);
++
+   const handleAdminLogin = useCallback(() => {
+     setIsAdmin(true);
+   }, []);
+@@ -428,7 +641,14 @@ export default function App() {
+   useEffect(() => {
+     localStorage.setItem('distribui-theme', isDarkMode ? 'dark' : 'light');
+     // Atualiza o background do body para evitar flash branco no overscroll
+-    document.body.style.backgroundColor = isDarkMode ? '#111217' : '#eef2f7';
++    document.body.style.backgroundColor = isDarkMode ? '#1A202C' : '#eef2f7';
++    
++    // Aplica a classe light-mode ao body para que os portais herdem os estilos corretos
++    if (!isDarkMode) {
++      document.body.classList.add('light-mode');
++    } else {
++      document.body.classList.remove('light-mode');
++    }
+   }, [isDarkMode]);
+ 
+   const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
+@@ -606,14 +826,18 @@ export default function App() {
+     const scalableContainer = scalableContainerRef.current;
+     if (!viewport || !scalableContainer) return;
+ 
+-    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366;
++    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 768;
+ 
+     if (isMobileView) {
+       const oneColumnScale = viewport.clientWidth / 920;
+       const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
+       setScale(finalScale, 0, 0);
+     } else {
+-      setScale(1.0, 0, 0);
++      // Desktop/Laptop: Calcula o zoom exato para caber as 3 colunas principais (1590px de largura alvo)
++      const targetWidth = 1590;
++      const calculatedScale = viewport.clientWidth / targetWidth;
++      const finalScale = Math.min(Math.max(calculatedScale, 0.35), 1.0);
++      setScale(finalScale, 0, 0);
+     }
+   }, [setScale]);
+ 
+@@ -798,6 +1022,16 @@ export default function App() {
+     });
+   };
+ 
++  const handleDeleteSupport = (groupIndex: number, empIndex: number) => {
++    setSupportRolesData(prev => {
++      const newGroups = [...prev];
++      const newGroup = [...newGroups[groupIndex]];
++      newGroup.splice(empIndex, 1);
++      newGroups[groupIndex] = newGroup;
++      return newGroups;
++    });
++  };
++
+   const handleMoveSupport = (sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
+     setSupportRolesData(prev => {
+       const newGroups = [...prev];
+@@ -811,6 +1045,114 @@ export default function App() {
+     });
+   };
+ 
++  const handleMarkEmployeeAbsent = (
++    sourceType: 'dept' | 'support' | 'special',
++    sourceIndex1: string | number, // deptId ou groupIndex
++    sourceIndex2: number, // empIndex
++    absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS'
++  ) => {
++    let empName = '';
++    let empMatricula = '';
++
++    // 1. Obter os dados do funcion├írio e remov├¬-lo da origem
++    if (sourceType === 'dept') {
++      const deptId = sourceIndex1 as string;
++      const dept = departmentsData.find(d => d.id === deptId);
++      if (!dept) return;
++      const emp = dept.data[sourceIndex2];
++      if (!emp) return;
++      empName = emp.name;
++      empMatricula = emp.matricula || '';
++
++      setDepartmentsData(prev => {
++        const newDepts = [...prev];
++        const idx = newDepts.findIndex(d => d.id === deptId);
++        if (idx === -1) return prev;
++        const newData = [...newDepts[idx].data];
++        newData.splice(sourceIndex2, 1);
++        newDepts[idx] = { ...newDepts[idx], data: newData, count: newData.length };
++        return newDepts;
++      });
++    } else if (sourceType === 'support') {
++      const groupIdx = sourceIndex1 as number;
++      const group = supportRolesData[groupIdx];
++      if (!group) return;
++      const emp = group[sourceIndex2];
++      if (!emp) return;
++      empName = emp.name;
++      empMatricula = emp.matricula || '';
++
++      setSupportRolesData(prev => {
++        const newSupport = prev.map(g => [...g]);
++        newSupport[groupIdx].splice(sourceIndex2, 1);
++        return newSupport;
++      });
++    } else if (sourceType === 'special') {
++      const emp = specialShiftData[sourceIndex2];
++      if (!emp) return;
++      empName = emp.name;
++      empMatricula = emp.matricula || '';
++
++      setSpecialShiftData(prev => {
++        const newSpecial = [...prev];
++        newSpecial.splice(sourceIndex2, 1);
++        return newSpecial;
++      });
++    }
++
++    if (!empName.trim()) return;
++
++    // 2. Direcionar para a tabela de anota├º├Áes adequada
++    let targetLeftGroupIndex = -1;
++    let targetRightGroupIndex = -1;
++
++    if (absenceType === 'F├ëRIAS') {
++      targetLeftGroupIndex = 1; // "AUSENTES/FORA/F├ëRIAS"
++    } else if (absenceType === 'FORA') {
++      targetLeftGroupIndex = 1; // "AUSENTES/FORA/F├ëRIAS"
++    } else if (absenceType === 'ATM') {
++      targetLeftGroupIndex = 0; // "F├ëRIAS/ATM/TE/TREIN./REVEZA"
++    } else if (absenceType === 'RESTRI├ç├âO') {
++      targetRightGroupIndex = 1; // "TREINAMENTO / F├ëRIAS/ ATM / TE"
++    } else if (absenceType === 'INSS') {
++      targetRightGroupIndex = 2; // "F├ëRIAS/IN SP/LICEN├çA"
++    }
++
++    if (targetLeftGroupIndex !== -1) {
++      setAnnotationsLeft(prev => {
++        const newGroups = [...prev];
++        const group = newGroups[targetLeftGroupIndex];
++        const items = [...group.items];
++        
++        // Achar o primeiro slot vazio (name sem texto)
++        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
++        if (emptyIdx !== -1) {
++          items[emptyIdx] = { name: empName, matricula: empMatricula, status: absenceType };
++        } else {
++          // Se n├úo houver slot vazio, faz push
++          items.push({ name: empName, matricula: empMatricula, status: absenceType });
++        }
++        newGroups[targetLeftGroupIndex] = { ...group, items };
++        return newGroups;
++      });
++    } else if (targetRightGroupIndex !== -1) {
++      setAnnotationsRight(prev => {
++        const newGroups = [...prev];
++        const group = newGroups[targetRightGroupIndex];
++        const items = [...group.items];
++        
++        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
++        if (emptyIdx !== -1) {
++          items[emptyIdx] = { name: empName, matricula: empMatricula, status: absenceType };
++        } else {
++          items.push({ name: empName, matricula: empMatricula, status: absenceType });
++        }
++        newGroups[targetRightGroupIndex] = { ...group, items };
++        return newGroups;
++      });
++    }
++  };
++
+   const handleMove = (sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
+     setDepartmentsData(prev => {
+       const newDepts = [...prev];
+@@ -859,18 +1201,51 @@ export default function App() {
+ 
+   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
+ 
++  // --- Dynamic Statistical Calculations ---
++  const totalMaquinistas = departmentsData.reduce((acc, dept) => acc + dept.data.filter(emp => emp.name.trim() !== '').length, 0);
++  const totalApoio = supportRolesData.reduce((acc, group) => acc + group.filter(emp => emp.name.trim() !== '').length, 0);
++  const totalTurno6H = specialShiftData.filter(emp => emp.name.trim() !== '').length;
++  const totalFuncionarios = totalMaquinistas + totalApoio + totalTurno6H;
++
++  const todasAnotacoes = [
++    ...annotationsLeft.flatMap(g => g.items),
++    ...annotationsRight.flatMap(g => g.items)
++  ].filter(item => item.name && item.name.trim() !== '');
++
++  const totalFerias = todasAnotacoes.filter(item => item.status.toUpperCase().includes('F├ëRIA') || item.status.toUpperCase().includes('FERIA')).length;
++  const totalFora = todasAnotacoes.filter(item => item.status.toUpperCase() === 'FORA').length;
++  
++  const totalATM = todasAnotacoes.filter(item => 
++    item.status.toUpperCase().includes('ATM') || 
++    item.status.toUpperCase().includes('ATESTADO') || 
++    item.status.toUpperCase().includes('M├ëDICO') || 
++    item.status.toUpperCase().includes('MEDICO')
++  ).length;
++
++  const totalRestricao = todasAnotacoes.filter(item => 
++    item.status.toUpperCase().includes('RESTRI') || 
++    item.status.toUpperCase().includes('RESTRICAO')
++  ).length;
++
++  const totalEstagio = todasAnotacoes.filter(item => 
++    item.status.toUpperCase().includes('EST├üGIO') || 
++    item.status.toUpperCase().includes('ESTAGIO')
++  ).length;
++
++  const totalINSS = todasAnotacoes.filter(item => item.status.toUpperCase() === 'INSS').length;
++
+   return (
+     <>
+-    <div className={`bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative${!isDarkMode ? ' light-mode' : ''}`}>
++    <div className={`bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative${!isDarkMode ? ' light-mode' : ''}`}>
+       {/* Viewport - Scroll Container (Painel DSS Pattern) */}
+-      <div ref={viewportRef} className={`viewport fixed inset-0${isDarkMode ? ' bg-[#111217]' : ' bg-[#eef2f7]'}`}>
++      <div ref={viewportRef} className={`viewport fixed inset-0${isDarkMode ? ' bg-[#1A202C]' : ' bg-[#eef2f7]'}`}>
+         {/* Content Wrapper - Carries the scaled dimensions for scroll area */}
+         <div ref={contentWrapperRef} className="origin-top-left">
+           {/* Scalable Container - The actual content that gets scaled */}
+-          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-[#111217]">
++          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 pb-40 bg-[#1A202C]">
+ 
+             {/* Header Card - Painel DSS Style */}
+-            <div className="bg-[#1E2029] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
++            <div className="bg-[#2D3748] border border-white/5 rounded-3xl h-[300px] px-10 md:px-16 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
+               <div className="flex items-center gap-6">
+                 <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
+                   <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
+@@ -884,78 +1259,115 @@ export default function App() {
+                   </p>
+                 </div>
+               </div>
+-              <div className="flex items-center gap-6">
+-              {/* BB-8 Dark/Light Mode Toggle */}
+-                <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
+-                  <input
+-                    className="bb8-toggle__checkbox"
+-                    type="checkbox"
+-                    id="darkModeToggle"
+-                    checked={isDarkMode}
+-                    onChange={handleToggleDarkMode}
+-                  />
+-                  <div className="bb8-toggle__container">
+-                    <div className="bb8-toggle__scenery">
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="bb8-toggle__star"></div>
+-                      <div className="tatto-1" aria-hidden="true"></div>
+-                      <div className="tatto-2" aria-hidden="true"></div>
+-                      <div className="gomrassen"></div>
+-                      <div className="hermes"></div>
+-                      <div className="chenini"></div>
+-                      <div className="bb8-toggle__cloud"></div>
+-                      <div className="bb8-toggle__cloud"></div>
+-                      <div className="bb8-toggle__cloud"></div>
+-                    </div>
+-                    <div className="bb8">
+-                      <div className="bb8__head-container">
+-                        <div className="bb8__antenna"></div>
+-                        <div className="bb8__antenna"></div>
+-                        <div className="bb8__head"></div>
++              <div className="flex flex-col items-end gap-5">
++                <div className="flex items-center gap-6">
++                  {/* Bot├úo TROCAR TURMA */}
++                  <button
++                    id="change-turma-btn"
++                    onClick={() => {}}
++                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300 cursor-pointer"
++                    aria-label="Trocar Turma"
++                    title="Voltar para sele├º├úo de turma"
++                  >
++                    <ExchangeIcon className="w-7 h-7" />
++                    <span className="tracking-wide">TROCAR TURMA</span>
++                  </button>
++
++                  {/* Bot├úo TUTORIAL */}
++                  <button
++                    id="tutorial-btn"
++                    onClick={() => {}}
++                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 cursor-pointer"
++                    aria-label="Iniciar Tutorial"
++                    title="Como usar o sistema"
++                  >
++                    <HelpIcon className="w-7 h-7" />
++                    <span className="tracking-wide">TUTORIAL</span>
++                  </button>
++
++                {/* BB-8 Dark/Light Mode Toggle */}
++                  <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
++                    <input
++                      className="bb8-toggle__checkbox"
++                      type="checkbox"
++                      id="darkModeToggle"
++                      checked={isDarkMode}
++                      onChange={handleToggleDarkMode}
++                    />
++                    <div className="bb8-toggle__container">
++                      <div className="bb8-toggle__scenery">
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="bb8-toggle__star"></div>
++                        <div className="tatto-1" aria-hidden="true"></div>
++                        <div className="tatto-2" aria-hidden="true"></div>
++                        <div className="gomrassen"></div>
++                        <div className="hermes"></div>
++                        <div className="chenini"></div>
++                        <div className="bb8-toggle__cloud"></div>
++                        <div className="bb8-toggle__cloud"></div>
++                        <div className="bb8-toggle__cloud"></div>
++                      </div>
++                      <div className="bb8">
++                        <div className="bb8__head-container">
++                          <div className="bb8__antenna"></div>
++                          <div className="bb8__antenna"></div>
++                          <div className="bb8__head"></div>
++                        </div>
++                        <div className="bb8__body"></div>
++                      </div>
++                      <div className="artificial__hidden" aria-hidden="true">
++                        <div className="bb8__shadow"></div>
+                       </div>
+-                      <div className="bb8__body"></div>
+-                    </div>
+-                    <div className="artificial__hidden" aria-hidden="true">
+-                      <div className="bb8__shadow"></div>
+                     </div>
+-                  </div>
+-                </label>
++                  </label>
+ 
+-                {/* Admin Button - mesmo formato do BB-8 */}
+-                <button
+-                  id="admin-access-btn"
+-                  onClick={() => setIsAdminModalOpen(true)}
+-                  className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
+-                  style={{
+-                    width: '170px',
+-                    height: '90px',
+-                    borderRadius: '99em',
+-                    margin: '10px',
+-                    color: '#ffffff',
+-                  }}
+-                  aria-label="Acesso Administrativo"
+-                >
+-                  {/* Badge verde quando admin ativo */}
+-                  {isAdmin && (
+-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#1E2029] rounded-full animate-pulse" />
+-                  )}
+-                  <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
+-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+-                  </svg>
+-                  <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
+-                    {isAdmin ? 'ADM Ô£ô' : 'ACESSO ADM'}
+-                  </span>
+-                </button>
++                  {/* Admin Button - mesmo formato do BB-8 */}
++                  <button
++                    id="admin-access-btn"
++                    onClick={() => setIsAdminModalOpen(true)}
++                    className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
++                    style={{
++                      width: '190px',
++                      height: '90px',
++                      borderRadius: '99em',
++                      margin: '10px',
++                      color: '#ffffff',
++                    }}
++                    aria-label="Acesso Administrativo"
++                  >
++                    {/* Badge verde quando admin ativo */}
++                    {isAdmin && (
++                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#2D3748] rounded-full animate-pulse" />
++                    )}
++                    <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
++                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
++                    </svg>
++                    <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
++                      {isAdmin ? 'ADM Ô£ô' : 'ACESSO ADM'}
++                    </span>
++                  </button>
++                </div>
++
++                {/* Stats Container (Painel DSS Style) */}
++                <div className="flex gap-4 pr-[10px]">
++                  <StatCard label="Ativos" value={totalFuncionarios} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
++                  <StatCard label="F├®rias" value={totalFerias} colorClass="text-[#FF9F0A]" bgClass="bg-[#FF9F0A]/10" />
++                  <StatCard label="Fora" value={totalFora} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
++                  <StatCard label="ATM" value={totalATM} colorClass="text-[#FFD60A]" bgClass="bg-[#FFD60A]/10" />
++                  <StatCard label="Restri├º├úo" value={totalRestricao} colorClass="text-[#BF5AF2]" bgClass="bg-[#BF5AF2]/10" />
++                  <StatCard label="Est├ígio" value={totalEstagio} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
++                  <StatCard label="INSS" value={totalINSS} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
++                </div>
+               </div>
+             </div>
+ 
+             {/* Special Shift Section */}
+-            <div className="bg-[#1E2029] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
++            <div className="bg-[#2D3748] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-2 h-full bg-[#BF5AF2]" />
+               <div className="flex items-center gap-4 mb-5 ml-2">
+                 <div className="p-3 rounded-xl bg-[#BF5AF2]/15 text-[#BF5AF2]">
+@@ -989,10 +1401,13 @@ export default function App() {
+                       department={dept} 
+                       allDepartments={departmentsData}
+                       maxCount={maxCount}
+-                      onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
++                      onMove={(sourceDeptId, targetDeptId, empIndex) => handleMove(sourceDeptId, targetDeptId, empIndex)}
+                       onUpdateEmployee={handleUpdateEmployeeField}
+                       onDelete={handleDelete}
+                       onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
++                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent('dept', dept.id, empIndex, absenceType)}
++                      isDarkMode={isDarkMode}
++                      activeEditors={activeEditors}
+                     />
+                   </div>
+                 ))}
+@@ -1015,7 +1430,7 @@ export default function App() {
+               </div>
+ 
+               {/* Support Roles Grid - Always 3 columns */}
+-              <div className="flex gap-6 w-max pb-[50vh]">
++              <div className="flex gap-6 w-max pb-[450px]">
+                 {supportRolesData.map((group, index) => (
+                   <div key={index} className="w-[500px] shrink-0">
+                     <SupportCard 
+@@ -1025,6 +1440,15 @@ export default function App() {
+                       onUpdateName={handleUpdateSupportName} 
+                       onMoveSupport={handleMoveSupport}
+                       onMoveToSpecial={handleTransferSupportToSpecialShift}
++                      onDeleteSupport={handleDeleteSupport}
++                      onUpdateError={(gIndex, eIndex, error) => {
++                        const newData = [...supportRolesData];
++                        newData[gIndex][eIndex].error = error;
++                        setSupportRolesData(newData);
++                      }}
++                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent('support', index, empIndex, absenceType)}
++                      isDarkMode={isDarkMode}
++                      activeEditors={activeEditors}
+                     />
+                   </div>
+                 ))}
+@@ -1056,22 +1480,65 @@ function DepartmentCard({
+   maxCount,
+   onMove,
+   onUpdateEmployee,
+-  onDelete
++  onDelete,
++  onTransferToSpecial,
++  onMarkAbsent,
++  isDarkMode,
++  activeEditors
+ }: { 
+   department: Department;
+   allDepartments: Department[];
+   maxCount: number;
+-  onMove: (targetDeptId: string, empIndex: number) => void;
+-  onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
++  onMove: (sourceDeptId: string, targetDeptId: string, empIndex: number) => void;
++  onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: any) => void;
+   onDelete: (deptId: string, empIndex: number) => void;
+   onTransferToSpecial: (empIndex: number) => void;
++  onMarkAbsent: (empIndex: number, absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
++  isDarkMode: boolean;
++  activeEditors: ActiveEditor[];
+ }) {
+   const theme = getDeptTheme(department.id);
++  const [isDragOver, setIsDragOver] = useState(false);
++
++  const handleDragOver = (e: React.DragEvent) => {
++    e.preventDefault();
++  };
++
++  const handleDragEnter = (e: React.DragEvent) => {
++    e.preventDefault();
++    setIsDragOver(true);
++  };
++
++  const handleDragLeave = () => {
++    setIsDragOver(false);
++  };
++
++  const handleDrop = (e: React.DragEvent) => {
++    setIsDragOver(false);
++    try {
++      const dataStr = e.dataTransfer.getData('application/json');
++      if (!dataStr) return;
++      const data = JSON.parse(dataStr);
++      if (data.sourceType === 'dept') {
++        onMove(data.sourceId, department.id, data.empIndex);
++      }
++    } catch (err) {
++      console.error("Erro no drop", err);
++    }
++  };
+ 
+   return (
+-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
++    <div 
++      onDragOver={handleDragOver}
++      onDragEnter={handleDragEnter}
++      onDragLeave={handleDragLeave}
++      onDrop={handleDrop}
++      className={`bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full transition-all duration-300 ${
++        isDragOver ? `drag-hover-dept drag-hover-${department.id}` : ''
++      }`}
++    >
+       {/* Cabe├ºalho do Setor */}
+-      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
++      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-between bg-[#2D3748]">
+         <div className="flex items-center gap-4">
+           <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.color}`}>
+             {React.cloneElement(theme.icon as React.ReactElement, { className: "w-6 h-6" })}
+@@ -1085,18 +1552,22 @@ function DepartmentCard({
+       </div>
+ 
+       {/* ├ürea Direita (Grade de Colaboradores) */}
+-      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
++      <div className="flex-1 p-5 bg-[#1A202C]/30 flex flex-col">
+         <div className="grid grid-cols-1 gap-4 flex-1">
+           {department.data.map((emp, i) => (
+             <EmployeeRow
+               key={`${department.id}-${i}-${emp.name}`}
+               emp={emp}
++              empIndex={i}
+               department={department}
+               allDepartments={allDepartments}
+-              onMove={(targetId) => onMove(targetId, i)}
++              onMove={(targetId) => onMove(department.id, targetId, i)}
+               onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
+               onDelete={() => onDelete(department.id, i)}
+               onTransferToSpecial={() => onTransferToSpecial(i)}
++              onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
++              isDarkMode={isDarkMode}
++              activeEditors={activeEditors}
+             />
+           ))}
+           {/* Slots vazios de preenchimento para igualar a altura m├íxima */}
+@@ -1114,24 +1585,35 @@ function DepartmentCard({
+ 
+ function EmployeeRow({
+   emp,
++  empIndex,
+   department,
+   allDepartments,
+   onMove,
+   onUpdateEmployee,
+-  onDelete
++  onDelete,
++  onTransferToSpecial,
++  onMarkAbsent,
++  isDarkMode,
++  activeEditors
+ }: {
+   key?: string | number;
+   emp: Employee;
++  empIndex: number;
+   department: Department;
+   allDepartments: Department[];
+   onMove: (targetId: string) => void;
+-  onUpdateEmployee: (field: keyof Employee, value: string) => void;
++  onUpdateEmployee: (field: keyof Employee, value: any) => void;
+   onDelete: () => void;
+   onTransferToSpecial: () => void;
++  onMarkAbsent: (absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
++  isDarkMode: boolean;
++  activeEditors: ActiveEditor[];
+ }) {
+   const [showLineDropdown, setShowLineDropdown] = useState(false);
+   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+   const [showTransferMenu, setShowTransferMenu] = useState(false);
++  const [showAbsentMenu, setShowAbsentMenu] = useState(false);
++  const [isLocallyFocused, setIsLocallyFocused] = useState(false);
+   const theme = getDeptTheme(department.id);
+   const otherDepts = allDepartments.filter(d => d.id !== department.id);
+ 
+@@ -1160,22 +1642,75 @@ function EmployeeRow({
+   const avatarBtnRef = useRef<HTMLButtonElement>(null);
+   const transferBtnRef = useRef<HTMLButtonElement>(null);
+   const lineInputRef = useRef<HTMLInputElement>(null);
++  const absentBtnRef = useRef<HTMLButtonElement>(null);
+ 
+   const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
+   const transferRect = useAnchoredRect(transferBtnRef, showTransferMenu);
+   const lineRect = useAnchoredRect(lineInputRef, showLineDropdown);
++  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
++
++  const activeEditor = activeEditors?.find(e => e.employeeName === emp.name);
++
++  const handleDragStart = (e: React.DragEvent) => {
++    e.dataTransfer.setData('application/json', JSON.stringify({
++      sourceType: 'dept',
++      sourceId: department.id,
++      empIndex: empIndex
++    }));
++    e.dataTransfer.effectAllowed = 'move';
++    e.currentTarget.classList.add('dragging');
++  };
++
++  const handleDragEnd = (e: React.DragEvent) => {
++    e.currentTarget.classList.remove('dragging');
++  };
++
++  const getDynamicStyles = () => {
++    if (isLocallyFocused) {
++      return {
++        borderColor: '#BF5AF2',
++        boxShadow: '0 0 15px rgba(191, 90, 242, 0.25)',
++        borderWidth: '2px',
++        borderStyle: 'solid'
++      };
++    }
++    if (activeEditor) {
++      return {
++        borderColor: activeEditor.color,
++        boxShadow: `0 0 15px ${activeEditor.color}35`,
++        borderWidth: '2px',
++        borderStyle: 'solid'
++      };
++    }
++    return {};
++  };
+ 
+   return (
+     <div
++      draggable={true}
++      onDragStart={handleDragStart}
++      onDragEnd={handleDragEnd}
+       className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 dept-${department.id} ${
+-        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
+-      } ${getBorderLeftClass(department.id, emp.error)}`}
++        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#1A202C] hover:bg-[#4A5568]'
++      } ${getBorderLeftClass(department.id, emp.error)} ${
++        (isLocallyFocused || activeEditor) ? 'is-editing' : ''
++      }`}
++      style={getDynamicStyles()}
+     >
++      {activeEditor && (
++        <div 
++          className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full text-[8px] font-black text-white editor-badge shadow-sm flex items-center gap-1 z-10 select-none animate-pulse tracking-wider uppercase"
++          style={{ backgroundColor: activeEditor.color, color: '#ffffff' }}
++        >
++          <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
++          {activeEditor.editorName} EDITANDO
++        </div>
++      )}
+       {/* Main Row Content */}
+       <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
+         
+         {/* Top Row: Avatar, Nome e Bot├úo de Expandir */}
+-        <div className="flex items-center justify-between w-full bg-[#1E2029] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
++        <div className="flex items-center justify-between w-full bg-[#2D3748] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+           <div className="flex items-center min-w-0">
+             {/* Avatar Container with Pop-up Menu */}
+             <div className="relative">
+@@ -1196,22 +1731,28 @@ function EmployeeRow({
+               </button>
+             </div>
+             
+-            <div className="flex flex-col min-w-0">
++            <div className="flex flex-col min-w-0 items-start text-left">
+               <input
+                 type="text"
+                 value={emp.name}
+                 onChange={(e) => onUpdateEmployee('name', e.target.value.toUpperCase())}
+-                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
++                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name text-left ${emp.error ? 'text-red-400' : 'text-white'}`}
+                 placeholder="NOME SOBRENOME"
+               />
+-              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matr├¡cula: {emp.machine || 'N/A'}</span>
++              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 ml-1 font-medium truncate span-emp-matricula text-left">Matr├¡cula: {emp.matricula || 'N/A'}</span>
+             </div>
+           </div>
+           
+           {/* Action Buttons */}
+           <div className="relative flex items-center gap-2">
+             <button
+-              onClick={(e) => { e.stopPropagation(); onUpdateEmployee('error', !emp.error); }}
++              ref={absentBtnRef}
++              onClick={(e) => {
++                e.stopPropagation();
++                setShowAbsentMenu(!showAbsentMenu);
++                setShowTransferMenu(false);
++                setShowAvatarMenu(false);
++              }}
+               className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
+             >
+               AUSENTE
+@@ -1247,8 +1788,8 @@ function EmployeeRow({
+               ref={lineInputRef}
+               type="text"
+               value={emp.line}
+-              onFocus={() => setShowLineDropdown(true)}
+-              onBlur={() => setTimeout(() => setShowLineDropdown(false), 200)}
++              onFocus={() => { setShowLineDropdown(true); setIsLocallyFocused(true); }}
++              onBlur={() => { setTimeout(() => setShowLineDropdown(false), 200); setIsLocallyFocused(false); }}
+               onChange={(e) => {
+                 onUpdateEmployee('line', e.target.value);
+                 setShowLineDropdown(true);
+@@ -1261,6 +1802,8 @@ function EmployeeRow({
+             <input
+               type="text"
+               value={emp.machine}
++              onFocus={() => setIsLocallyFocused(true)}
++              onBlur={() => setIsLocallyFocused(false)}
+               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
+               className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
+             />
+@@ -1287,7 +1830,7 @@ function EmployeeRow({
+                 left: avatarRect.left,
+                 zIndex: 1000,
+               }}
+-              className="w-[120px] bg-[#1E2029] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
++              className="w-[120px] bg-[#2D3748] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+             >
+               <button
+                 onClick={(e) => {
+@@ -1305,6 +1848,76 @@ function EmployeeRow({
+         )}
+       </AnimatePresence>
+ 
++      {/* Portal: Menu Ausente em Cart├úo com Cantos Arredondados */}
++      <AnimatePresence>
++        {showAbsentMenu && absentRect && (
++          <PortalMenu>
++            <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
++            <div
++              style={{
++                position: 'fixed',
++                top: absentRect.bottom + 10, // Abaixo do bot├úo com espa├ºamento n├¡tido de 10px
++                left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do bot├úo
++                transform: 'translateX(-50%)', // Centraliza horizontalmente
++                zIndex: 1000,
++              }}
++            >
++              <motion.div
++                initial={{ opacity: 0, scale: 0.95, y: -8 }}
++                animate={{ opacity: 1, scale: 1, y: 0 }}
++                exit={{ opacity: 0, scale: 0.95, y: -8 }}
++                transition={{ duration: 0.15, ease: 'easeOut' }}
++                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
++                  isDarkMode 
++                    ? 'bg-slate-950/40 border border-white/10' 
++                    : 'bg-white/40 border border-slate-300/50'
++                }`}
++              >
++                {[
++                  { type: 'F├ëRIAS' },
++                  { type: 'FORA' },
++                  { type: 'ATM' },
++                  { type: 'RESTRI├ç├âO' },
++                  { type: 'INSS' }
++                ].map((opt) => {
++                  const meta = STATUS_METADATA[opt.type as any];
++                  const Icon = meta.icon;
++                  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
++
++                  return (
++                    <button
++                      key={opt.type}
++                      onClick={(e) => {
++                        e.stopPropagation();
++                        setShowAbsentMenu(false);
++                        onMarkAbsent(opt.type as any);
++                      }}
++                      className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
++                        isDarkMode 
++                          ? 'text-white hover:bg-white/10 active:bg-white/15' 
++                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
++                      }`}
++                    >
++                      <div className="flex items-center gap-3">
++                        <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
++                        <span className={colorClass}>{meta.label}</span>
++                      </div>
++                      <ChevronRight 
++                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
++                          isDarkMode 
++                            ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
++                            : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
++                        }`} 
++                      />
++                    </button>
++                  );
++                })}
++              </motion.div>
++            </div>
++          </PortalMenu>
++        )}
++      </AnimatePresence>
++
+       {/* Portal: Menu Transferir */}
+       <AnimatePresence>
+         {showTransferMenu && transferRect && (
+@@ -1321,7 +1934,7 @@ function EmployeeRow({
+                 left: transferRect.right - 180,
+                 zIndex: 1000,
+               }}
+-              className="w-[180px] bg-[#1E2029] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
++              className="w-[180px] bg-[#2D3748] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+             >
+               <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
+               {otherDepts.map(d => {
+@@ -1334,7 +1947,7 @@ function EmployeeRow({
+                       onMove(d.id); 
+                       setShowTransferMenu(false); 
+                     }}
+-                    className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#252836] transition-colors w-full text-left"
++                    className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#4A5568] transition-colors w-full text-left"
+                   >
+                     <div className={`mr-2 p-1 rounded-md ${theme.bg} ${theme.color}`}>
+                       {React.cloneElement(theme.icon, { className: 'w-3 h-3' })}
+@@ -1382,7 +1995,7 @@ function EmployeeRow({
+                 left: lineRect.left + lineRect.width / 2 - 65,
+                 zIndex: 1000,
+               }}
+-              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
++              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#2D3748] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
+             >
+               {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
+                 <button
+@@ -1392,7 +2005,11 @@ function EmployeeRow({
+                     onUpdateEmployee('line', linha);
+                     setShowLineDropdown(false);
+                   }}
+-                  className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
++                  className={`text-center px-2 py-1.5 text-[12px] font-bold transition-colors w-full ${
++                    isDarkMode 
++                      ? 'text-white hover:bg-[#FF6B00]' 
++                      : 'text-slate-800 hover:bg-[#FF6B00] hover:text-white'
++                  }`}
+                 >
+                   {linha}
+                 </button>
+@@ -1409,13 +2026,20 @@ function EmployeeRow({
+   );
+ }
+ 
++const SUPPORT_GROUP_NAMES = ["RECEP├ç├âO", "CLASSIFICA├ç├âO", "FORMA├ç├âO"];
++
+ function SupportCard({ 
+   roles, 
+   groupIndex, 
+   onUpdateRole,
+   onUpdateName,
+   onMoveSupport,
+-  onMoveToSpecial
++  onMoveToSpecial,
++  onDeleteSupport,
++  onUpdateError,
++  onMarkAbsent,
++  isDarkMode,
++  activeEditors
+ }: { 
+   roles: SupportRole[]; 
+   groupIndex: number; 
+@@ -1423,6 +2047,11 @@ function SupportCard({
+   onUpdateName: (groupIndex: number, empIndex: number, newName: string) => void;
+   onMoveSupport: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
+   onMoveToSpecial: (groupIndex: number, empIndex: number) => void;
++  onDeleteSupport: (groupIndex: number, empIndex: number) => void;
++  onUpdateError: (groupIndex: number, empIndex: number, error: boolean) => void;
++  onMarkAbsent: (empIndex: number, absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
++  isDarkMode: boolean;
++  activeEditors: ActiveEditor[];
+ }) {
+   const themes = [
+     { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
+@@ -1430,17 +2059,57 @@ function SupportCard({
+     { bg: "bg-[#30D158]/10", border: "border-[#30D158]/20", text: "text-[#30D158]", bar: "bg-[#30D158]" }
+   ];
+   const theme = themes[groupIndex] || themes[0];
++  const [isDragOver, setIsDragOver] = useState(false);
++
++  const handleDragOver = (e: React.DragEvent) => {
++    e.preventDefault();
++  };
++
++  const handleDragEnter = (e: React.DragEvent) => {
++    e.preventDefault();
++    setIsDragOver(true);
++  };
++
++  const handleDragLeave = () => {
++    setIsDragOver(false);
++  };
++
++  const handleDrop = (e: React.DragEvent) => {
++    setIsDragOver(false);
++    try {
++      const dataStr = e.dataTransfer.getData('application/json');
++      if (!dataStr) return;
++      const data = JSON.parse(dataStr);
++      if (data.sourceType === 'support') {
++        onMoveSupport(data.sourceId, groupIndex, data.empIndex);
++      }
++    } catch (err) {
++      console.error("Erro no drop", err);
++    }
++  };
+ 
+   return (
+-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative">
++    <div 
++      onDragOver={handleDragOver}
++      onDragEnter={handleDragEnter}
++      onDragLeave={handleDragLeave}
++      onDrop={handleDrop}
++      className={`bg-[#1A202C] rounded-[24px] overflow-hidden flex flex-col border border-white/5 relative transition-all duration-300 ${
++        isDragOver 
++          ? `drag-hover-dept ${
++              groupIndex === 0 ? 'drag-hover-recepcao' : groupIndex === 1 ? 'drag-hover-classificacao' : 'drag-hover-formacao'
++            }` 
++          : ''
++      }`}
++    >
+       
+       {/* Support Card Header */}
+-      <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
++      <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between bg-[#1E2533]">
+         <div className="flex items-center gap-3.5">
+           <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.text}`}>
+             <Users className="w-5 h-5" />
+           </div>
+-          <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">Grupo {groupIndex + 1}</h4>
++          <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">{SUPPORT_GROUP_NAMES[groupIndex]}</h4>
+         </div>
+         <div className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.text} ${theme.bg}`}>
+           <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+@@ -1454,11 +2123,17 @@ function SupportCard({
+           <SupportRoleRow 
+             key={i} 
+             emp={emp} 
++            empIndex={i}
+             groupIndex={groupIndex}
+             onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
+             onUpdateName={(newName) => onUpdateName(groupIndex, i, newName)} 
+             onMove={(targetGroupIndex) => onMoveSupport(groupIndex, targetGroupIndex, i)}
+             onMoveToSpecial={() => onMoveToSpecial(groupIndex, i)}
++            onDelete={() => onDeleteSupport(groupIndex, i)}
++            onUpdateError={(error) => onUpdateError(groupIndex, i, error)}
++            onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
++            isDarkMode={isDarkMode}
++            activeEditors={activeEditors}
+           />
+         ))}
+       </div>
+@@ -1468,131 +2143,395 @@ function SupportCard({
+ 
+ function SupportRoleRow({ 
+   emp, 
++  empIndex,
+   groupIndex,
+   onUpdateRole,
+   onUpdateName,
+   onMove,
+-  onMoveToSpecial
++  onMoveToSpecial,
++  onDelete,
++  onUpdateError,
++  onMarkAbsent,
++  isDarkMode,
++  activeEditors
+ }: { 
++  key?: any;
+   emp: SupportRole; 
++  empIndex: number;
+   groupIndex: number;
+   onUpdateRole: (newRole: string) => void;
+   onUpdateName: (newName: string) => void;
+   onMove: (targetGroupIndex: number) => void;
+   onMoveToSpecial?: () => void;
++  onDelete?: () => void;
++  onUpdateError: (error: boolean) => void;
++  onMarkAbsent: (absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
++  isDarkMode: boolean;
++  activeEditors: ActiveEditor[];
+ }) {
+   const [isOpen, setIsOpen] = useState(false);
+   const [isTransferOpen, setIsTransferOpen] = useState(false);
++  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
++  const [showAbsentMenu, setShowAbsentMenu] = useState(false);
++  const [isLocallyFocused, setIsLocallyFocused] = useState(false);
+   
+   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
+   
++  const transferBtnRef = useRef<HTMLButtonElement>(null);
++  const roleBtnRef = useRef<HTMLButtonElement>(null);
++  const avatarBtnRef = useRef<HTMLButtonElement>(null);
++  const absentBtnRef = useRef<HTMLButtonElement>(null);
++  
++  const transferRect = useAnchoredRect(transferBtnRef, isTransferOpen);
++  const roleRect = useAnchoredRect(roleBtnRef, isOpen);
++  const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
++  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
++
++  const themes = [
++    { bg: "bg-[#0A84FF]/15", text: "text-[#0A84FF]" },
++    { bg: "bg-[#FF9F0A]/15", text: "text-[#FF9F0A]" },
++    { bg: "bg-[#30D158]/15", text: "text-[#30D158]" }
++  ];
++  const theme = themes[groupIndex] || themes[0];
++
++  const activeEditor = activeEditors?.find(e => e.employeeName === emp.name);
++
++  const handleDragStart = (e: React.DragEvent) => {
++    e.dataTransfer.setData('application/json', JSON.stringify({
++      sourceType: 'support',
++      sourceId: groupIndex,
++      empIndex: empIndex
++    }));
++    e.dataTransfer.effectAllowed = 'move';
++    e.currentTarget.classList.add('dragging');
++  };
++
++  const handleDragEnd = (e: React.DragEvent) => {
++    e.currentTarget.classList.remove('dragging');
++  };
++
++  const getDynamicStyles = () => {
++    if (isLocallyFocused) {
++      return {
++        borderColor: '#BF5AF2',
++        boxShadow: '0 0 15px rgba(191, 90, 242, 0.25)',
++        borderWidth: '2px',
++        borderStyle: 'solid'
++      };
++    }
++    if (activeEditor) {
++      return {
++        borderColor: activeEditor.color,
++        boxShadow: `0 0 15px ${activeEditor.color}35`,
++        borderWidth: '2px',
++        borderStyle: 'solid'
++      };
++    }
++    return {};
++  };
++  
+   return (
+-    <div className="px-4 py-2.5 flex items-center justify-between rounded-[12px] bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative">
+-      <input
+-        type="text"
+-        value={emp.name}
+-        onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
+-        className="font-bold text-[14px] text-white bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none"
+-        placeholder="NOME SOBRENOME"
+-      />
+-      <div className="flex items-center gap-2 relative">
+-        <button
+-          onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
+-          className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
++    <div 
++      draggable={true}
++      onDragStart={handleDragStart}
++      onDragEnd={handleDragEnd}
++      className={`pl-2 pr-3 py-2 flex items-center justify-start gap-1.5 rounded-[12px] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative ${
++        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#2D3748] hover:bg-[#3D4758]'
++      } ${(isLocallyFocused || activeEditor) ? 'is-editing' : ''}`}
++      style={getDynamicStyles()}
++    >
++      {activeEditor && (
++        <div 
++          className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full text-[8px] font-black text-white editor-badge shadow-sm flex items-center gap-1 z-10 select-none animate-pulse tracking-wider uppercase"
++          style={{ backgroundColor: activeEditor.color, color: '#ffffff' }}
+         >
+-          TURNO 6H
+-        </button>
+-        {/* Transfer Button */}
+-        <div className="relative">
+-          <button
+-            onClick={() => setIsTransferOpen(!isTransferOpen)}
+-            className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
++          <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
++          {activeEditor.editorName} EDITANDO
++        </div>
++      )}
++      <div className="flex items-center min-w-0 shrink-0">
++        {/* Avatar Container with Pop-up Menu */}
++        <div className="relative shrink-0 mr-2">
++          <button 
++            ref={avatarBtnRef}
++            onClick={(e) => {
++              e.stopPropagation();
++              setShowAvatarMenu(!showAvatarMenu);
++              setIsTransferOpen(false);
++              setIsOpen(false);
++            }}
++            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
++              emp.error 
++                ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' 
++                : `${theme.bg} ${theme.text} hover:opacity-80`
++            }`}
+           >
+-            <ArrowRightLeft className="w-3.5 h-3.5" />
++            <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
+           </button>
++        </div>
++
++        <div className="flex flex-col min-w-0">
++          <input
++            type="text"
++            value={emp.name}
++            onFocus={() => setIsLocallyFocused(true)}
++            onBlur={() => setIsLocallyFocused(false)}
++            onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
++            className="font-bold text-[14px] text-white bg-transparent outline-none w-[145px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none text-left px-1 py-0.5"
++            placeholder="NOME SOBRENOME"
++          />
++          <span className="text-[10px] text-[#A0A0A5] -mt-0.5 ml-1 font-medium truncate span-emp-matricula">Matr├¡cula: {emp.matricula || 'N/A'}</span>
++        </div>
++      </div>
++
++      <button
++        ref={absentBtnRef}
++        onClick={(e) => {
++          e.stopPropagation();
++          setShowAbsentMenu(!showAbsentMenu);
++          setIsTransferOpen(false);
++          setIsOpen(false);
++          setShowAvatarMenu(false);
++        }}
++        className="h-[30px] w-[56px] shrink-0 flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] tracking-tight whitespace-nowrap cursor-pointer"
++      >
++        AUSENTE
++      </button>
++      <button
++        onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
++        className="h-[30px] w-[56px] shrink-0 flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
++      >
++        TURNO 6H
++      </button>
++      {/* Transfer Button */}
++      <div className="relative shrink-0">
++        <button
++          ref={transferBtnRef}
++          onClick={(e) => {
++            e.stopPropagation();
++            setIsTransferOpen(!isTransferOpen);
++            setIsOpen(false);
++            setShowAvatarMenu(false);
++          }}
++          className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
++        >
++          <ArrowRightLeft className="w-3.5 h-3.5" />
++        </button>
++        
++        <AnimatePresence>
++          {isTransferOpen && transferRect && (
++            <PortalMenu>
++              <div className="fixed inset-0 z-[999]" onClick={(e) => { e.stopPropagation(); setIsTransferOpen(false); }} />
++              <motion.div
++                initial={{ opacity: 0, scale: 0.95, y: -5 }}
++                animate={{ opacity: 1, scale: 1, y: 0 }}
++                exit={{ opacity: 0, scale: 0.95, y: -5 }}
++                transition={{ duration: 0.15 }}
++                style={{
++                  position: 'fixed',
++                  top: transferRect.bottom + 6,
++                  left: transferRect.right - 150,
++                  zIndex: 1000,
++                }}
++                className="w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl overflow-hidden flex flex-col py-1"
++              >
++                <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
++                {groupsList.map(g => (
++                  <button
++                    key={g}
++                    onClick={(e) => {
++                      e.stopPropagation();
++                      onMove(g);
++                      setIsTransferOpen(false);
++                    }}
++                    className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
++                  >
++                    {SUPPORT_GROUP_NAMES[g]}
++                  </button>
++                ))}
++                <div className="h-px bg-white/5 my-0.5 mx-2" />
++                <button
++                  onClick={(e) => {
++                    e.stopPropagation();
++                    if (onMoveToSpecial) {
++                      onMoveToSpecial();
++                    }
++                    setIsTransferOpen(false);
++                  }}
++                  className="px-3.5 py-2 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors text-left flex items-center gap-1.5 w-full"
++                >
++                  <Clock className="w-3.5 h-3.5 text-[#BF5AF2]" />
++                  Turno Especial
++                </button>
++              </motion.div>
++            </PortalMenu>
++          )}
++        </AnimatePresence>
++      </div>
++
++      {/* Role Tag Dropdown */}
++      <div className="relative ml-auto shrink-0">
++        <button
++          ref={roleBtnRef}
++          onClick={(e) => {
++            e.stopPropagation();
++            setIsOpen(!isOpen);
++            setIsTransferOpen(false);
++            setShowAvatarMenu(false);
++          }}
++          className="relative w-[90px] shrink-0 text-white hover:text-white text-xs font-bold bg-white/5 border-none hover:bg-white/10 py-1.5 rounded-lg transition-all outline-none shadow-sm flex items-center justify-center"
++        >
++          <span className="truncate w-full text-center pr-4 pl-0.5">{emp.role}</span>
++          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/60 transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
++        </button>
++
++        <AnimatePresence>
++            {isOpen && roleRect && (
++              <PortalMenu>
++                <div className="fixed inset-0 z-[999]" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
++                <motion.div
++                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
++                  animate={{ opacity: 1, scale: 1, y: 0 }}
++                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
++                  transition={{ type: 'spring', damping: 15, stiffness: 300 }}
++                  style={{
++                    position: 'fixed',
++                    top: roleRect.bottom + 6,
++                    left: roleRect.left + (roleRect.width / 2) - 80,
++                    zIndex: 1000,
++                  }}
++                  className="w-[160px] bg-[#1A202C]/95 backdrop-blur-xl border border-white/10 rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col py-2"
++                >
++                  {SUPPORT_ROLES_OPTIONS.map((opt) => {
++                    const isSelected = opt === emp.role;
++                    return (
++                      <button
++                        key={opt}
++                        onClick={(e) => {
++                          e.stopPropagation();
++                          onUpdateRole(opt);
++                          setIsOpen(false);
++                        }}
++                        className={`mx-1.5 my-0.5 py-2 px-3 text-[12px] font-bold tracking-wide rounded-[10px] transition-all duration-200 text-center cursor-pointer active:scale-95 flex items-center justify-center relative overflow-hidden ${
++                          isSelected
++                            ? 'bg-[#FF6B00]/15 text-[#FF6B00] border-none'
++                            : 'text-[#A0A0A5] hover:text-white hover:bg-white/10 hover:shadow-md'
++                        }`}
++                      >
++                        {opt}
++                      </button>
++                    );
++                  })}
++                </motion.div>
++              </PortalMenu>
++            )}
++          </AnimatePresence>
+           
++          {/* Portal: Menu Deletar (Avatar) */}
+           <AnimatePresence>
+-            {isTransferOpen && (
+-              <>
+-                <div className="fixed inset-0 z-40" onClick={() => setIsTransferOpen(false)} />
++            {showAvatarMenu && avatarRect && (
++              <PortalMenu>
++                <div className="fixed inset-0 z-[999]" onClick={() => setShowAvatarMenu(false)} />
+                 <motion.div
+                   initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                   transition={{ duration: 0.15 }}
+-                  className="absolute right-0 top-[115%] w-[150px] bg-[#1E2029] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
++                  style={{
++                    position: 'fixed',
++                    top: avatarRect.bottom + 6,
++                    left: avatarRect.left,
++                    zIndex: 1000,
++                  }}
++                  className="w-[120px] bg-[#2D3748] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+                 >
+-                  <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
+-                  {groupsList.map(g => (
+-                    <button
+-                      key={g}
+-                      onClick={() => {
+-                        onMove(g);
+-                        setIsTransferOpen(false);
+-                      }}
+-                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
+-                    >
+-                      Grupo {g + 1}
+-                    </button>
+-                  ))}
+-                  <div className="h-px bg-white/5 my-0.5 mx-2" />
+                   <button
+-                    onClick={() => {
+-                      if (onMoveToSpecial) {
+-                        onMoveToSpecial();
+-                      }
+-                      setIsTransferOpen(false);
++                    onClick={(e) => {
++                      e.stopPropagation();
++                      setShowAvatarMenu(false);
++                      if (onDelete) onDelete();
+                     }}
+-                    className="px-3.5 py-2 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors text-left flex items-center gap-1.5 w-full"
++                    className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left cursor-pointer border-none bg-transparent"
+                   >
+-                    <Clock className="w-3.5 h-3.5 text-[#BF5AF2]" />
+-                    Turno Especial
++                    <Trash2 className="w-[16px] h-[16px] mr-2" />
++                    Deletar
+                   </button>
+                 </motion.div>
+-              </>
++              </PortalMenu>
+             )}
+           </AnimatePresence>
+-        </div>
+-
+-        {/* Role Tag Dropdown */}
+-        <div className="relative">
+-          <button
+-            onClick={() => setIsOpen(!isOpen)}
+-            className="text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors outline-none shadow-sm"
+-          >
+-            {emp.role}
+-            <ChevronDown className="w-3.5 h-3.5" />
+-          </button>
+ 
++          {/* Portal: Menu Ausente em Cart├úo com Cantos Arredondados */}
+           <AnimatePresence>
+-            {isOpen && (
+-              <>
+-                <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+-                <motion.div
+-                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+-                  animate={{ opacity: 1, scale: 1, y: 0 }}
+-                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+-                  transition={{ duration: 0.15 }}
+-                  className="absolute right-0 top-[115%] w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
++            {showAbsentMenu && absentRect && (
++              <PortalMenu>
++                <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
++                <div
++                  style={{
++                    position: 'fixed',
++                    top: absentRect.bottom + 10, // Abaixo do bot├úo com espa├ºamento n├¡tido de 10px
++                    left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do bot├úo
++                    transform: 'translateX(-50%)', // Centraliza horizontalmente
++                    zIndex: 1000,
++                  }}
+                 >
+-                  {SUPPORT_ROLES_OPTIONS.map((opt) => (
+-                    <button
+-                      key={opt}
+-                      onClick={() => {
+-                        onUpdateRole(opt);
+-                        setIsOpen(false);
+-                      }}
+-                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
+-                    >
+-                      {opt}
+-                    </button>
+-                  ))}
+-                </motion.div>
+-              </>
++                  <motion.div
++                    initial={{ opacity: 0, scale: 0.95, y: -8 }}
++                    animate={{ opacity: 1, scale: 1, y: 0 }}
++                    exit={{ opacity: 0, scale: 0.95, y: -8 }}
++                    transition={{ duration: 0.15, ease: 'easeOut' }}
++                    className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
++                      isDarkMode 
++                        ? 'bg-slate-950/40 border border-white/10' 
++                        : 'bg-white/40 border border-slate-300/50'
++                    }`}
++                  >
++                    {[
++                      { type: 'F├ëRIAS' },
++                      { type: 'FORA' },
++                      { type: 'ATM' },
++                      { type: 'RESTRI├ç├âO' },
++                      { type: 'INSS' }
++                    ].map((opt) => {
++                      const meta = STATUS_METADATA[opt.type as any];
++                      const Icon = meta.icon;
++                      const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
++
++                      return (
++                        <button
++                          key={opt.type}
++                          onClick={(e) => {
++                            e.stopPropagation();
++                            setShowAbsentMenu(false);
++                            onMarkAbsent(opt.type as any);
++                          }}
++                          className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
++                            isDarkMode 
++                              ? 'text-white hover:bg-white/10 active:bg-white/15' 
++                              : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
++                          }`}
++                        >
++                          <div className="flex items-center gap-3">
++                            <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
++                            <span className={colorClass}>{meta.label}</span>
++                          </div>
++                          <ChevronRight 
++                            className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
++                              isDarkMode 
++                                ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
++                                : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
++                            }`} 
++                          />
++                        </button>
++                      );
++                    })}
++                  </motion.div>
++                </div>
++              </PortalMenu>
+             )}
+           </AnimatePresence>
++
+         </div>
+-      </div>
+     </div>
+   );
+ }
+@@ -1604,15 +2543,16 @@ function SpecialShiftSlot({
+   onUpdate,
+   onTransfer
+ }: {
++  key?: any;
+   emp: Employee;
+   index: number;
+   allDepartments: Department[];
+-  onUpdate: (field: keyof Employee, value: string) => void;
++  onUpdate: (field: keyof Employee, value: any) => void;
+   onTransfer: (targetDeptId: string) => void;
+ }) {
+ 
+   return (
+-    <div className="w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
++    <div className="w-[250px] shrink-0 h-[100px] bg-[#1A202C] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
+       <div className="flex items-center justify-between w-full">
+         <div className="flex items-center min-w-0">
+           <div className="w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">

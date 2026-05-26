@@ -268,6 +268,30 @@ a {
   border-color: #cbd5e0 !important;
   box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
 }
+
+/* --- Popups semi-transparentes com opacidade (bg-[#1E2029]/80) --- */
+/* No modo claro, todos os portais de popup ficam brancos semi-transparentes (efeito vidro fosco) */
+.light-mode .bg-\[\#1E2029\]\/80 {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(203, 213, 224, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10) !important;
+  backdrop-filter: blur(16px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
+}
+/* Texto escuro dentro dos popups no modo claro */
+.light-mode .bg-\[\#1E2029\]\/80 .text-\[\#a0aec0\] {
+  color: #718096 !important;
+}
+/* Hover sutil dentro dos popups no modo claro */
+.light-mode .bg-\[\#1E2029\]\/80 .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+.light-mode .bg-\[\#1E2029\]\/80 .border-b.border-white\/5 {
+  border-color: rgba(203, 213, 224, 0.7) !important;
+}
+
+/* --- Cores escuras por status no popup ausente (modo claro) --- */
+
 .light-mode .bg-\[\#2D3748\] {
   background-color: #ffffff !important;
   border-color: #cbd5e0 !important;
@@ -700,3 +724,44 @@ a {
 .bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .chenini { top: 2.75em; }
 .bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .tatto-1 { top: 100%; }
 .bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .tatto-2 { top: 100%; }
+
+/* === DRAG AND DROP PREMIUM EFFECTS === */
+
+/* Estado do Card sendo arrastado */
+.dragging {
+  opacity: 0.45 !important;
+  transform: scale(0.96) !important;
+  border-style: dashed !important;
+  border-width: 2px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease;
+}
+
+/* Área de Drop (Coluna) quando recebe o arrasto */
+.drag-hover-dept {
+  border: 2px dashed rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.25) !important;
+  transform: scale(1.005);
+  transition: all 0.25s ease-in-out;
+}
+
+.light-mode .drag-hover-dept {
+  border: 2px dashed rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(0, 0, 0, 0.01) !important;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Efeitos dinâmicos por setor durante o Dragover */
+.drag-hover-recepcao {
+  border-color: #0A84FF !important;
+  background-color: rgba(10, 132, 255, 0.05) !important;
+}
+.drag-hover-classificacao {
+  border-color: #FF9F0A !important;
+  background-color: rgba(255, 159, 10, 0.05) !important;
+}
+.drag-hover-formacao {
+  border-color: #30D158 !important;
+  background-color: rgba(48, 209, 88, 0.05) !important;
+}
