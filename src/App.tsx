@@ -1476,28 +1476,6 @@ export default function App() {
                   />
                 </div>
               </div>
-              <DragOverlay
-                dropAnimation={{
-                  sideEffects: defaultDropAnimationSideEffects({
-                    styles: { active: { opacity: '0.4' } },
-                  }),
-                }}
-              >
-                {activeId && activeEmployee && activeDepartment ? (
-                  <EmployeeRow
-                    emp={activeEmployee}
-                    department={activeDepartment}
-                    allDepartments={departmentsData}
-                    onMove={() => {}}
-                    onUpdateEmployee={() => {}}
-                    onDelete={() => {}}
-                    onTransferToSpecial={() => {}}
-                    onMarkAbsent={() => {}}
-                    isDarkMode={isDarkMode}
-                    isDragOverlay
-                  />
-                ) : null}
-              </DragOverlay>
               </DndContext>
 
               {/* Section Divider */}
