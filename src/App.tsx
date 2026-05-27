@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock, LogOut, Activity, ShieldAlert, FileText, GripVertical } from 'lucide-react';
+import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock, LogOut, Activity, ShieldAlert, FileText, GripVertical, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   DndContext,
@@ -142,6 +142,8 @@ type AnnotationItem = {
   id?: string;
   name: string;
   status: string;
+  matricula?: string;
+  originalDeptId?: string;
 };
 
 type AnnotationGroup = {
@@ -152,7 +154,7 @@ type AnnotationGroup = {
 // --- Mock Data based on the provided image ---
 const PREDEFINED_LINES = [
   'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 
-  'VIRADOR', 'GIROFLEX', 'PIAL', 'FORM - CIMA', 'FORM - BAIXO'
+  'VIRADOR', 'GIROFLEX', 'PIAL', 'FORM - CM', 'FORM - BX'
 ];
 
 const initialDepartmentsData: Department[] = [
@@ -174,7 +176,7 @@ const initialDepartmentsData: Department[] = [
     title: 'Classificação',
     count: 8,
     data: [
-      { id: 'emp-' + (7), name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
+      { id: 'emp-' + (7), name: 'NAIMARA MENDES', line: 'X04', machine: '805' },
       { id: 'emp-' + (8), name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
       { id: 'emp-' + (9), name: 'CID PINTO', line: 'X04', machine: '259' },
       { id: 'emp-' + (10), name: 'IGOR RABELO', line: 'X04', machine: '3949' },
@@ -230,23 +232,18 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
   {
     title: 'FÉRIAS/ATM/TE/TREIN./REVEZA',
     items: [
-      { id: 'emp-' + (29), name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
-      { id: 'emp-' + (30), name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
-      { id: 'emp-' + (31), name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
-      { id: 'emp-' + (32), name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
-      { id: 'emp-' + (33), name: '', status: '' },
-      { id: 'emp-' + (34), name: '', status: '' },
+      { id: 'emp-' + (29), name: 'WEBERTH SILVA', status: 'TREINAMENTO', matricula: '00014820', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (30), name: 'RAFAEL SOUZA', status: 'TREINAMENTO', matricula: '00038100', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (31), name: 'ARTHUR COSTA', status: 'TREINAMENTO', matricula: '00020050', originalDeptId: 'formacao' },
+      { id: 'emp-' + (32), name: 'GERALDO SANTOS', status: 'TREINAMENTO', matricula: '00008490', originalDeptId: 'recepcao' },
     ]
   },
   {
     title: 'AUSENTES/FORA/FÉRIAS',
     items: [
-      { id: 'emp-' + (35), name: 'ALDO RIBEIRO', status: 'FÉRIAS' },
-      { id: 'emp-' + (36), name: 'KEYLSON LIMA', status: 'FÉRIAS' },
-      { id: 'emp-' + (37), name: 'JOANDERSON ALVES', status: 'FÉRIAS' },
-      { id: 'emp-' + (38), name: '', status: '' },
-      { id: 'emp-' + (39), name: '', status: '' },
-      { id: 'emp-' + (40), name: '', status: '' },
+      { id: 'emp-' + (35), name: 'ALDO RIBEIRO', status: 'FÉRIAS', matricula: '00000725', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (36), name: 'KEYLSON LIMA', status: 'FÉRIAS', matricula: '00000298', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (37), name: 'JOANDERSON ALVES', status: 'FÉRIAS', matricula: '00000801', originalDeptId: 'formacao' },
     ]
   }
 ];
@@ -255,35 +252,31 @@ const initialAnnotationsRight: AnnotationGroup[] = [
   {
     title: 'MAQ/OFF - ESTÁGIO',
     items: [
-      { id: 'emp-' + (41), name: 'THAIS OLIVEIRA', status: 'ESTÁGIO' },
-      { id: 'emp-' + (42), name: 'ELIAS PEREIRA', status: 'ESTÁGIO' },
-      { id: 'emp-' + (43), name: 'JESSICA RODRIGUES', status: 'ESTÁGIO' },
-      { id: 'emp-' + (44), name: 'GIANFRANCO NUNES', status: 'ESTÁGIO' },
-      { id: 'emp-' + (45), name: 'THAIS GOMES', status: 'ESTÁGIO' },
-      { id: 'emp-' + (46), name: 'BEATRIZ BARBOSA', status: 'ESTÁGIO' },
-      { id: 'emp-' + (47), name: 'DENISSON MARTINS', status: '' },
+      { id: 'emp-' + (41), name: 'THAIS OLIVEIRA', status: 'ESTÁGIO', matricula: '00002501', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (42), name: 'ELIAS PEREIRA', status: 'ESTÁGIO', matricula: '00002502', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (43), name: 'JESSICA RODRIGUES', status: 'ESTÁGIO', matricula: '00002503', originalDeptId: 'formacao' },
+      { id: 'emp-' + (44), name: 'GIANFRANCO NUNES', status: 'ESTÁGIO', matricula: '00002504', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (45), name: 'THAIS GOMES', status: 'ESTÁGIO', matricula: '00002505', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (46), name: 'BEATRIZ BARBOSA', status: 'ESTÁGIO', matricula: '00002506', originalDeptId: 'formacao' },
+      { id: 'emp-' + (47), name: 'DENISSON MARTINS', status: '', matricula: '00002507', originalDeptId: 'recepcao' },
     ]
   },
   {
     title: 'TREINAMENTO / FÉRIAS/ ATM / TE',
     items: [
-      { id: 'emp-' + (48), name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO' },
-      { id: 'emp-' + (49), name: 'JONH CARDOSO', status: 'RESTRIÇÃO' },
-      { id: 'emp-' + (50), name: 'ANA BEATRIZ LIMA', status: 'INSS' },
-      { id: 'emp-' + (51), name: 'CAMILE MOREIRA', status: 'ATM' },
-      { id: 'emp-' + (52), name: '', status: '' },
-      { id: 'emp-' + (53), name: 'MARCO POLO SOUZA', status: 'FÉRIAS' },
-      { id: 'emp-' + (54), name: 'ADRYELLEN VIEIRA', status: 'FÉRIAS' },
-      { id: 'emp-' + (55), name: 'LARISSA DIAS', status: 'FORA' },
-      { id: 'emp-' + (56), name: '', status: '' },
+      { id: 'emp-' + (48), name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO', matricula: '00000811', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (49), name: 'JONH CARDOSO', status: 'RESTRIÇÃO', matricula: '00000812', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (50), name: 'ANA BEATRIZ LIMA', status: 'INSS', matricula: '00000813', originalDeptId: 'formacao' },
+      { id: 'emp-' + (51), name: 'CAMILE MOREIRA', status: 'ATM', matricula: '00000814', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (53), name: 'MARCO POLO SOUZA', status: 'FÉRIAS', matricula: '00000815', originalDeptId: 'recepcao' },
+      { id: 'emp-' + (54), name: 'ADRYELLEN VIEIRA', status: 'FÉRIAS', matricula: '00000816', originalDeptId: 'classificacao' },
+      { id: 'emp-' + (55), name: 'LARISSA DIAS', status: 'FORA', matricula: '00000817', originalDeptId: 'formacao' },
     ]
   },
   {
     title: 'FÉRIAS/IN SP/LICENÇA',
     items: [
-      { id: 'emp-' + (57), name: 'EDNELSON MELO', status: 'INSS' },
-      { id: 'emp-' + (58), name: '', status: '' },
-      { id: 'emp-' + (59), name: '', status: '' },
+      { id: 'emp-' + (57), name: 'EDNELSON MELO', status: 'INSS', matricula: '00002801', originalDeptId: 'recepcao' },
     ]
   }
 ];
@@ -305,18 +298,26 @@ function AnnotationsBoard({
   leftGroups, 
   rightGroups,
   onUpdateLeft,
-  onUpdateRight
+  onUpdateRight,
+  onReturnLeft,
+  onReturnRight
 }: { 
   leftGroups: AnnotationGroup[];
   rightGroups: AnnotationGroup[];
   onUpdateLeft: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
+  onReturnLeft?: (groupIndex: number, itemIndex: number) => void;
+  onReturnRight?: (groupIndex: number, itemIndex: number) => void;
 }) {
   return (
     <div className="annotations-board-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-center bg-[#15171E]">
-        <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">ANOTAÇÕES MINÉRIO</h3>
+      <div className="px-6 py-5 border-b border-[#FF9F0A]/20 flex items-center justify-center bg-gradient-to-r from-[#FF9F0A]/10 to-[#FF6B00]/5 bg-[#15171E] relative">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00]" />
+        <h3 className="text-[22px] font-extrabold text-[#FF9F0A] tracking-wider uppercase drop-shadow-sm flex items-center gap-2.5">
+          <FileText className="w-[22px] h-[22px] text-[#FF9F0A]" strokeWidth={2.5} />
+          ANOTAÇÕES MINÉRIO
+        </h3>
       </div>
 
       {/* Body */}
@@ -330,20 +331,47 @@ function AnnotationsBoard({
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
-                    <input 
-                      type="text" 
-                      value={item.name} 
-                      onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
-                      placeholder="NOME E SOBRENOME"
-                      className="bg-transparent text-white text-[13px] font-bold uppercase w-[68%] focus:outline-none placeholder:text-[#a0aec0]/30" 
-                    />
+                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2">
+                    <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
+                      <input 
+                        type="text" 
+                        value={item.name} 
+                        onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
+                        placeholder="NOME E SOBRENOME"
+                        className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
+                      />
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                        <input 
+                          type="text" 
+                          value={item.matricula || ''} 
+                          onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'matricula', e.target.value)}
+                          placeholder="N/A"
+                          maxLength={8}
+                          className="bg-transparent text-[#10B981] text-[10px] font-bold focus:outline-none placeholder:text-[#10B981]/30 w-[80px] leading-none" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botão de Retorno Rápido (Ideia 1) */}
+                    {item.name.trim() && item.originalDeptId ? (
+                      <button
+                        onClick={() => onReturnLeft?.(groupIdx, itemIdx)}
+                        title={`Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}`}
+                        className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <div className="w-[22px] h-[22px] shrink-0" />
+                    )}
+
                     <input 
                       type="text" 
                       value={item.status} 
                       onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'status', e.target.value)}
-                      placeholder="Status"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[32%] text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      placeholder="STATUS"
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate" 
                     />
                   </div>
                 ))}
@@ -361,20 +389,47 @@ function AnnotationsBoard({
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
-                    <input 
-                      type="text" 
-                      value={item.name} 
-                      onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
-                      placeholder="NOME E SOBRENOME"
-                      className="bg-transparent text-white text-[13px] font-bold uppercase w-[68%] focus:outline-none placeholder:text-[#a0aec0]/30" 
-                    />
+                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2">
+                    <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
+                      <input 
+                        type="text" 
+                        value={item.name} 
+                        onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
+                        placeholder="NOME E SOBRENOME"
+                        className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
+                      />
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                        <input 
+                          type="text" 
+                          value={item.matricula || ''} 
+                          onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'matricula', e.target.value)}
+                          placeholder="N/A"
+                          maxLength={8}
+                          className="bg-transparent text-[#10B981] text-[10px] font-bold focus:outline-none placeholder:text-[#10B981]/30 w-[80px] leading-none" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botão de Retorno Rápido (Ideia 1) */}
+                    {item.name.trim() && item.originalDeptId ? (
+                      <button
+                        onClick={() => onReturnRight?.(groupIdx, itemIdx)}
+                        title={`Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}`}
+                        className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <div className="w-[22px] h-[22px] shrink-0" />
+                    )}
+
                     <input 
                       type="text" 
                       value={item.status} 
                       onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'status', e.target.value)}
-                      placeholder="Status"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[32%] text-right focus:outline-none placeholder:text-[#a0aec0]/30" 
+                      placeholder="STATUS"
+                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate" 
                     />
                   </div>
                 ))}
@@ -522,24 +577,27 @@ interface ErrorBoundaryState {
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
 }
+// ErrorBoundary usa coerção de tipo para compatibilidade com tsconfig (useDefineForClassFields: false)
+const ErrorBoundaryBase = React.Component as any;
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends ErrorBoundaryBase {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null } as ErrorBoundaryState;
+    this.handleCopyError = this.handleCopyError.bind(this);
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error, errorInfo: null };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: any) {
     console.error("Erro capturado pelo Espião:", error, errorInfo);
     this.setState({ error, errorInfo });
   }
 
-  handleCopyError = () => {
-    const { error, errorInfo } = this.state;
+  handleCopyError() {
+    const { error, errorInfo } = this.state as ErrorBoundaryState;
     const errorText = `Distribui-o2 - Erro Mobile (Espião)
 Erro: ${error?.toString()}
 Stack: ${error?.stack}
@@ -551,10 +609,11 @@ Time: ${new Date().toISOString()}
     navigator.clipboard.writeText(errorText)
       .then(() => alert("Detalhes do erro copiados com sucesso! Cole na conversa com o desenvolvedor."))
       .catch(() => alert("Não foi possível copiar automaticamente. Selecione e copie o texto abaixo."));
-  };
+  }
 
   render() {
-    if (this.state.hasError) {
+    const state = this.state as ErrorBoundaryState;
+    if (state.hasError) {
       return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-[#0d0e12] overflow-y-auto font-sans">
           <div className="w-full max-w-lg bg-[#1e2029]/95 border border-[#FF3B30]/30 backdrop-blur-xl rounded-[24px] p-6 shadow-2xl flex flex-col gap-6 text-white my-8">
@@ -584,7 +643,7 @@ Time: ${new Date().toISOString()}
             <div className="bg-[#111217] border border-white/5 rounded-[14px] p-4 text-left">
               <span className="text-[10px] font-black text-[#FF3B30] uppercase tracking-wider block mb-1.5">Mensagem do Erro</span>
               <p className="text-[13px] font-mono text-white break-words select-all font-bold">
-                {this.state.error?.toString()}
+                {state.error?.toString()}
               </p>
             </div>
 
@@ -592,7 +651,7 @@ Time: ${new Date().toISOString()}
             <div className="bg-[#111217] border border-white/5 rounded-[14px] p-4 text-left flex flex-col gap-2">
               <span className="text-[10px] font-black text-[#a0aec0] uppercase tracking-wider block">Rastreamento Técnico (Stack)</span>
               <div className="max-h-[140px] overflow-y-auto text-[11px] font-mono text-[#a0aec0]/80 bg-[#0d0e12] rounded-[8px] p-3 border border-white/5 break-all whitespace-pre-wrap select-all">
-                {this.state.error?.stack || this.state.errorInfo?.componentStack || "Nenhum detalhe técnico adicional capturado."}
+                {state.error?.stack || state.errorInfo?.componentStack || "Nenhum detalhe técnico adicional capturado."}
               </div>
             </div>
 
@@ -617,7 +676,7 @@ Time: ${new Date().toISOString()}
       );
     }
 
-    return this.props.children;
+    return (this.props as ErrorBoundaryProps).children;
   }
 }
 
@@ -732,25 +791,25 @@ function AppContent() {
     })
   );
 
-  const findContainer = (id: string, departments: Department[]) => {
+  const findContainer = useCallback((id: string, departments: Department[]) => {
     if (departments.some(d => d.id === id)) return id;
     const dept = departments.find(d => d.data.some(e => e.id === id));
     return dept ? dept.id : null;
-  };
+  }, []);
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = useCallback((event: any) => {
     setActiveId(event.active.id);
     clonedDepartmentsRef.current = departmentsData;
-  };
+  }, [departmentsData]);
 
-  const handleDragCancel = () => {
+  const handleDragCancel = useCallback(() => {
     setActiveId(null);
     if (clonedDepartmentsRef.current) {
       setDepartmentsData(clonedDepartmentsRef.current);
     }
-  };
+  }, []);
 
-  const handleDragOver = (event: any) => {
+  const handleDragOver = useCallback((event: any) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -767,11 +826,18 @@ function AppContent() {
         return prev;
       }
 
-      const activeItems = prev.find((d) => d.id === activeContainer)?.data || [];
-      const overItems = prev.find((d) => d.id === overContainer)?.data || [];
+      const activeDept = prev.find((d) => d.id === activeContainer);
+      const overDept = prev.find((d) => d.id === overContainer);
+      if (!activeDept || !overDept) return prev;
+
+      const activeItems = activeDept.data;
+      const overItems = overDept.data;
 
       const activeIndex = activeItems.findIndex((e) => e.id === activeId);
       const overIndex = overItems.findIndex((e) => e.id === overId);
+
+      // Item não encontrado na origem — já foi movido, ignorar
+      if (activeIndex === -1) return prev;
 
       const movedItem = activeItems[activeIndex];
       if (!movedItem) return prev;
@@ -783,8 +849,11 @@ function AppContent() {
         newIndex = overItems.length;
       }
 
-      return prev.map((dept) => {
-        if (activeContainer === overContainer) {
+      // Dentro do mesmo container: se o item já está na posição correta, não atualizar
+      if (activeContainer === overContainer) {
+        if (activeIndex === newIndex) return prev;
+
+        return prev.map((dept) => {
           if (dept.id === activeContainer) {
             const newData = [...dept.data];
             const itemToMove = newData.splice(activeIndex, 1)[0];
@@ -792,24 +861,28 @@ function AppContent() {
             return { ...dept, data: newData };
           }
           return dept;
-        } else {
-          if (dept.id === activeContainer) {
-            return { ...dept, data: dept.data.filter((e) => e.id !== activeId), count: dept.data.length - 1 };
-          }
-          if (dept.id === overContainer) {
-            const newData = [...dept.data];
-            newData.splice(newIndex, 0, movedItem);
-            return { ...dept, data: newData, count: newData.length };
-          }
-          return dept;
+        });
+      }
+
+      // Cross-container: mover entre departamentos diferentes
+      return prev.map((dept) => {
+        if (dept.id === activeContainer) {
+          const newData = dept.data.filter((e) => e.id !== activeId);
+          return { ...dept, data: newData, count: newData.length };
         }
+        if (dept.id === overContainer) {
+          const newData = [...dept.data];
+          newData.splice(newIndex, 0, movedItem);
+          return { ...dept, data: newData, count: newData.length };
+        }
+        return dept;
       });
     });
-  };
+  }, [findContainer]);
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = useCallback((event: any) => {
     setActiveId(null);
-  };
+  }, []);
 
   const activeEmployee = activeId 
     ? departmentsData.flatMap(d => d.data).find(e => e.id === activeId)
@@ -1327,10 +1400,10 @@ function AppContent() {
         // Achar o primeiro slot vazio (name sem texto)
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
-          items[emptyIdx] = { name: empName, status: absenceType };
+          items[emptyIdx] = { name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
         } else {
           // Se não houver slot vazio, faz push
-          items.push({ name: empName, status: absenceType });
+          items.push({ name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
         }
         newGroups[targetLeftGroupIndex] = { ...group, items };
         return newGroups;
@@ -1343,15 +1416,58 @@ function AppContent() {
         
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
-          items[emptyIdx] = { name: empName, status: absenceType };
+          items[emptyIdx] = { name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
         } else {
-          items.push({ name: empName, status: absenceType });
+          items.push({ name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
         }
         newGroups[targetRightGroupIndex] = { ...group, items };
         return newGroups;
       });
     }
   };
+
+  const handleReturnFromAnnotation = useCallback((isLeft: boolean, groupIdx: number, itemIdx: number) => {
+    const groups = isLeft ? annotationsLeft : annotationsRight;
+    const item = groups[groupIdx].items[itemIdx];
+    if (!item || !item.name.trim() || !item.originalDeptId) return;
+
+    // 1. Adicionar ao departamento original
+    setDepartmentsData(prev => {
+      const newDepts = [...prev];
+      const targetDeptIdx = newDepts.findIndex(d => d.id === item.originalDeptId);
+      if (targetDeptIdx === -1) return prev;
+
+      const cleanedEmp: Employee = {
+        id: item.id || ('emp-' + Math.floor(Math.random() * 100000)),
+        name: item.name,
+        line: '',
+        machine: item.matricula || '',
+        error: false
+      };
+
+      const targetData = [...newDepts[targetDeptIdx].data];
+      targetData.push(cleanedEmp);
+      newDepts[targetDeptIdx] = { ...newDepts[targetDeptIdx], data: targetData, count: targetData.length };
+      return newDepts;
+    });
+
+    // 2. Limpar/remover o slot de anotação (Opção 1: remove da grade completamente)
+    if (isLeft) {
+      setAnnotationsLeft(prev => {
+        const newGroups = [...prev];
+        const newItems = newGroups[groupIdx].items.filter((_, idx) => idx !== itemIdx);
+        newGroups[groupIdx] = { ...newGroups[groupIdx], items: newItems };
+        return newGroups;
+      });
+    } else {
+      setAnnotationsRight(prev => {
+        const newGroups = [...prev];
+        const newItems = newGroups[groupIdx].items.filter((_, idx) => idx !== itemIdx);
+        newGroups[groupIdx] = { ...newGroups[groupIdx], items: newItems };
+        return newGroups;
+      });
+    }
+  }, [annotationsLeft, annotationsRight]);
 
   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
 
@@ -1540,6 +1656,8 @@ function AppContent() {
                     allDepartments={departmentsData}
                     onUpdate={(field, value) => handleUpdateSpecialShiftEmployee(idx, field, value)}
                     onTransfer={(targetDeptId) => handleTransferFromSpecialShift(idx, targetDeptId)}
+                    activeEdit={activeEdits[emp.id]}
+                    onStartEdit={() => handleStartEdit(emp.id)}
                   />
                 ))}
               </div>
@@ -1582,6 +1700,8 @@ function AppContent() {
                     rightGroups={annotationsRight} 
                     onUpdateLeft={handleUpdateAnnotationLeft}
                     onUpdateRight={handleUpdateAnnotationRight}
+                    onReturnLeft={(groupIdx, itemIdx) => handleReturnFromAnnotation(true, groupIdx, itemIdx)}
+                    onReturnRight={(groupIdx, itemIdx) => handleReturnFromAnnotation(false, groupIdx, itemIdx)}
                   />
                 </div>
               </div>
@@ -1761,11 +1881,20 @@ function EmployeeRow({
     disabled: isDragOverlay,
   });
 
+  const currentActiveEdit: ActiveEdit | undefined = isDragging
+    ? {
+        empId: emp.id,
+        userName: 'Naylan (Você)',
+        color: '#BF5AF2',
+        timestamp: Date.now()
+      }
+    : activeEdit;
+
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(isDragging ? null : transform),
     transition: isDragging ? undefined : transition,
     touchAction: 'none',
-    ...(activeEdit && !isDragOverlay ? { outline: `2px solid ${activeEdit.color}`, outlineOffset: '1px' } : {})
+    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {})
   };
 
   // Helper para borda lateral de destaque conforme o setor no modo claro/escuro
@@ -1827,11 +1956,11 @@ function EmployeeRow({
       }`}
     >
       {/* Active Edit Badge */}
-      {activeEdit && !isDragOverlay && (
-        <div className="absolute -top-3 -right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-full z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeEdit.color }} />
+      {currentActiveEdit && !isDragOverlay && (
+        <div className="absolute -top-3 right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: currentActiveEdit.color }} />
           <span className="text-[10px] text-white font-bold whitespace-nowrap">
-            {activeEdit.userName} editando...
+            {currentActiveEdit.userName} editando...
           </span>
         </div>
       )}
@@ -1927,7 +2056,7 @@ function EmployeeRow({
                 onUpdateEmployee('line', e.target.value);
                 setShowLineDropdown(true);
               }}
-              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
+              className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Linha</span>
           </div>
@@ -1937,7 +2066,7 @@ function EmployeeRow({
               value={emp.machine}
               onFocus={() => onStartEdit?.()}
               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
-              className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
+              className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Loco</span>
           </div>
@@ -2044,7 +2173,7 @@ function EmployeeRow({
 
       {/* Portal: Dropdown de Linhas */}
       <AnimatePresence>
-        {showLineDropdown && lineRect && (
+        {showLineDropdown && lineRect && PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).length > 0 && (
           <PortalMenu>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -2057,7 +2186,7 @@ function EmployeeRow({
                 left: lineRect.left + lineRect.width / 2 - 65,
                 zIndex: 1000,
               }}
-              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
+              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar"
             >
               {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
                 <button
@@ -2067,14 +2196,11 @@ function EmployeeRow({
                     onUpdateEmployee('line', linha);
                     setShowLineDropdown(false);
                   }}
-                  className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
+                  className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] rounded-[8px] transition-all duration-150 outline-none"
                 >
                   {linha}
                 </button>
               ))}
-              {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).length === 0 && (
-                <div className="px-2 py-1.5 text-[10px] text-[#a0aec0] text-center font-medium uppercase tracking-wide">Pressione Enter</div>
-              )}
             </motion.div>
           </PortalMenu>
         )}
@@ -2348,14 +2474,39 @@ function SpecialShiftSlot({
   index,
   allDepartments,
   onUpdate,
-  onTransfer
-}: { key?: string | number; emp: Employee; index: number; allDepartments: Department[];
+  onTransfer,
+  activeEdit,
+  onStartEdit
+}: { 
+  key?: string | number; 
+  emp: Employee; 
+  index: number; 
+  allDepartments: Department[];
   onUpdate: (field: keyof Employee, value: string) => void;
   onTransfer: (targetDeptId: string) => void;
+  activeEdit?: ActiveEdit;
+  onStartEdit?: () => void;
 }) {
 
+  const style: React.CSSProperties = {
+    ...(activeEdit ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: '1.5px' } : {})
+  };
+
   return (
-    <div className="w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
+    <div 
+      style={style}
+      className="w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors"
+    >
+      {/* Active Edit Badge */}
+      {activeEdit && (
+        <div className="absolute -top-3 right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeEdit.color }} />
+          <span className="text-[10px] text-white font-bold whitespace-nowrap">
+            {activeEdit.userName} editando...
+          </span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center min-w-0">
           <div className="w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">
@@ -2365,8 +2516,9 @@ function SpecialShiftSlot({
             <input
               type="text"
               value={emp.name}
+              onFocus={() => onStartEdit?.()}
               onChange={(e) => onUpdate('name', e.target.value.toUpperCase())}
-              className="font-bold text-[12px] text-white bg-transparent outline-none w-[130px] truncate uppercase leading-none"
+              className="font-bold text-[12px] text-white bg-transparent outline-none w-[130px] truncate uppercase leading-none placeholder:text-white/30"
               placeholder="NOME SOBRENOME"
             />
             {emp.tagType && (
@@ -2403,6 +2555,7 @@ function SpecialShiftSlot({
               type="text"
               list="oof-options"
               value={emp.line}
+              onFocus={() => onStartEdit?.()}
               onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
               placeholder="LOCAL DE APOIO"
               className="h-[26px] px-2 rounded-md text-[10px] font-bold w-[120px] text-center uppercase placeholder-white/40 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
@@ -2420,18 +2573,20 @@ function SpecialShiftSlot({
               <input
                 type="text"
                 value={emp.line}
+                onFocus={() => onStartEdit?.()}
                 onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
                 placeholder="LINHA"
-                className="h-[26px] px-1 rounded-md text-[10px] font-bold w-[70px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
+                className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
               />
             </div>
             <div className="flex flex-col items-center">
               <input
                 type="text"
                 value={emp.machine}
+                onFocus={() => onStartEdit?.()}
                 onChange={(e) => onUpdate('machine', e.target.value.toUpperCase())}
                 placeholder="LOCO"
-                className="h-[26px] px-1 rounded-md text-[10px] font-bold w-[70px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
+                className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
               />
             </div>
           </>
