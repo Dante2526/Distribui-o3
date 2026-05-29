@@ -368,7 +368,7 @@ a {
     --bb8-bg: #fff;
     cursor: pointer;
     font-size: var(--toggle-size);
-    margin: 10px;
+    margin: 0;
 }
 
 .bb8-toggle,
