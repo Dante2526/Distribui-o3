@@ -2675,7 +2675,8 @@ function AppContent() {
             {/* Main Content Area */}
             <DndContext
               sensors={sensors}
-              collisionDetection={pointerWithin}
+              collisionDetection={closestCorners}
+              modifiers={[scaleCompensationModifier]}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
               onDragEnd={handleDragEnd}
@@ -2744,51 +2745,7 @@ function AppContent() {
                 </div>
               </div>
 
-              <DragOverlay dropAnimation={null}>
-                {activeId ? (
-                  (() => {
-                    const emp = departmentsData.flatMap(d => d.data).find(e => e.id === activeId);
-                    const department = departmentsData.find(d => d.data.some(e => e.id === activeId));
-                    if (!emp || !department) return null;
-                    return (
-                      <EmployeeRow 
-                        emp={emp}
-                        department={department}
-                        allDepartments={departmentsData}
-                        onMove={() => {}}
-                        onUpdateEmployee={() => {}}
-                        onDelete={() => {}}
-                        onTransferToSpecial={() => {}}
-                        onMarkAbsent={() => {}}
-                        isDarkMode={isDarkMode}
-                        is6HActive={is6HActive}
-                        isDragOverlay={true}
-                      />
-                    );
-                  })()
-                ) : activeSupportId ? (
-                  (() => {
-                    const emp = supportRolesData.flatMap(g => g).find(e => e.id === activeSupportId);
-                    const groupIdx = supportRolesData.findIndex(g => g.some(e => e.id === activeSupportId));
-                    if (!emp || groupIdx === -1) return null;
-                    return (
-                      <SupportRoleRow
-                        emp={emp}
-                        groupIndex={groupIdx}
-                        isDarkMode={isDarkMode}
-                        is6HActive={is6HActive}
-                        isDragOverlay={true}
-                        onUpdateRole={() => {}}
-                        onUpdateName={() => {}}
-                        onUpdateMatricula={() => {}}
-                        onMove={() => {}}
-                        onMarkAbsent={() => {}}
-                        onDelete={() => {}}
-                      />
-                    );
-                  })()
-                ) : null}
-              </DragOverlay>
+
             </DndContext>
 
           </div>
