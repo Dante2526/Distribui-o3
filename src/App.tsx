@@ -310,6 +310,21 @@ function AnnotationsBoard({
   onReturnLeft?: (groupIndex: number, itemIndex: number) => void;
   onReturnRight?: (groupIndex: number, itemIndex: number) => void;
 }) {
+  const [animatingItems, setAnimatingItems] = useState<Record<string, boolean>>({});
+
+  const handleReturn = (side: 'left' | 'right', groupIdx: number, itemIdx: number) => {
+    const key = `${side}-${groupIdx}-${itemIdx}`;
+    setAnimatingItems(prev => ({ ...prev, [key]: true }));
+    setTimeout(() => {
+      setAnimatingItems(prev => ({ ...prev, [key]: false }));
+      if (side === 'left') {
+        onReturnLeft?.(groupIdx, itemIdx);
+      } else {
+        onReturnRight?.(groupIdx, itemIdx);
+      }
+    }, 800);
+  };
+
   return (
     <div className="annotations-board-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
       {/* Header */}
@@ -331,50 +346,53 @@ function AnnotationsBoard({
                 {group.title}
               </div>
               <div className="flex flex-col gap-1 mt-1">
-                {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2">
-                    <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
-                      <input 
-                        type="text" 
-                        value={item.name} 
-                        onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
-                        placeholder="NOME E SOBRENOME"
-                        className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
-                      />
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                {group.items.map((item, itemIdx) => {
+                  const animKey = `left-${groupIdx}-${itemIdx}`;
+                  return (
+                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
+                      <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
                         <input 
                           type="text" 
-                          value={item.matricula || ''} 
-                          onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'matricula', e.target.value)}
-                          placeholder="N/A"
-                          maxLength={8}
-                          className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
+                          value={item.name} 
+                          onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
+                          placeholder="NOME E SOBRENOME"
+                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
                         />
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                          <input 
+                            type="text" 
+                            value={item.matricula || ''} 
+                            onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'matricula', e.target.value)}
+                            placeholder="N/A"
+                            maxLength={8}
+                            className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
+                          />
+                        </div>
                       </div>
+
+                      {item.name.trim() && (item.originalDeptId || (item as any).originalSupportGroupIndex !== undefined) ? (
+                        <button
+                          onClick={() => handleReturn('left', groupIdx, itemIdx)}
+                          title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
+                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
+                        >
+                          <RotateCcw className={`w-3.5 h-3.5 ${animatingItems[animKey] ? 'animate-spin' : ''}`} />
+                        </button>
+                      ) : (
+                        <div className="w-[22px] h-[22px] shrink-0" />
+                      )}
+
+                      <input 
+                        type="text" 
+                        value={item.status} 
+                        onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'status', e.target.value)}
+                        placeholder="STATUS"
+                        className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate relative z-10" 
+                      />
                     </div>
-
-                    {item.name.trim() && (item.originalDeptId || (item as any).originalSupportGroupIndex !== undefined) ? (
-                      <button
-                        onClick={() => onReturnLeft?.(groupIdx, itemIdx)}
-                        title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
-                        className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <div className="w-[22px] h-[22px] shrink-0" />
-                    )}
-
-                    <input 
-                      type="text" 
-                      value={item.status} 
-                      onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'status', e.target.value)}
-                      placeholder="STATUS"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate" 
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -388,50 +406,53 @@ function AnnotationsBoard({
                 {group.title}
               </div>
               <div className="flex flex-col gap-1 mt-1">
-                {group.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2">
-                    <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
-                      <input 
-                        type="text" 
-                        value={item.name} 
-                        onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
-                        placeholder="NOME E SOBRENOME"
-                        className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
-                      />
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                {group.items.map((item, itemIdx) => {
+                  const animKey = `right-${groupIdx}-${itemIdx}`;
+                  return (
+                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
+                      <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
                         <input 
                           type="text" 
-                          value={item.matricula || ''} 
-                          onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'matricula', e.target.value)}
-                          placeholder="N/A"
-                          maxLength={8}
-                          className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
+                          value={item.name} 
+                          onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
+                          placeholder="NOME E SOBRENOME"
+                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none" 
                         />
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
+                          <input 
+                            type="text" 
+                            value={item.matricula || ''} 
+                            onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'matricula', e.target.value)}
+                            placeholder="N/A"
+                            maxLength={8}
+                            className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
+                          />
+                        </div>
                       </div>
+
+                      {item.name.trim() && (item.originalDeptId || (item as any).originalSupportGroupIndex !== undefined) ? (
+                        <button
+                          onClick={() => handleReturn('right', groupIdx, itemIdx)}
+                          title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
+                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
+                        >
+                          <RotateCcw className={`w-3.5 h-3.5 ${animatingItems[animKey] ? 'animate-spin' : ''}`} />
+                        </button>
+                      ) : (
+                        <div className="w-[22px] h-[22px] shrink-0" />
+                      )}
+
+                      <input 
+                        type="text" 
+                        value={item.status} 
+                        onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'status', e.target.value)}
+                        placeholder="STATUS"
+                        className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate relative z-10" 
+                      />
                     </div>
-
-                    {item.name.trim() && (item.originalDeptId || (item as any).originalSupportGroupIndex !== undefined) ? (
-                      <button
-                        onClick={() => onReturnRight?.(groupIdx, itemIdx)}
-                        title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
-                        className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <div className="w-[22px] h-[22px] shrink-0" />
-                    )}
-
-                    <input 
-                      type="text" 
-                      value={item.status} 
-                      onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'status', e.target.value)}
-                      placeholder="STATUS"
-                      className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate" 
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -807,6 +828,205 @@ function AdminModal({
   );
 }
 
+
+function AddUserModal({
+  isOpen,
+  onClose,
+  onAddUser,
+  isDarkMode
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddUser: (name: string, matricula: string, sectorId: string) => void;
+  isDarkMode: boolean;
+}) {
+  const [name, setName] = useState('');
+  const [matricula, setMatricula] = useState('');
+  const [sectorId, setSectorId] = useState('maquinista');
+  const [continueAdding, setContinueAdding] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => nameInputRef.current?.focus(), 150);
+    } else {
+      setName('');
+      setMatricula('');
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    onAddUser(name.trim().toUpperCase(), matricula.trim(), sectorId);
+
+    setName('');
+    setMatricula('');
+
+    if (continueAdding) {
+      setTimeout(() => nameInputRef.current?.focus(), 50);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setName('');
+    setMatricula('');
+    onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(5px)',
+        animation: 'fadeIn 0.2s ease-out forwards',
+      }}
+      onClick={handleClose}
+    >
+      <div
+        className={`rounded-[32px] shadow-2xl w-full max-w-[390px] p-8 relative mx-4 transition-all duration-300 animate-[fadeInScale_0.25s_ease-out_forwards] flex flex-col ${
+          isDarkMode 
+            ? 'bg-[#1E2029] border border-white/10 text-white' 
+            : 'bg-white border border-gray-100 text-[#1F2937]'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+        style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
+      >
+        <button
+          onClick={handleClose}
+          className={`absolute top-5 right-5 text-3xl font-light z-10 transition-colors cursor-pointer ${
+            isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          &times;
+        </button>
+
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#22C55E] to-[#16A34A] rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-[#16A34A]/30">
+          <UserPlus className="w-8 h-8 text-white" strokeWidth={2.5} />
+        </div>
+
+        <h2 className={`text-xl font-black mb-6 uppercase tracking-wide text-center ${
+          isDarkMode ? 'text-white' : 'text-[#1F2937]'
+        }`}>
+          Adicionar Colaborador
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col gap-1.5 text-left">
+            <input
+              ref={nameInputRef}
+              type="text"
+              required
+              placeholder="NOME E SOBRENOME"
+              value={name}
+              onChange={(e) => setName(e.target.value.toUpperCase())}
+              className={`text-sm w-full p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-[#22C55E] transition-all font-bold ${
+                isDarkMode 
+                  ? 'bg-[#111217] border border-white/10 placeholder-white/20 text-white' 
+                  : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
+              }`}
+              autoComplete="off"
+            />
+            <span className="text-[11px] text-[#FFD60A] font-bold block px-1 mt-0.5">
+              *Coloque apenas o primeiro nome e o último sobrenome
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5 text-left">
+            <input
+              type="text"
+              placeholder="MATRÍCULA"
+              maxLength={8}
+              value={matricula}
+              onChange={(e) => setMatricula(e.target.value.replace(/\D/g, ''))}
+              className={`text-sm w-full p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-[#22C55E] transition-all font-mono font-bold ${
+                isDarkMode 
+                  ? 'bg-[#111217] border border-white/10 placeholder-white/20 text-white' 
+                  : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
+              }`}
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 text-left">
+            <label className={`text-[10px] font-black uppercase tracking-wider px-1 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              Função
+            </label>
+            <div className={`flex p-1.5 rounded-xl border gap-1 transition-all ${
+              isDarkMode 
+                ? 'bg-[#111217] border-white/10' 
+                : 'bg-[#F3F4F6] border-gray-200'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setSectorId('maquinista')}
+                className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all duration-200 cursor-pointer ${
+                  sectorId === 'maquinista'
+                    ? 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white shadow-md shadow-[#16A34A]/20 scale-[1.02]'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                MAQUINISTA
+              </button>
+              <button
+                type="button"
+                onClick={() => setSectorId('off')}
+                className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all duration-200 cursor-pointer ${
+                  sectorId === 'off'
+                    ? 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white shadow-md shadow-[#16A34A]/20 scale-[1.02]'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                OFF
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between px-1 py-1.5 select-none">
+            <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Continuar adicionando
+            </span>
+            <button
+              type="button"
+              onClick={() => setContinueAdding(prev => !prev)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none cursor-pointer ${
+                continueAdding ? 'bg-[#22C55E]' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                  continueAdding ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="w-full py-4 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white font-black rounded-2xl hover:opacity-95 hover:scale-[1.01] hover:shadow-xl hover:shadow-[#16A34A]/30 active:scale-[0.99] transition-all text-sm uppercase tracking-widest cursor-pointer"
+            >
+              ADICIONAR
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export interface ActiveEdit {
   empId: string;
   userName: string;
@@ -951,6 +1171,7 @@ function AppContent() {
     return saved !== 'light'; // padrão é modo escuro
   });
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
@@ -1043,32 +1264,52 @@ function AppContent() {
     showToastMessage("Relatório de distribuição copiado!", "success");
   }, [departmentsData, supportRolesData, specialShiftData, annotationsLeft, annotationsRight, showToastMessage]);
 
-  const handleAddUser = useCallback(() => {
-    const name = prompt("Nome do novo colaborador:");
-    if (!name || !name.trim()) return;
-    const machine = prompt("Matrícula do novo colaborador:");
-    const line = prompt("Linha/Posto do novo colaborador:");
+  const handleAddNewUser = useCallback((name: string, matricula: string, sectorId: string) => {
+    if (!name.trim()) return;
     
-    setDepartmentsData(prev => {
-      const next = [...prev];
-      if (next.length > 0) {
-        const targetData = [...next[0].data];
-        targetData.push({
-          id: 'emp-adm-' + Date.now(),
-          name: name.toUpperCase(),
-          line: line || '',
-          machine: machine || '',
-          error: false
+    const formattedName = name.toUpperCase();
+    const formattedMatricula = matricula.trim();
+
+    if (sectorId.startsWith('support-group-') || sectorId === 'off') {
+      const groupIdx = sectorId === 'off' ? 0 : parseInt(sectorId.replace('support-group-', ''), 10);
+      setSupportRolesData(prev => {
+        return prev.map((g, idx) => {
+          if (idx === groupIdx) {
+            return [...g, {
+              id: 'emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
+              name: formattedName,
+              role: 'VIRADOR',
+              matricula: formattedMatricula
+            }];
+          }
+          return g;
         });
-        next[0] = {
-          ...next[0],
-          data: targetData,
-          count: targetData.length
-        };
-      }
-      return next;
-    });
-    showToastMessage(`Colaborador ${name.toUpperCase()} adicionado com sucesso!`, "success");
+      });
+    } else {
+      const targetSectorId = sectorId === 'maquinista' ? 'recepcao' : sectorId;
+      setDepartmentsData(prev => {
+        return prev.map(dept => {
+          if (dept.id === targetSectorId) {
+            const targetData = [...dept.data];
+            targetData.push({
+              id: 'emp-dept-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
+              name: formattedName,
+              line: '',
+              machine: formattedMatricula,
+              error: false
+            });
+            return {
+              ...dept,
+              data: targetData,
+              count: targetData.length
+            };
+          }
+          return dept;
+        });
+      });
+    }
+    
+    showToastMessage(`Colaborador ${formattedName} adicionado com sucesso!`, "success");
   }, [showToastMessage]);
 
   const handleReorganize = useCallback(() => {
@@ -1089,8 +1330,8 @@ function AppContent() {
       return prev.map((dept, i) => {
         if (i === 0) {
           const newData = [...dept.data];
-          newData.push({ id: 'emp-imp-1-' + Date.now(), name: 'MARCOS AURELIO', line: 'L1', machine: '110', error: false });
-          newData.push({ id: 'emp-imp-2-' + Date.now(), name: 'PAULO SERGIO', line: 'L2', machine: '112', error: false });
+          newData.push({ id: 'emp-imp-1-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9), name: 'MARCOS AURELIO', line: 'L1', machine: '110', error: false });
+          newData.push({ id: 'emp-imp-2-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9), name: 'PAULO SERGIO', line: 'L2', machine: '112', error: false });
           return { ...dept, data: newData, count: newData.length };
         }
         return dept;
@@ -1217,19 +1458,23 @@ function AppContent() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const clonedDepartmentsRef = useRef<Department[] | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 500,
-        tolerance: 8,
-      },
-    })
-  );
+  const [activeSupportId, setActiveSupportId] = useState<string | null>(null);
+  const clonedSupportRef = useRef<SupportRole[][] | null>(null);
+
+  const pointerSensor = useSensor(PointerSensor, React.useMemo(() => ({
+    activationConstraint: {
+      distance: 5,
+    },
+  }), []));
+
+  const touchSensor = useSensor(TouchSensor, React.useMemo(() => ({
+    activationConstraint: {
+      delay: 500,
+      tolerance: 8,
+    },
+  }), []));
+
+  const sensors = useSensors(pointerSensor, touchSensor);
 
   const findContainer = useCallback((id: string, departments: Department[]) => {
     if (departments.some(d => d.id === id)) return id;
@@ -1238,15 +1483,34 @@ function AppContent() {
   }, []);
 
   const handleDragStart = useCallback((event: any) => {
-    setActiveId(event.active.id);
-    clonedDepartmentsRef.current = departmentsData;
-  }, [departmentsData]);
+    const activeIdVal = event.active.id;
+    const isSupport = supportRolesData.some(group => group.some(e => e.id === activeIdVal));
+    if (isSupport) {
+      setActiveSupportId(activeIdVal);
+      clonedSupportRef.current = supportRolesData;
+    } else {
+      setActiveId(activeIdVal);
+      clonedDepartmentsRef.current = departmentsData;
+    }
+  }, [departmentsData, supportRolesData]);
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
+    setActiveSupportId(null);
     if (clonedDepartmentsRef.current) {
       setDepartmentsData(clonedDepartmentsRef.current);
     }
+    if (clonedSupportRef.current) {
+      setSupportRolesData(clonedSupportRef.current);
+    }
+  }, []);
+
+  const findSupportContainer = useCallback((id: string, supportData: SupportRole[][]) => {
+    if (id.startsWith?.('support-group-')) {
+      return id;
+    }
+    const groupIdx = supportData.findIndex(group => group.some(e => e.id === id));
+    return groupIdx !== -1 ? `support-group-${groupIdx}` : null;
   }, []);
 
   const handleDragOver = useCallback((event: any) => {
@@ -1258,70 +1522,248 @@ function AppContent() {
 
     if (activeId === overId) return;
 
-    setDepartmentsData((prev) => {
-      const activeContainer = findContainer(activeId, prev);
-      const overContainer = findContainer(overId, prev);
+    let activeType: 'maquinista' | 'apoio' | null = null;
+    let activeItem: any = null;
+    let activeContainer: string | null = null;
+    let activeIndex = -1;
 
-      if (!activeContainer || !overContainer) {
-        return prev;
+    // Buscar em Maquinistas
+    for (const dept of departmentsData) {
+      const idx = dept.data.findIndex(e => e.id === activeId);
+      if (idx !== -1) {
+        activeType = 'maquinista';
+        activeItem = dept.data[idx];
+        activeContainer = dept.id;
+        activeIndex = idx;
+        break;
       }
+    }
 
-      const activeDept = prev.find((d) => d.id === activeContainer);
-      const overDept = prev.find((d) => d.id === overContainer);
-      if (!activeDept || !overDept) return prev;
+    // Buscar em Apoio
+    if (!activeType) {
+      for (let idx = 0; idx < supportRolesData.length; idx++) {
+        const supportIdx = supportRolesData[idx].findIndex(e => e.id === activeId);
+        if (supportIdx !== -1) {
+          activeType = 'apoio';
+          activeItem = supportRolesData[idx][supportIdx];
+          activeContainer = `support-group-${idx}`;
+          activeIndex = supportIdx;
+          break;
+        }
+      }
+    }
 
-      const activeItems = activeDept.data;
-      const overItems = overDept.data;
+    if (!activeType || !activeItem || !activeContainer) return;
 
-      const activeIndex = activeItems.findIndex((e) => e.id === activeId);
-      const overIndex = overItems.findIndex((e) => e.id === overId);
+    let overType: 'maquinista' | 'apoio' | null = null;
+    let overContainer: string | null = null;
+    let overIndex = -1;
 
-      // Item não encontrado na origem — já foi movido, ignorar
-      if (activeIndex === -1) return prev;
-
-      const movedItem = activeItems[activeIndex];
-      if (!movedItem) return prev;
-
-      let newIndex;
-      if (overIndex >= 0) {
-        newIndex = overIndex;
+    // Identificar destino em Maquinistas
+    if (overId === 'recepcao' || overId === 'classificacao' || overId === 'formacao') {
+      overType = 'maquinista';
+      overContainer = overId;
+    } else {
+      const dept = departmentsData.find(d => d.id === overId);
+      if (dept) {
+        overType = 'maquinista';
+        overContainer = dept.id;
       } else {
-        newIndex = overItems.length;
-      }
-
-      // Dentro do mesmo container: se o item já está na posição correta, não atualizar
-      if (activeContainer === overContainer) {
-        if (activeIndex === newIndex) return prev;
-
-        return prev.map((dept) => {
-          if (dept.id === activeContainer) {
-            const newData = [...dept.data];
-            const itemToMove = newData.splice(activeIndex, 1)[0];
-            newData.splice(newIndex, 0, itemToMove);
-            return { ...dept, data: newData };
+        for (const d of departmentsData) {
+          const idx = d.data.findIndex(e => e.id === overId);
+          if (idx !== -1) {
+            overType = 'maquinista';
+            overContainer = d.id;
+            overIndex = idx;
+            break;
           }
-          return dept;
-        });
+        }
       }
+    }
 
-      // Cross-container: mover entre departamentos diferentes
-      return prev.map((dept) => {
-        if (dept.id === activeContainer) {
-          const newData = dept.data.filter((e) => e.id !== activeId);
-          return { ...dept, data: newData, count: newData.length };
+    // Identificar destino em Apoio
+    if (!overType) {
+      if (overId.startsWith?.('support-group-')) {
+        overType = 'apoio';
+        overContainer = overId;
+      } else {
+        const groupIdx = parseInt(overId.toString().replace('support-group-', ''), 10);
+        if (!isNaN(groupIdx) && groupIdx >= 0 && groupIdx < supportRolesData.length) {
+          overType = 'apoio';
+          overContainer = `support-group-${groupIdx}`;
+        } else {
+          for (let idx = 0; idx < supportRolesData.length; idx++) {
+            const supportIdx = supportRolesData[idx].findIndex(e => e.id === overId);
+            if (supportIdx !== -1) {
+              overType = 'apoio';
+              overContainer = `support-group-${idx}`;
+              overIndex = supportIdx;
+              break;
+            }
+          }
         }
-        if (dept.id === overContainer) {
-          const newData = [...dept.data];
-          newData.splice(newIndex, 0, movedItem);
-          return { ...dept, data: newData, count: newData.length };
+      }
+    }
+
+    if (!overType || !overContainer) return;
+
+    // CASO A: Maquinista -> Maquinista
+    if (activeType === 'maquinista' && overType === 'maquinista') {
+      const targetIdx = overIndex >= 0 ? overIndex : 0;
+      if (activeContainer === overContainer && activeIndex === targetIdx) return;
+
+      setDepartmentsData(prev => {
+        const activeDept = prev.find(d => d.id === activeContainer);
+        const overDept = prev.find(d => d.id === overContainer);
+        if (!activeDept || !overDept) return prev;
+
+        const activeItems = activeDept.data;
+        const overItems = overDept.data;
+        const activeIdx = activeItems.findIndex(e => e.id === activeId);
+        if (activeIdx === -1) return prev;
+
+        const movedEmployee = activeItems[activeIdx];
+        const newIndex = overIndex >= 0 ? overIndex : overItems.length;
+
+        if (activeContainer === overContainer) {
+          const newData = [...activeItems];
+          newData.splice(activeIdx, 1);
+          newData.splice(newIndex, 0, movedEmployee);
+          return prev.map(d => d.id === activeContainer ? { ...d, data: newData } : d);
+        } else {
+          return prev.map(d => {
+            if (d.id === activeContainer) {
+              const newData = d.data.filter(e => e.id !== activeId);
+              return { ...d, data: newData, count: newData.length };
+            }
+            if (d.id === overContainer) {
+              const newData = [...d.data];
+              newData.splice(newIndex, 0, movedEmployee);
+              return { ...d, data: newData, count: newData.length };
+            }
+            return d;
+          });
         }
-        return dept;
       });
-    });
-  }, [findContainer]);
+    }
+
+    // CASO B: Apoio -> Apoio
+    else if (activeType === 'apoio' && overType === 'apoio') {
+      const activeGroupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
+      const overGroupIdx = parseInt(overContainer.replace('support-group-', ''), 10);
+      if (isNaN(activeGroupIdx) || isNaN(overGroupIdx)) return;
+
+      const targetIdx = overIndex >= 0 ? overIndex : 0;
+      if (activeContainer === overContainer && activeIndex === targetIdx) return;
+
+      setSupportRolesData(prev => {
+        const activeItems = prev[activeGroupIdx];
+        const overItems = prev[overGroupIdx];
+        const activeIdx = activeItems.findIndex(e => e.id === activeId);
+        if (activeIdx === -1) return prev;
+
+        const movedSupport = activeItems[activeIdx];
+        const newIndex = overIndex >= 0 ? overIndex : overItems.length;
+
+        if (activeContainer === overContainer) {
+          const newData = [...activeItems];
+          newData.splice(activeIdx, 1);
+          newData.splice(newIndex, 0, movedSupport);
+          return prev.map((group, idx) => idx === activeGroupIdx ? newData : group);
+        } else {
+          return prev.map((group, idx) => {
+            if (idx === activeGroupIdx) {
+              return group.filter(e => e.id !== activeId);
+            }
+            if (idx === overGroupIdx) {
+              const newData = [...group];
+              newData.splice(newIndex, 0, movedSupport);
+              return newData;
+            }
+            return group;
+          });
+        }
+      });
+    }
+
+    // CASO C: Maquinista -> Apoio (ADAPTAÇÃO DE FORMATO!)
+    else if (activeType === 'maquinista' && overType === 'apoio') {
+      const overGroupIdx = parseInt(overContainer.replace('support-group-', ''), 10);
+      if (isNaN(overGroupIdx)) return;
+
+      const adaptedSupport: SupportRole = {
+        id: activeItem.id, // Manter o mesmo ID para o DndContext reter o arrastável
+        name: activeItem.name,
+        role: 'VIRADOR',
+        matricula: activeItem.machine || ''
+      };
+
+      // Remover do Maquinistas
+      setDepartmentsData(prev => prev.map(d => {
+        if (d.id === activeContainer) {
+          const newData = d.data.filter(e => e.id !== activeId);
+          return { ...d, data: newData, count: newData.length };
+        }
+        return d;
+      }));
+
+      // Adicionar no Apoio
+      setSupportRolesData(prev => prev.map((group, idx) => {
+        if (idx === overGroupIdx) {
+          const newData = [...group];
+          const targetIdx = overIndex >= 0 ? overIndex : group.length;
+          newData.splice(targetIdx, 0, adaptedSupport);
+          return newData;
+        }
+        return group;
+      }));
+
+      // Alterar IDs ativos para sincronizar o DndContext
+      setActiveId(null);
+      setActiveSupportId(activeId);
+    }
+
+    // CASO D: Apoio -> Maquinista (ADAPTAÇÃO DE FORMATO!)
+    else if (activeType === 'apoio' && overType === 'maquinista') {
+      const activeGroupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
+      if (isNaN(activeGroupIdx)) return;
+
+      const adaptedEmployee: Employee = {
+        id: activeItem.id,
+        name: activeItem.name,
+        line: '',
+        machine: activeItem.matricula || '',
+        error: false
+      };
+
+      // Remover do Apoio
+      setSupportRolesData(prev => prev.map((group, idx) => {
+        if (idx === activeGroupIdx) {
+          return group.filter(e => e.id !== activeId);
+        }
+        return group;
+      }));
+
+      // Adicionar no Maquinistas
+      setDepartmentsData(prev => prev.map(d => {
+        if (d.id === overContainer) {
+          const newData = [...d.data];
+          const targetIdx = overIndex >= 0 ? overIndex : d.data.length;
+          newData.splice(targetIdx, 0, adaptedEmployee);
+          return { ...d, data: newData, count: newData.length };
+        }
+        return d;
+      }));
+
+      // Alterar IDs ativos para sincronizar o DndContext
+      setActiveSupportId(null);
+      setActiveId(activeId);
+    }
+  }, [departmentsData, supportRolesData, findContainer, findSupportContainer]);
 
   const handleDragEnd = useCallback((event: any) => {
     setActiveId(null);
+    setActiveSupportId(null);
   }, []);
 
   const activeEmployee = activeId 
@@ -1447,6 +1889,7 @@ function AppContent() {
       setSupportRolesData(prev => {
         const newSupport = prev.map(group => [...group]);
         newSupport[groupIdx].push({
+          id: movedEmployee.id || ('emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)),
           name: movedEmployee.name,
           role: roleStr,
           matricula: movedEmployee.machine || ''
@@ -1991,6 +2434,7 @@ function AppContent() {
       setSupportRolesData(prev => {
         const newSupport = prev.map(group => [...group]);
         newSupport[targetGroupIdx].push({
+          id: item.id || ('emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)),
           name: item.name,
           role: roleStr,
           matricula: item.matricula || ''
@@ -2229,77 +2673,123 @@ function AppContent() {
             )}
 
             {/* Main Content Area */}
-            <div className="space-y-8">
-              {/* Main Departments Grid - Always 3 columns + Annotations */}
-              <DndContext
-                sensors={sensors}
-                collisionDetection={pointerWithin}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDragEnd={handleDragEnd}
-                onDragCancel={handleDragCancel}
-              >
-              <div className="flex gap-6 w-max">
-                {departmentsData.map((dept) => (
-                  <div key={dept.id} className="w-[500px] shrink-0">
-                    <DepartmentCard 
-                      department={dept} 
-                      allDepartments={departmentsData}
-                      maxCount={maxCount}
-                      onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
-                      onUpdateEmployee={handleUpdateEmployeeField}
-                      onDelete={handleDelete}
-                      onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
-                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent(dept.id, empIndex, absenceType)}
-                      isDarkMode={isDarkMode}
-                      is6HActive={is6HActive}
-                      activeEdits={activeEdits}
-                      onStartEdit={handleStartEdit}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={pointerWithin}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+              onDragCancel={handleDragCancel}
+            >
+              <div className="space-y-8">
+                {/* Main Departments Grid - Always 3 columns + Annotations */}
+                <div className="flex gap-6 w-max">
+                  {departmentsData.map((dept) => (
+                    <div key={dept.id} className="w-[500px] shrink-0">
+                      <DepartmentCard 
+                        department={dept} 
+                        allDepartments={departmentsData}
+                        maxCount={maxCount}
+                        onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
+                        onUpdateEmployee={handleUpdateEmployeeField}
+                        onDelete={handleDelete}
+                        onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
+                        onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent(dept.id, empIndex, absenceType)}
+                        isDarkMode={isDarkMode}
+                        is6HActive={is6HActive}
+                        activeEdits={activeEdits}
+                        onStartEdit={handleStartEdit}
+                      />
+                    </div>
+                  ))}
+
+                  {/* NOVO ESPAÇO: ANOTAÇÕES MINÉRIO */}
+                  <div className="w-[680px] shrink-0">
+                    <AnnotationsBoard 
+                      leftGroups={annotationsLeft} 
+                      rightGroups={annotationsRight} 
+                      onUpdateLeft={handleUpdateAnnotationLeft}
+                      onUpdateRight={handleUpdateAnnotationRight}
+                      onReturnLeft={(groupIdx, itemIdx) => handleReturnFromAnnotation(true, groupIdx, itemIdx)}
+                      onReturnRight={(groupIdx, itemIdx) => handleReturnFromAnnotation(false, groupIdx, itemIdx)}
                     />
                   </div>
-                ))}
+                </div>
 
-                {/* NOVO ESPAÇO: ANOTAÇÕES MINÉRIO */}
-                <div className="w-[680px] shrink-0">
-                  <AnnotationsBoard 
-                    leftGroups={annotationsLeft} 
-                    rightGroups={annotationsRight} 
-                    onUpdateLeft={handleUpdateAnnotationLeft}
-                    onUpdateRight={handleUpdateAnnotationRight}
-                    onReturnLeft={(groupIdx, itemIdx) => handleReturnFromAnnotation(true, groupIdx, itemIdx)}
-                    onReturnRight={(groupIdx, itemIdx) => handleReturnFromAnnotation(false, groupIdx, itemIdx)}
-                  />
+                {/* Section Divider */}
+                <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
+                  <Users className="text-[#a0aec0] w-6 h-6" />
+                  <h2 className="text-2xl font-semibold text-white">Apoio (OOF)</h2>
+                </div>
+
+                {/* Support Roles Grid - Always 3 columns */}
+                <div className="flex gap-6 w-max pb-[50vh]">
+                  {supportRolesData.map((group, index) => (
+                    <div key={index} className="w-[600px] shrink-0">
+                      <SupportCard 
+                        roles={group} 
+                        groupIndex={index} 
+                        isDarkMode={isDarkMode}
+                        is6HActive={is6HActive}
+                        onUpdateRole={handleUpdateSupportRole} 
+                        onUpdateName={handleUpdateSupportName} 
+                        onUpdateMatricula={handleUpdateSupportMatricula}
+                        onMoveSupport={handleMoveSupport}
+                        onMoveToSpecial={handleTransferSupportToSpecialShift}
+                        onMarkAbsent={handleMarkSupportAbsent}
+                        onDeleteSupport={handleDeleteSupport}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
-              </DndContext>
 
-              {/* Section Divider */}
-              <div className="pt-8 pb-4 px-2 flex items-center space-x-3">
-                <Users className="text-[#a0aec0] w-6 h-6" />
-                <h2 className="text-2xl font-semibold text-white">Apoio (OOF)</h2>
-              </div>
-
-              {/* Support Roles Grid - Always 3 columns */}
-              <div className="flex gap-6 w-max pb-[50vh]">
-                {supportRolesData.map((group, index) => (
-                  <div key={index} className="w-[600px] shrink-0">
-                    <SupportCard 
-                      roles={group} 
-                      groupIndex={index} 
-                      isDarkMode={isDarkMode}
-                      is6HActive={is6HActive}
-                      onUpdateRole={handleUpdateSupportRole} 
-                      onUpdateName={handleUpdateSupportName} 
-                      onUpdateMatricula={handleUpdateSupportMatricula}
-                      onMoveSupport={handleMoveSupport}
-                      onMoveToSpecial={handleTransferSupportToSpecialShift}
-                      onMarkAbsent={handleMarkSupportAbsent}
-                      onDeleteSupport={handleDeleteSupport}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+              <DragOverlay dropAnimation={null}>
+                {activeId ? (
+                  (() => {
+                    const emp = departmentsData.flatMap(d => d.data).find(e => e.id === activeId);
+                    const department = departmentsData.find(d => d.data.some(e => e.id === activeId));
+                    if (!emp || !department) return null;
+                    return (
+                      <EmployeeRow 
+                        emp={emp}
+                        department={department}
+                        allDepartments={departmentsData}
+                        onMove={() => {}}
+                        onUpdateEmployee={() => {}}
+                        onDelete={() => {}}
+                        onTransferToSpecial={() => {}}
+                        onMarkAbsent={() => {}}
+                        isDarkMode={isDarkMode}
+                        is6HActive={is6HActive}
+                        isDragOverlay={true}
+                      />
+                    );
+                  })()
+                ) : activeSupportId ? (
+                  (() => {
+                    const emp = supportRolesData.flatMap(g => g).find(e => e.id === activeSupportId);
+                    const groupIdx = supportRolesData.findIndex(g => g.some(e => e.id === activeSupportId));
+                    if (!emp || groupIdx === -1) return null;
+                    return (
+                      <SupportRoleRow
+                        emp={emp}
+                        groupIndex={groupIdx}
+                        isDarkMode={isDarkMode}
+                        is6HActive={is6HActive}
+                        isDragOverlay={true}
+                        onUpdateRole={() => {}}
+                        onUpdateName={() => {}}
+                        onUpdateMatricula={() => {}}
+                        onMove={() => {}}
+                        onMarkAbsent={() => {}}
+                        onDelete={() => {}}
+                      />
+                    );
+                  })()
+                ) : null}
+              </DragOverlay>
+            </DndContext>
 
           </div>
         </div>
@@ -2316,7 +2806,10 @@ function AppContent() {
       onLoginError={handleAdminLoginError}
       onClearAll={handleClearAll}
       onGenerateReport={handleGenerateReport}
-      onAddUser={handleAddUser}
+      onAddUser={() => {
+        setIsAddUserModalOpen(true);
+        setIsAdminModalOpen(false);
+      }}
       onReorganize={handleReorganize}
       onImportCollaborator={handleImportCollaborator}
       is6HActive={is6HActive}
@@ -2328,6 +2821,14 @@ function AppContent() {
       onShowTutorial={handleShowTutorial}
       isDemoMode={isDemoMode}
       onToggleDemoMode={handleToggleDemoMode}
+      isDarkMode={isDarkMode}
+    />
+
+    {/* Add User Modal */}
+    <AddUserModal
+      isOpen={isAddUserModalOpen}
+      onClose={() => setIsAddUserModalOpen(false)}
+      onAddUser={handleAddNewUser}
       isDarkMode={isDarkMode}
     />
 
@@ -2549,7 +3050,7 @@ function EmployeeRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(isDragging ? null : transform),
     transition: isDragging ? undefined : transition,
-    touchAction: 'none',
+    touchAction: 'pan-y',
     ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {})
   };
 
@@ -2574,16 +3075,10 @@ function EmployeeRow({
     }
   };
 
-  // Refs para ancorar os portals à posição real na tela
-  const avatarBtnRef = useRef<HTMLButtonElement>(null);
-  const transferBtnRef = useRef<HTMLButtonElement>(null);
-  const lineInputRef = useRef<HTMLInputElement>(null);
-  const absentBtnRef = useRef<HTMLButtonElement>(null);
-
-  const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
-  const transferRect = useAnchoredRect(transferBtnRef, showTransferMenu);
-  const lineRect = useAnchoredRect(lineInputRef, showLineDropdown);
-  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
+  const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
+  const [transferRect, setTransferRect] = useState<DOMRect | null>(null);
+  const [lineRect, setLineRect] = useState<DOMRect | null>(null);
+  const [absentRect, setAbsentRect] = useState<DOMRect | null>(null);
 
   return (
     <motion.div
@@ -2632,11 +3127,17 @@ function EmployeeRow({
             {/* Avatar Container with Pop-up Menu */}
             <div className="relative">
               <button 
-                ref={avatarBtnRef}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowAvatarMenu(!showAvatarMenu);
+                  const open = !showAvatarMenu;
+                  setShowAvatarMenu(open);
                   setShowTransferMenu(false);
+                  setShowAbsentMenu(false);
+                  if (open) {
+                    setAvatarRect(e.currentTarget.getBoundingClientRect());
+                  } else {
+                    setAvatarRect(null);
+                  }
                 }}
                 className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
                   emp.error 
@@ -2663,12 +3164,17 @@ function EmployeeRow({
           {/* Action Buttons */}
           <div className="relative flex items-center gap-2">
             <button
-              ref={absentBtnRef}
               onClick={(e) => {
                 e.stopPropagation();
-                setShowAbsentMenu(!showAbsentMenu);
+                const open = !showAbsentMenu;
+                setShowAbsentMenu(open);
                 setShowTransferMenu(false);
                 setShowAvatarMenu(false);
+                if (open) {
+                  setAbsentRect(e.currentTarget.getBoundingClientRect());
+                } else {
+                  setAbsentRect(null);
+                }
               }}
               className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
             >
@@ -2683,11 +3189,17 @@ function EmployeeRow({
               </button>
             )}
             <button 
-              ref={transferBtnRef}
               onClick={(e) => {
                 e.stopPropagation();
-                setShowTransferMenu(!showTransferMenu);
+                const open = !showTransferMenu;
+                setShowTransferMenu(open);
                 setShowAvatarMenu(false);
+                setShowAbsentMenu(false);
+                if (open) {
+                  setTransferRect(e.currentTarget.getBoundingClientRect());
+                } else {
+                  setTransferRect(null);
+                }
               }}
               className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap ${
                 emp.error 
@@ -2704,17 +3216,23 @@ function EmployeeRow({
         <div className="flex items-center justify-center gap-3 w-full mt-auto" onClick={(e) => e.stopPropagation()}>
           <div className="flex flex-col items-center relative">
             <input
-              ref={lineInputRef}
               type="text"
               value={emp.line}
-              onFocus={() => {
+              onFocus={(e) => {
                 setShowLineDropdown(true);
+                setLineRect(e.currentTarget.getBoundingClientRect());
                 onStartEdit?.();
               }}
-              onBlur={() => setTimeout(() => setShowLineDropdown(false), 200)}
+              onBlur={() => {
+                setTimeout(() => {
+                  setShowLineDropdown(false);
+                  setLineRect(null);
+                }, 200);
+              }}
               onChange={(e) => {
                 onUpdateEmployee('line', e.target.value);
                 setShowLineDropdown(true);
+                setLineRect(e.currentTarget.getBoundingClientRect());
               }}
               className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
             />
@@ -2739,7 +3257,7 @@ function EmployeeRow({
       <AnimatePresence>
         {showAvatarMenu && avatarRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setShowAvatarMenu(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -2757,6 +3275,7 @@ function EmployeeRow({
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowAvatarMenu(false);
+                  setAvatarRect(null);
                   onDelete();
                 }}
                 className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
@@ -2773,7 +3292,7 @@ function EmployeeRow({
       <AnimatePresence>
         {showTransferMenu && transferRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setShowTransferMenu(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setShowTransferMenu(false); setTransferRect(null); }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -2797,6 +3316,7 @@ function EmployeeRow({
                       e.stopPropagation(); 
                       onMove(d.id); 
                       setShowTransferMenu(false); 
+                      setTransferRect(null);
                     }}
                     className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
                       isDarkMode 
@@ -2850,6 +3370,7 @@ function EmployeeRow({
                     e.preventDefault(); 
                     onUpdateEmployee('line', linha);
                     setShowLineDropdown(false);
+                    setLineRect(null);
                   }}
                   className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] rounded-[8px] transition-all duration-150 outline-none"
                 >
@@ -2865,7 +3386,7 @@ function EmployeeRow({
       <AnimatePresence>
         {showAbsentMenu && absentRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAbsentMenu(false); setAbsentRect(null); }} />
             <div
               style={{
                 position: 'fixed',
@@ -2903,6 +3424,7 @@ function EmployeeRow({
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAbsentMenu(false);
+                        setAbsentRect(null);
                         onMarkAbsent(opt.type as StatusType);
                       }}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
@@ -2966,9 +3488,12 @@ function SupportCard({
     { bg: "bg-[#30D158]/10", border: "border-[#30D158]/20", text: "text-[#30D158]", bar: "bg-[#30D158]" }
   ];
   const theme = themes[groupIndex] || themes[0];
+  const { setNodeRef } = useDroppable({
+    id: `support-group-${groupIndex}`,
+  });
 
   return (
-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative">
+    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative min-h-full">
       
       {/* Support Card Header */}
       <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
@@ -2987,7 +3512,8 @@ function SupportCard({
       </div>
       
       {/* Support List */}
-      <div className="p-3 space-y-2">
+      <div ref={setNodeRef} className="p-3 space-y-2 flex-1 min-h-[150px] flex flex-col">
+        <SortableContext id={`support-group-${groupIndex}`} items={roles.map(e => e.id || '')} strategy={verticalListSortingStrategy}>
         {roles.map((emp, i) => (
           <SupportRoleRow 
             key={emp.id || i} 
@@ -3004,6 +3530,7 @@ function SupportCard({
             onDelete={() => onDeleteSupport(groupIndex, i)}
           />
         ))}
+        </SortableContext>
       </div>
     </div>
   );
@@ -3014,6 +3541,7 @@ function SupportRoleRow({
   groupIndex,
   isDarkMode,
   is6HActive,
+  isDragOverlay,
   onUpdateRole,
   onUpdateName,
   onUpdateMatricula,
@@ -3027,6 +3555,7 @@ function SupportRoleRow({
   groupIndex: number;
   isDarkMode: boolean;
   is6HActive: boolean;
+  isDragOverlay?: boolean;
   onUpdateRole: (newRole: string) => void;
   onUpdateName: (newName: string) => void;
   onUpdateMatricula: (newMatricula: string) => void;
@@ -3040,6 +3569,29 @@ function SupportRoleRow({
   const [showAbsentMenu, setShowAbsentMenu] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: emp.id || '',
+    data: {
+      type: 'Support',
+      employee: emp,
+      groupIndex,
+    },
+    disabled: isDragOverlay,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(isDragging ? null : transform),
+    transition: isDragging ? undefined : transition,
+    touchAction: 'pan-y',
+  };
+
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
   const themes = [
     { bg: "bg-[#0A84FF]/10", text: "text-[#0A84FF]" },
@@ -3048,28 +3600,42 @@ function SupportRoleRow({
   ];
   const theme = themes[groupIndex] || themes[0];
 
-  const absentBtnRef = useRef<HTMLButtonElement>(null);
-  const transferBtnRef = useRef<HTMLButtonElement>(null);
-  const roleBtnRef = useRef<HTMLButtonElement>(null);
-  const avatarBtnRef = useRef<HTMLButtonElement>(null);
-
-  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
-  const transferRect = useAnchoredRect(transferBtnRef, isTransferOpen);
-  const roleRect = useAnchoredRect(roleBtnRef, isOpen);
-  const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
+  const [absentRect, setAbsentRect] = useState<DOMRect | null>(null);
+  const [transferRect, setTransferRect] = useState<DOMRect | null>(null);
+  const [roleRect, setRoleRect] = useState<DOMRect | null>(null);
+  const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
 
   return (
-    <div className={`px-4 py-2.5 flex items-center rounded-[12px] bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative h-[56px] w-full ${showAbsentMenu ? 'opacity-40 z-[100]' : ''}`}>
+    <div 
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`px-4 py-2.5 flex items-center rounded-[12px] transition-all duration-300 relative h-[56px] w-full ${
+        isDragOverlay 
+          ? 'bg-[#252836] shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] ring-1 ring-white/10 opacity-95 cursor-grabbing z-[9999]' 
+          : isDragging 
+            ? 'bg-[#111217] opacity-30 z-50 shadow-none' 
+            : showAbsentMenu
+              ? 'bg-[#111217] opacity-40 z-[100] shadow-none'
+              : 'bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab'
+      }`}
+    >
       {/* Coluna 1: Avatar, Nome e Matrícula */}
       <div className="flex items-center min-w-0 flex-1 mr-4">
         <button
-          ref={avatarBtnRef}
           onClick={(e) => {
             e.stopPropagation();
-            setShowAvatarMenu(!showAvatarMenu);
+            const open = !showAvatarMenu;
+            setShowAvatarMenu(open);
             setIsTransferOpen(false);
             setIsOpen(false);
             setShowAbsentMenu(false);
+            if (open) {
+              setAvatarRect(e.currentTarget.getBoundingClientRect());
+            } else {
+              setAvatarRect(null);
+            }
           }}
           className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2.5 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${theme.bg} ${theme.text}`}
         >
@@ -3100,12 +3666,17 @@ function SupportRoleRow({
       {/* Área de Ações: Botões Ausente, Turno 6H, Swap e Dropdown (Alinhados à direita) */}
       <div className="flex items-center gap-2.5 ml-auto shrink-0 relative">
         <button
-          ref={absentBtnRef}
           onClick={(e) => {
             e.stopPropagation();
-            setShowAbsentMenu(!showAbsentMenu);
+            const open = !showAbsentMenu;
+            setShowAbsentMenu(open);
             setIsTransferOpen(false);
             setIsOpen(false);
+            if (open) {
+              setAbsentRect(e.currentTarget.getBoundingClientRect());
+            } else {
+              setAbsentRect(null);
+            }
           }}
           className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150 shrink-0"
         >
@@ -3123,11 +3694,16 @@ function SupportRoleRow({
         {/* Transfer Button */}
         <div className="relative">
           <button
-            ref={transferBtnRef}
-            onClick={() => {
-              setIsTransferOpen(!isTransferOpen);
+            onClick={(e) => {
+              const open = !isTransferOpen;
+              setIsTransferOpen(open);
               setIsOpen(false);
               setShowAbsentMenu(false);
+              if (open) {
+                setTransferRect(e.currentTarget.getBoundingClientRect());
+              } else {
+                setTransferRect(null);
+              }
             }}
             className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
           >
@@ -3138,11 +3714,16 @@ function SupportRoleRow({
         {/* Role Tag Dropdown */}
         <div className="relative w-[130px] shrink-0">
           <button
-            ref={roleBtnRef}
-            onClick={() => {
-              setIsOpen(!isOpen);
+            onClick={(e) => {
+              const open = !isOpen;
+              setIsOpen(open);
               setIsTransferOpen(false);
               setShowAbsentMenu(false);
+              if (open) {
+                setRoleRect(e.currentTarget.getBoundingClientRect());
+              } else {
+                setRoleRect(null);
+              }
             }}
             className="relative flex items-center justify-center text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 h-[34px] rounded-lg transition-colors outline-none shadow-sm w-full min-w-[130px] shrink-0"
           >
@@ -3158,7 +3739,7 @@ function SupportRoleRow({
       <AnimatePresence>
         {showAvatarMenu && avatarRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setShowAvatarMenu(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -3176,6 +3757,7 @@ function SupportRoleRow({
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowAvatarMenu(false);
+                  setAvatarRect(null);
                   onDelete();
                 }}
                 className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
@@ -3192,7 +3774,7 @@ function SupportRoleRow({
       <AnimatePresence>
         {isTransferOpen && transferRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setIsTransferOpen(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setIsTransferOpen(false); setTransferRect(null); }} />
             <div
               style={{
                 position: 'fixed',
@@ -3223,6 +3805,7 @@ function SupportRoleRow({
                       onClick={() => {
                         onMove(g);
                         setIsTransferOpen(false);
+                        setTransferRect(null);
                       }}
                       className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
                         isDarkMode 
@@ -3259,7 +3842,7 @@ function SupportRoleRow({
       <AnimatePresence>
         {isOpen && roleRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setIsOpen(false); setRoleRect(null); }} />
             <div
               style={{
                 position: 'fixed',
@@ -3286,6 +3869,7 @@ function SupportRoleRow({
                     onClick={() => {
                       onUpdateRole(opt);
                       setIsOpen(false);
+                      setRoleRect(null);
                     }}
                     className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[12px] text-[11px] font-bold w-full transition-all text-center uppercase cursor-pointer border-none bg-transparent ${
                       opt === emp.role
@@ -3313,7 +3897,7 @@ function SupportRoleRow({
       <AnimatePresence>
         {showAbsentMenu && absentRect && (
           <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
+            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAbsentMenu(false); setAbsentRect(null); }} />
             <div
               style={{
                 position: 'fixed',
@@ -3351,6 +3935,7 @@ function SupportRoleRow({
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowAbsentMenu(false);
+                        setAbsentRect(null);
                         onMarkAbsent(opt.type as StatusType);
                       }}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
@@ -3454,7 +4039,7 @@ function SpecialShiftSlot({
         <div className="flex items-center gap-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); onTransfer(emp.originalDeptId || 'recepcao'); }}
-            className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
+            className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#0052B3] to-[#003D8A] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
           >
             TURNO 7H
           </button>

@@ -765,3 +765,40 @@ a {
   border-color: #30D158 !important;
   background-color: rgba(48, 209, 88, 0.05) !important;
 }
+
+/* === BORDER LOADING ANIMATION === */
+@keyframes spin-border {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-border-spin {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-border-spin::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, transparent, transparent, #FF9F0A);
+  animation: spin-border 0.8s linear infinite;
+  z-index: 0;
+}
+
+.animate-border-spin::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #111217;
+  border-radius: 6px;
+  z-index: 0;
+}
+
+.animate-border-spin > * {
+  position: relative;
+  z-index: 1;
+}
