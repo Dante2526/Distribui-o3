@@ -1469,8 +1469,8 @@ function AppContent() {
 
   const touchSensor = useSensor(TouchSensor, React.useMemo(() => ({
     activationConstraint: {
-      delay: 500,
-      tolerance: 8,
+      delay: 250,
+      tolerance: 6,
     },
   }), []));
 
@@ -3007,7 +3007,7 @@ function EmployeeRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(isDragging ? null : transform),
     transition: isDragging ? undefined : transition,
-    touchAction: 'pan-y',
+    touchAction: isDragging ? 'none' : 'pan-y',
     ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {})
   };
 
@@ -3546,7 +3546,7 @@ function SupportRoleRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(isDragging ? null : transform),
     transition: isDragging ? undefined : transition,
-    touchAction: 'pan-y',
+    touchAction: isDragging ? 'none' : 'pan-y',
   };
 
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
