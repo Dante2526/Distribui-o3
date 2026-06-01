@@ -532,12 +532,8 @@ function AdminModal({
       if (window.visualViewport) {
         const { width, height, offsetLeft, offsetTop, scale } = window.visualViewport;
         const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
-        
-        // Ativamos o posicionamento absoluto e correção de escala apenas se houver zoom ativo
-        // (escala diferente de 1.0 com tolerância de 0.03)
-        const isZoomed = isMobile && Math.abs(scale - 1) > 0.03;
 
-        if (isZoomed) {
+        if (isMobile) {
           setViewportStyles({
             backdrop: {
               position: 'absolute',
@@ -562,7 +558,6 @@ function AdminModal({
             }
           });
         } else {
-          // Sem zoom, o fixed inset-0 nativo é 100% preciso em todos os navegadores (evitando bugs com barras de endereço no rodapé)
           setViewportStyles({
             backdrop: {},
             card: {}
@@ -658,7 +653,7 @@ function AdminModal({
     >
       <div
         className={`rounded-[32px] shadow-2xl w-full text-center relative mx-4 transition-all duration-300 flex flex-col ${
-          isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[370px] p-8'
+          isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[370px] p-6 md:p-8'
         } max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
           isDarkMode 
             ? 'bg-[#1E2029] border border-white/10 text-white' 
@@ -841,14 +836,13 @@ function AdminModal({
                     placeholder="E-mail do Administrador"
                     value={password}
                     onChange={handlePasswordChange}
-                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-mono transition-all relative z-10 ${
+                    className={`text-sm md:text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-sans transition-all relative z-10 ${
                       isDarkMode 
                         ? 'bg-[#111217] border border-white/10 placeholder-white/30 text-white' 
                         : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
                     } ${
                       showPassword ? '' : 'text-transparent select-all caret-[#FF6B00]'
                     }`}
-                    style={{ fontSize: '16px' }}
                     autoFocus
                     autoComplete="off"
                     autoCorrect="off"
@@ -857,13 +851,12 @@ function AdminModal({
                   />
                   {!showPassword && password.length > 0 && (
                     <div 
-                      className={`text-base absolute inset-y-0 left-0 flex items-center pl-4 pr-12 pointer-events-none z-20 font-mono text-left select-none ${
+                      className={`text-sm md:text-base absolute inset-y-0 left-0 flex items-center pl-4 pr-12 pointer-events-none z-20 font-sans text-left select-none ${
                         isDarkMode ? 'text-white' : 'text-gray-900'
                       }`}
                       style={{ 
                         lineHeight: '1',
-                        letterSpacing: 'normal',
-                        fontSize: '16px'
+                        letterSpacing: 'normal'
                       }}
                     >
                       {password.split('').map((char, i) => {
