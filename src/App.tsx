@@ -2815,10 +2815,44 @@ function AppContent() {
                 </div>
               </div>
 
+              <DragOverlay dropAnimation={null}>
+                <div style={{ opacity: 0, pointerEvents: 'none' }}>
+                  {activeId && activeEmployee && activeDepartment ? (
+                    <EmployeeRow
+                      emp={activeEmployee}
+                      index={-1}
+                      department={activeDepartment}
+                      allDepartments={departmentsData}
+                      onMove={() => {}}
+                      onUpdateEmployee={() => {}}
+                      onDelete={() => {}}
+                      onTransferToSpecial={() => {}}
+                      onMarkAbsent={() => {}}
+                      isDarkMode={isDarkMode}
+                      is6HActive={is6HActive}
+                      isDragOverlay={true}
+                    />
+                  ) : activeId && activeSupportItem ? (
+                    <SupportRoleRow
+                      emp={activeSupportItem}
+                      index={-1}
+                      groupIndex={activeSupportGroupIndex}
+                      isDarkMode={isDarkMode}
+                      is6HActive={is6HActive}
+                      isDragOverlay={true}
+                      onUpdateRole={() => {}}
+                      onUpdateName={() => {}}
+                      onUpdateMatricula={() => {}}
+                      onMove={() => {}}
+                      onMoveToSpecial={() => {}}
+                      onMarkAbsent={() => {}}
+                      onDelete={() => {}}
+                    />
+                  ) : null}
+                </div>
+              </DragOverlay>
 
             </DndContext>
-
-          </div>
         </div>
       </div>
     </div>
