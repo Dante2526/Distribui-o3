@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   DndContext,
   closestCorners,
+  closestCenter,
   pointerWithin,
   PointerSensor,
   TouchSensor,
@@ -58,12 +59,12 @@ const HelpIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-const StatCard = ({ label, value, colorClass, bgClass }: { label: string; value: number; colorClass: string; bgClass: string }) => (
+const StatCard = React.memo(({ label, value, colorClass, bgClass }: { label: string; value: number; colorClass: string; bgClass: string }) => (
   <div className={`text-center py-2 px-3.5 rounded-xl min-w-[95px] border border-white/5 transition-all shadow-sm ${bgClass}`}>
     <div className={`text-[24px] font-black mb-0.5 tracking-tight ${colorClass}`}>{value}</div>
     <div className="text-[10px] text-[#a0aec0] uppercase font-bold tracking-wider">{label}</div>
   </div>
-);
+));
 
 // --- Status Types and Predefined Styles ---
 export type StatusType = 'FÉRIAS' | 'FORA' | 'ATM' | 'RESTRIÇÃO' | 'INSS';
@@ -295,7 +296,7 @@ const getDeptTheme = (deptId: string) => {
   }
 };
 
-function AnnotationsBoard({ 
+const AnnotationsBoard = React.memo(({ 
   leftGroups, 
   rightGroups,
   onUpdateLeft,
@@ -309,10 +310,10 @@ function AnnotationsBoard({
   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
   onReturnLeft?: (groupIndex: number, itemIndex: number) => void;
   onReturnRight?: (groupIndex: number, itemIndex: number) => void;
-}) {
+}) => {
   const [animatingItems, setAnimatingItems] = useState<Record<string, boolean>>({});
 
-  const handleReturn = (side: 'left' | 'right', groupIdx: number, itemIdx: number) => {
+  const handleReturn = useCallback((side: 'left' | 'right', groupIdx: number, itemIdx: number) => {
     const key = `${side}-${groupIdx}-${itemIdx}`;
     setAnimatingItems(prev => ({ ...prev, [key]: true }));
     setTimeout(() => {
@@ -323,7 +324,7 @@ function AnnotationsBoard({
         onReturnRight?.(groupIdx, itemIdx);
       }
     }, 800);
-  };
+  }, [onReturnLeft, onReturnRight]);
 
   return (
     <div className="annotations-board-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
@@ -460,7 +461,7 @@ function AnnotationsBoard({
       </div>
     </div>
   );
-}
+});
 
 // --- Admin Modal Component ---
 const ADMIN_PASSWORD = 'adm2025';
@@ -561,11 +562,15 @@ function AdminModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Qualquer senha/credencial é aprovada para agilizar os testes
     setError('');
-    setPassword('');
-    setCharTimestamps([]);
-    onLogin(password);
+    if (password === ADMIN_PASSWORD) {
+      setPassword('');
+      setCharTimestamps([]);
+      onLogin(password);
+    } else {
+      setError('Senha incorreta! Digite tudo em minúsculo.');
+      onLoginError();
+    }
   };
 
   if (!isOpen) return null;
@@ -1378,52 +1383,7 @@ function AppContent() {
   }, [showToastMessage]);
 
   const [activeEdits, setActiveEdits] = useState<Record<string, ActiveEdit>>({});
-  const departmentsRef = useRef(departmentsData);
-  useEffect(() => {
-    departmentsRef.current = departmentsData;
-  }, [departmentsData]);
 
-  useEffect(() => {
-    const simulate = () => {
-      const allEmps = departmentsRef.current.flatMap(d => d.data);
-      if (allEmps.length === 0) return;
-      
-      // Quantos bots vão editar agora? (1 a 2)
-      const numBots = Math.floor(Math.random() * 2) + 1;
-      
-      for (let i = 0; i < numBots; i++) {
-        const randomEmp = allEmps[Math.floor(Math.random() * allEmps.length)];
-        const randomUser = MOCK_USERS[Math.floor(Math.random() * 6)];
-        
-        setActiveEdits((prev) => ({
-          ...prev,
-          [randomEmp.id]: {
-            empId: randomEmp.id,
-            userName: randomUser.name,
-            color: randomUser.color,
-            timestamp: Date.now()
-          }
-        }));
-
-        setTimeout(() => {
-          setActiveEdits((prev) => {
-            const newEdits = { ...prev };
-            delete newEdits[randomEmp.id];
-            return newEdits;
-          });
-        }, 5000 + Math.random() * 7000); // Fica de 5 a 12s
-      }
-    };
-
-    // Dispara logo no início
-    simulate();
-
-    const interval = setInterval(() => {
-      if (Math.random() > 0.2) simulate();
-    }, 4000); // Tenta a cada 4 segundos
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleStartEdit = useCallback((empId: string) => {
     setActiveEdits((prev) => {
@@ -1460,6 +1420,16 @@ function AppContent() {
 
   const [activeSupportId, setActiveSupportId] = useState<string | null>(null);
   const clonedSupportRef = useRef<SupportRole[][] | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+
+  // --- LATEST STATE REFS (Para evitar stale closures nos DND callbacks sem quebrar o memo) ---
+  const departmentsDataRef = useRef(departmentsData);
+  const supportRolesDataRef = useRef(supportRolesData);
+  useEffect(() => {
+    departmentsDataRef.current = departmentsData;
+    supportRolesDataRef.current = supportRolesData;
+  }, [departmentsData, supportRolesData]);
+  // -----------------------------------------------------------------------------------------
 
   const pointerSensor = useSensor(PointerSensor, React.useMemo(() => ({
     activationConstraint: {
@@ -1484,19 +1454,20 @@ function AppContent() {
 
   const handleDragStart = useCallback((event: any) => {
     const activeIdVal = event.active.id;
-    const isSupport = supportRolesData.some(group => group.some(e => e.id === activeIdVal));
+    setActiveId(activeIdVal);
+    setOverId(null);
+    clonedDepartmentsRef.current = departmentsDataRef.current;
+    clonedSupportRef.current = supportRolesDataRef.current;
+    const isSupport = supportRolesDataRef.current.some(group => group.some(e => e.id === activeIdVal));
     if (isSupport) {
       setActiveSupportId(activeIdVal);
-      clonedSupportRef.current = supportRolesData;
-    } else {
-      setActiveId(activeIdVal);
-      clonedDepartmentsRef.current = departmentsData;
     }
-  }, [departmentsData, supportRolesData]);
+  }, []);
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setActiveSupportId(null);
+    setOverId(null);
     if (clonedDepartmentsRef.current) {
       setDepartmentsData(clonedDepartmentsRef.current);
     }
@@ -1515,89 +1486,89 @@ function AppContent() {
 
   const handleDragOver = useCallback((event: any) => {
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      setOverId(null);
+      return;
+    }
 
     const activeId = active.id;
     const overId = over.id;
+    setOverId(overId);
 
     if (activeId === overId) return;
 
+    // Encontrar container de origem
+    let activeContainer: string | null = null;
     let activeType: 'maquinista' | 'apoio' | null = null;
     let activeItem: any = null;
-    let activeContainer: string | null = null;
-    let activeIndex = -1;
+    let activeIdx = -1;
 
-    // Buscar em Maquinistas
-    for (const dept of departmentsData) {
+    for (const dept of departmentsDataRef.current) {
       const idx = dept.data.findIndex(e => e.id === activeId);
       if (idx !== -1) {
+        activeContainer = dept.id;
         activeType = 'maquinista';
         activeItem = dept.data[idx];
-        activeContainer = dept.id;
-        activeIndex = idx;
+        activeIdx = idx;
         break;
       }
     }
 
-    // Buscar em Apoio
     if (!activeType) {
-      for (let idx = 0; idx < supportRolesData.length; idx++) {
-        const supportIdx = supportRolesData[idx].findIndex(e => e.id === activeId);
+      for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+        const supportIdx = supportRolesDataRef.current[idx].findIndex(e => e.id === activeId);
         if (supportIdx !== -1) {
-          activeType = 'apoio';
-          activeItem = supportRolesData[idx][supportIdx];
           activeContainer = `support-group-${idx}`;
-          activeIndex = supportIdx;
+          activeType = 'apoio';
+          activeItem = supportRolesDataRef.current[idx][supportIdx];
+          activeIdx = supportIdx;
           break;
         }
       }
     }
 
-    if (!activeType || !activeItem || !activeContainer) return;
+    if (!activeContainer || !activeType || !activeItem) return;
 
-    let overType: 'maquinista' | 'apoio' | null = null;
+    // Encontrar container de destino
     let overContainer: string | null = null;
-    let overIndex = -1;
+    let overType: 'maquinista' | 'apoio' | null = null;
+    let overIdx = -1;
 
-    // Identificar destino em Maquinistas
     if (overId === 'recepcao' || overId === 'classificacao' || overId === 'formacao') {
-      overType = 'maquinista';
       overContainer = overId;
+      overType = 'maquinista';
+    } else if (overId.startsWith?.('support-group-')) {
+      overContainer = overId;
+      overType = 'apoio';
     } else {
       const dept = departmentsData.find(d => d.id === overId);
       if (dept) {
-        overType = 'maquinista';
         overContainer = dept.id;
+        overType = 'maquinista';
       } else {
         for (const d of departmentsData) {
           const idx = d.data.findIndex(e => e.id === overId);
           if (idx !== -1) {
-            overType = 'maquinista';
             overContainer = d.id;
-            overIndex = idx;
+            overType = 'maquinista';
+            overIdx = idx;
             break;
           }
         }
       }
-    }
 
-    // Identificar destino em Apoio
-    if (!overType) {
-      if (overId.startsWith?.('support-group-')) {
-        overType = 'apoio';
-        overContainer = overId;
-      } else {
+      if (!overContainer) {
         const groupIdx = parseInt(overId.toString().replace('support-group-', ''), 10);
         if (!isNaN(groupIdx) && groupIdx >= 0 && groupIdx < supportRolesData.length) {
-          overType = 'apoio';
           overContainer = `support-group-${groupIdx}`;
+          overType = 'apoio';
         } else {
           for (let idx = 0; idx < supportRolesData.length; idx++) {
-            const supportIdx = supportRolesData[idx].findIndex(e => e.id === overId);
+            const supportIdx = supportRolesData[idx].findIndex(e => e.id === activeId);
             if (supportIdx !== -1) {
-              overType = 'apoio';
               overContainer = `support-group-${idx}`;
-              overIndex = supportIdx;
+              overType = 'apoio';
+              overIdx = supportIdx;
               break;
             }
           }
@@ -1605,166 +1576,274 @@ function AppContent() {
       }
     }
 
-    if (!overType || !overContainer) return;
+    if (!overContainer || !overType) return;
 
-    // CASO A: Maquinista -> Maquinista
+    // Se estiver no mesmo container, retornar imediatamente!
+    // A reordenação interna é feita de forma visual pelo useSortable e gravada apenas no handleDragEnd!
+    if (activeContainer === overContainer) {
+      // HOTFIX: Se o usuário escorregar o cartão para a pista de pouso (padding vazio) 
+      // do PRÓPRIO container, o dnd-kit aborta a animação visual por não achar um SortableItem.
+      // Para o fantasma não ficar preso na posição antiga, forçamos o cartão pro final do array no React!
+      if (overIdx === -1) {
+        if (activeType === 'maquinista') {
+          setDepartmentsData(prev => prev.map(d => {
+            if (d.id === activeContainer && activeIdx !== d.data.length - 1) {
+              const newData = [...d.data];
+              const item = newData.splice(activeIdx, 1)[0];
+              newData.push(item);
+              return { ...d, data: newData, count: newData.length };
+            }
+            return d;
+          }));
+        } else if (activeType === 'apoio') {
+          const groupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
+          if (!isNaN(groupIdx)) {
+            setSupportRolesData(prev => prev.map((g, idx) => {
+              if (idx === groupIdx && activeIdx !== g.length - 1) {
+                const newGroup = [...g];
+                const item = newGroup.splice(activeIdx, 1)[0];
+                newGroup.push(item);
+                return newGroup;
+              }
+              return g;
+            }));
+          }
+        }
+      }
+      return;
+    }
+
+    // --- CASO A: Maquinista -> Maquinista ---
     if (activeType === 'maquinista' && overType === 'maquinista') {
-      const targetIdx = overIndex >= 0 ? overIndex : 0;
-      if (activeContainer === overContainer && activeIndex === targetIdx) return;
-
       setDepartmentsData(prev => {
         const activeDept = prev.find(d => d.id === activeContainer);
         const overDept = prev.find(d => d.id === overContainer);
         if (!activeDept || !overDept) return prev;
 
-        const activeItems = activeDept.data;
-        const overItems = overDept.data;
-        const activeIdx = activeItems.findIndex(e => e.id === activeId);
-        if (activeIdx === -1) return prev;
+        const targetIdx = overIdx >= 0 ? overIdx : overDept.data.length;
 
-        const movedEmployee = activeItems[activeIdx];
-        const newIndex = overIndex >= 0 ? overIndex : overItems.length;
-
-        if (activeContainer === overContainer) {
-          const newData = [...activeItems];
-          newData.splice(activeIdx, 1);
-          newData.splice(newIndex, 0, movedEmployee);
-          return prev.map(d => d.id === activeContainer ? { ...d, data: newData } : d);
-        } else {
-          return prev.map(d => {
-            if (d.id === activeContainer) {
-              const newData = d.data.filter(e => e.id !== activeId);
-              return { ...d, data: newData, count: newData.length };
-            }
-            if (d.id === overContainer) {
-              const newData = [...d.data];
-              newData.splice(newIndex, 0, movedEmployee);
-              return { ...d, data: newData, count: newData.length };
-            }
-            return d;
-          });
-        }
+        return prev.map(d => {
+          if (d.id === activeContainer) {
+            const newData = d.data.filter(e => e.id !== activeId);
+            return { ...d, data: newData, count: newData.length };
+          }
+          if (d.id === overContainer) {
+            const cleaned = d.data.filter(e => e.id !== activeId);
+            const newData = [...cleaned];
+            newData.splice(targetIdx, 0, activeItem);
+            return { ...d, data: newData, count: newData.length };
+          }
+          return d;
+        });
       });
     }
 
-    // CASO B: Apoio -> Apoio
+    // --- CASO B: Apoio -> Apoio ---
     else if (activeType === 'apoio' && overType === 'apoio') {
       const activeGroupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
       const overGroupIdx = parseInt(overContainer.replace('support-group-', ''), 10);
-      if (isNaN(activeGroupIdx) || isNaN(overGroupIdx)) return;
+      if (!isNaN(activeGroupIdx) && !isNaN(overGroupIdx)) {
+        setSupportRolesData(prev => {
+          const activeItems = prev[activeGroupIdx];
+          const overItems = prev[overGroupIdx];
+          if (!activeItems || !overItems) return prev;
 
-      const targetIdx = overIndex >= 0 ? overIndex : 0;
-      if (activeContainer === overContainer && activeIndex === targetIdx) return;
+          const targetIdx = overIdx >= 0 ? overIdx : overItems.length;
 
-      setSupportRolesData(prev => {
-        const activeItems = prev[activeGroupIdx];
-        const overItems = prev[overGroupIdx];
-        const activeIdx = activeItems.findIndex(e => e.id === activeId);
-        if (activeIdx === -1) return prev;
-
-        const movedSupport = activeItems[activeIdx];
-        const newIndex = overIndex >= 0 ? overIndex : overItems.length;
-
-        if (activeContainer === overContainer) {
-          const newData = [...activeItems];
-          newData.splice(activeIdx, 1);
-          newData.splice(newIndex, 0, movedSupport);
-          return prev.map((group, idx) => idx === activeGroupIdx ? newData : group);
-        } else {
           return prev.map((group, idx) => {
-            if (idx === activeGroupIdx) {
-              return group.filter(e => e.id !== activeId);
-            }
+            if (idx === activeGroupIdx) return group.filter(e => e.id !== activeId);
             if (idx === overGroupIdx) {
-              const newData = [...group];
-              newData.splice(newIndex, 0, movedSupport);
+              const cleaned = group.filter(e => e.id !== activeId);
+              const newData = [...cleaned];
+              newData.splice(targetIdx, 0, activeItem);
               return newData;
             }
             return group;
           });
-        }
-      });
+        });
+      }
     }
 
-    // CASO C: Maquinista -> Apoio (ADAPTAÇÃO DE FORMATO!)
+    // --- CASO C: Maquinista -> Apoio ---
     else if (activeType === 'maquinista' && overType === 'apoio') {
       const overGroupIdx = parseInt(overContainer.replace('support-group-', ''), 10);
-      if (isNaN(overGroupIdx)) return;
+      if (!isNaN(overGroupIdx)) {
+        const adaptedSupport: SupportRole = {
+          id: activeItem.id,
+          name: activeItem.name,
+          role: 'VIRADOR',
+          matricula: activeItem.machine || ''
+        };
 
-      const adaptedSupport: SupportRole = {
-        id: activeItem.id, // Manter o mesmo ID para o DndContext reter o arrastável
-        name: activeItem.name,
-        role: 'VIRADOR',
-        matricula: activeItem.machine || ''
-      };
+        setDepartmentsData(prev => prev.map(d => {
+          if (d.id === activeContainer) {
+            const newData = d.data.filter(e => e.id !== activeId);
+            return { ...d, data: newData, count: newData.length };
+          }
+          return d;
+        }));
 
-      // Remover do Maquinistas
-      setDepartmentsData(prev => prev.map(d => {
-        if (d.id === activeContainer) {
-          const newData = d.data.filter(e => e.id !== activeId);
-          return { ...d, data: newData, count: newData.length };
-        }
-        return d;
-      }));
-
-      // Adicionar no Apoio
-      setSupportRolesData(prev => prev.map((group, idx) => {
-        if (idx === overGroupIdx) {
-          const newData = [...group];
-          const targetIdx = overIndex >= 0 ? overIndex : group.length;
-          newData.splice(targetIdx, 0, adaptedSupport);
-          return newData;
-        }
-        return group;
-      }));
-
-      // Alterar IDs ativos para sincronizar o DndContext
-      setActiveId(null);
-      setActiveSupportId(activeId);
+        setSupportRolesData(prev => prev.map((group, idx) => {
+          if (idx === overGroupIdx) {
+            const cleaned = group.filter(e => e.id !== activeId);
+            const newData = [...cleaned];
+            const targetIdx = overIdx >= 0 ? overIdx : group.length;
+            newData.splice(targetIdx, 0, adaptedSupport);
+            return newData;
+          }
+          return group;
+        }));
+      }
     }
 
-    // CASO D: Apoio -> Maquinista (ADAPTAÇÃO DE FORMATO!)
+    // --- CASO 4: Apoio -> Maquinista ---
     else if (activeType === 'apoio' && overType === 'maquinista') {
       const activeGroupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
-      if (isNaN(activeGroupIdx)) return;
+      if (!isNaN(activeGroupIdx)) {
+        const adaptedEmployee: Employee = {
+          id: activeItem.id,
+          name: activeItem.name,
+          line: '',
+          machine: activeItem.matricula || '',
+          error: false
+        };
 
-      const adaptedEmployee: Employee = {
-        id: activeItem.id,
-        name: activeItem.name,
-        line: '',
-        machine: activeItem.matricula || '',
-        error: false
-      };
+        setSupportRolesData(prev => prev.map((group, idx) => {
+          if (idx === activeGroupIdx) return group.filter(e => e.id !== activeId);
+          return group;
+        }));
 
-      // Remover do Apoio
-      setSupportRolesData(prev => prev.map((group, idx) => {
-        if (idx === activeGroupIdx) {
-          return group.filter(e => e.id !== activeId);
-        }
-        return group;
-      }));
-
-      // Adicionar no Maquinistas
-      setDepartmentsData(prev => prev.map(d => {
-        if (d.id === overContainer) {
-          const newData = [...d.data];
-          const targetIdx = overIndex >= 0 ? overIndex : d.data.length;
-          newData.splice(targetIdx, 0, adaptedEmployee);
-          return { ...d, data: newData, count: newData.length };
-        }
-        return d;
-      }));
-
-      // Alterar IDs ativos para sincronizar o DndContext
-      setActiveSupportId(null);
-      setActiveId(activeId);
+        setDepartmentsData(prev => prev.map(d => {
+          if (d.id === overContainer) {
+            const cleaned = d.data.filter(e => e.id !== activeId);
+            const newData = [...cleaned];
+            const targetIdx = overIdx >= 0 ? overIdx : d.data.length;
+            newData.splice(targetIdx, 0, adaptedEmployee);
+            return { ...d, data: newData, count: newData.length };
+          }
+          return d;
+        }));
+      }
     }
-  }, [departmentsData, supportRolesData, findContainer, findSupportContainer]);
+  }, [departmentsData, supportRolesData]);
 
   const handleDragEnd = useCallback((event: any) => {
+    const { active, over } = event;
     setActiveId(null);
     setActiveSupportId(null);
+    setOverId(null);
+
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    // Encontrar container de origem
+    let activeContainer: string | null = null;
+    let activeType: 'maquinista' | 'apoio' | null = null;
+
+    for (const dept of departmentsDataRef.current) {
+      if (dept.data.some(e => e.id === activeId)) {
+        activeContainer = dept.id;
+        activeType = 'maquinista';
+        break;
+      }
+    }
+
+    if (!activeType) {
+      for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+        if (supportRolesDataRef.current[idx].some(e => e.id === activeId)) {
+          activeContainer = `support-group-${idx}`;
+          activeType = 'apoio';
+          break;
+        }
+      }
+    }
+
+    if (!activeContainer || !activeType) return;
+
+    // Encontrar container de destino
+    let overContainer: string | null = null;
+    let overType: 'maquinista' | 'apoio' | null = null;
+    let overIdx = -1;
+
+    if (overId === 'recepcao' || overId === 'classificacao' || overId === 'formacao') {
+      overContainer = overId;
+      overType = 'maquinista';
+    } else if (overId.startsWith?.('support-group-')) {
+      overContainer = overId;
+      overType = 'apoio';
+    } else {
+      const dept = departmentsDataRef.current.find(d => d.id === overId);
+      if (dept) {
+        overContainer = dept.id;
+        overType = 'maquinista';
+      } else {
+        for (const d of departmentsDataRef.current) {
+          const idx = d.data.findIndex(e => e.id === overId);
+          if (idx !== -1) {
+            overContainer = d.id;
+            overType = 'maquinista';
+            overIdx = idx;
+            break;
+          }
+        }
+      }
+
+      if (!overContainer) {
+        const groupIdx = parseInt(overId.toString().replace('support-group-', ''), 10);
+        if (!isNaN(groupIdx) && groupIdx >= 0 && groupIdx < supportRolesDataRef.current.length) {
+          overContainer = `support-group-${groupIdx}`;
+          overType = 'apoio';
+        } else {
+          for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+            const supportIdx = supportRolesDataRef.current[idx].findIndex(e => e.id === overId);
+            if (supportIdx !== -1) {
+              overContainer = `support-group-${idx}`;
+              overType = 'apoio';
+              overIdx = supportIdx;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (!overContainer || !overType) return;
+
+    // Apenas se for no mesmo container é que reordenamos os itens!
+    if (activeContainer === overContainer) {
+      if (activeType === 'maquinista') {
+        const dept = departmentsDataRef.current.find(d => d.id === activeContainer);
+        if (dept) {
+          const activeIndex = dept.data.findIndex(e => e.id === activeId);
+          const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
+          if (activeIndex !== overIndex && activeIndex !== -1) {
+            setDepartmentsData(prev => prev.map(d => {
+              if (d.id === activeContainer) {
+                return { ...d, data: arrayMove(d.data, activeIndex, overIndex) };
+              }
+              return d;
+            }));
+          }
+        }
+      } else if (activeType === 'apoio') {
+        const groupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
+        if (!isNaN(groupIdx)) {
+          const group = supportRolesDataRef.current[groupIdx];
+          const activeIndex = group.findIndex(e => e.id === activeId);
+          const overIndex = overIdx >= 0 ? overIdx : group.length - 1;
+          if (activeIndex !== overIndex && activeIndex !== -1) {
+            setSupportRolesData(prev => prev.map((g, idx) => {
+              if (idx === groupIdx) return arrayMove(g, activeIndex, overIndex);
+              return g;
+            }));
+          }
+        }
+      }
+    }
   }, []);
+
 
   const activeEmployee = activeId 
     ? departmentsData.flatMap(d => d.data).find(e => e.id === activeId)
@@ -1772,14 +1851,22 @@ function AppContent() {
   const activeDepartment = activeEmployee
     ? departmentsData.find(d => d.data.some(e => e.id === activeId))
     : null;
+  const activeSupportItem = activeId
+    ? supportRolesData.flatMap(g => g).find(e => e.id === activeId)
+    : null;
+  const activeSupportGroupIndex = activeSupportItem
+    ? supportRolesData.findIndex(g => g.some(e => e.id === activeId))
+    : -1;
 
 
-  const handleAdminLogin = useCallback(() => {
-    setIsAdmin(true);
-    setShowLoginToast(true);
-    setTimeout(() => {
-      setShowLoginToast(false);
-    }, 3500);
+  const handleAdminLogin = useCallback((enteredPassword: string) => {
+    if (enteredPassword === ADMIN_PASSWORD) {
+      setIsAdmin(true);
+      setShowLoginToast(true);
+      setTimeout(() => {
+        setShowLoginToast(false);
+      }, 3500);
+    }
   }, []);
 
   const handleAdminLogout = useCallback(() => {
@@ -1809,7 +1896,7 @@ function AppContent() {
 
   const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
 
-  const handleUpdateSpecialShiftEmployee = (empIndex: number, field: keyof Employee, value: any) => {
+  const handleUpdateSpecialShiftEmployee = useCallback((empIndex: number, field: keyof Employee, value: any) => {
     setSpecialShiftData(prev => {
       const newData = [...prev];
       newData[empIndex] = { ...newData[empIndex], [field]: value };
@@ -1818,9 +1905,9 @@ function AppContent() {
       }
       return newData;
     });
-  };
+  }, []);
 
-  const handleTransferToSpecialShift = (sourceDeptId: string, sourceEmpIndex: number) => {
+  const handleTransferToSpecialShift = useCallback((sourceDeptId: string, sourceEmpIndex: number) => {
     const sourceDept = departmentsData.find(d => d.id === sourceDeptId);
     if (!sourceDept) return;
 
@@ -1843,9 +1930,9 @@ function AppContent() {
       ...prev,
       { ...movedEmployee, originalDeptId: sourceDeptId, tagType: 'MAQUINISTA' }
     ]);
-  };
+  }, [departmentsData]);
 
-  const handleTransferSupportToSpecialShift = (sourceGroupIndex: number, sourceEmpIndex: number) => {
+  const handleTransferSupportToSpecialShift = useCallback((sourceGroupIndex: number, sourceEmpIndex: number) => {
     const sourceGroup = supportRolesData[sourceGroupIndex];
     if (!sourceGroup) return;
 
@@ -1863,6 +1950,7 @@ function AppContent() {
     setSpecialShiftData(prev => [
       ...prev,
       {
+        id: movedRole.id,
         name: movedRole.name,
         line: '',
         machine: movedRole.matricula || '',
@@ -1871,9 +1959,9 @@ function AppContent() {
         tagType: 'OOF'
       }
     ]);
-  };
+  }, [supportRolesData]);
 
-  const handleTransferFromSpecialShift = (empIndex: number, targetDeptId: string) => {
+  const handleTransferFromSpecialShift = useCallback((empIndex: number, targetDeptId: string) => {
     const movedEmployee = specialShiftData[empIndex];
     if (!movedEmployee.name.trim()) return;
 
@@ -1916,9 +2004,9 @@ function AppContent() {
         return newDepts;
       });
     }
-  };
+  }, [specialShiftData]);
 
-  const handleUpdateAnnotationLeft = (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
+  const handleUpdateAnnotationLeft = useCallback((groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
     setAnnotationsLeft(prev => {
       const newGroups = [...prev];
       const newItems = [...newGroups[groupIndex].items];
@@ -1926,9 +2014,9 @@ function AppContent() {
       newGroups[groupIndex] = { ...newGroups[groupIndex], items: newItems };
       return newGroups;
     });
-  };
+  }, []);
 
-  const handleUpdateAnnotationRight = (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
+  const handleUpdateAnnotationRight = useCallback((groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
     setAnnotationsRight(prev => {
       const newGroups = [...prev];
       const newItems = [...newGroups[groupIndex].items];
@@ -1936,7 +2024,8 @@ function AppContent() {
       newGroups[groupIndex] = { ...newGroups[groupIndex], items: newItems };
       return newGroups;
     });
-  };
+  }, []);
+
 
   // --- Viewport & Scale Refs (Painel DSS Pattern) ---
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -2159,7 +2248,7 @@ function AppContent() {
     };
   }, [initializeScale, setScale]);
 
-  const handleUpdateSupportRole = (groupIndex: number, empIndex: number, newRole: string) => {
+  const handleUpdateSupportRole = useCallback((groupIndex: number, empIndex: number, newRole: string) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
       const newGroup = [...newGroups[groupIndex]];
@@ -2167,9 +2256,9 @@ function AppContent() {
       newGroups[groupIndex] = newGroup;
       return newGroups;
     });
-  };
+  }, []);
 
-  const handleUpdateSupportName = (groupIndex: number, empIndex: number, newName: string) => {
+  const handleUpdateSupportName = useCallback((groupIndex: number, empIndex: number, newName: string) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
       const newGroup = [...newGroups[groupIndex]];
@@ -2177,9 +2266,9 @@ function AppContent() {
       newGroups[groupIndex] = newGroup;
       return newGroups;
     });
-  };
+  }, []);
 
-  const handleUpdateSupportMatricula = (groupIndex: number, empIndex: number, newMatricula: string) => {
+  const handleUpdateSupportMatricula = useCallback((groupIndex: number, empIndex: number, newMatricula: string) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
       const newGroup = [...newGroups[groupIndex]];
@@ -2187,17 +2276,17 @@ function AppContent() {
       newGroups[groupIndex] = newGroup;
       return newGroups;
     });
-  };
+  }, []);
 
-  const handleDeleteSupport = (groupIndex: number, empIndex: number) => {
+  const handleDeleteSupport = useCallback((groupIndex: number, empIndex: number) => {
     setSupportRolesData(prev => {
       const newSupport = prev.map(g => [...g]);
       newSupport[groupIndex].splice(empIndex, 1);
       return newSupport;
     });
-  };
+  }, []);
 
-  const handleMoveSupport = (sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
+  const handleMoveSupport = useCallback((sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
       const sourceGroup = [...newGroups[sourceGroupIndex]];
@@ -2208,9 +2297,9 @@ function AppContent() {
       newGroups[targetGroupIndex] = targetGroup;
       return newGroups;
     });
-  };
+  }, []);
 
-  const handleMove = (sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
+  const handleMove = useCallback((sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
     setDepartmentsData(prev => {
       const newDepts = [...prev];
       const sourceDeptIndex = newDepts.findIndex(d => d.id === sourceDeptId);
@@ -2229,9 +2318,9 @@ function AppContent() {
 
       return newDepts;
     });
-  };
+  }, []);
 
-  const handleUpdateEmployeeField = (deptId: string, empIndex: number, field: keyof Employee, value: string) => {
+  const handleUpdateEmployeeField = useCallback((deptId: string, empIndex: number, field: keyof Employee, value: string) => {
     setDepartmentsData(prev => {
       const newDepts = [...prev];
       const deptIndex = newDepts.findIndex(d => d.id === deptId);
@@ -2243,9 +2332,9 @@ function AppContent() {
       
       return newDepts;
     });
-  };
+  }, []);
 
-  const handleDelete = (deptId: string, empIndex: number) => {
+  const handleDelete = useCallback((deptId: string, empIndex: number) => {
     setDepartmentsData(prev => {
       const newDepts = [...prev];
       const deptIndex = newDepts.findIndex(d => d.id === deptId);
@@ -2254,7 +2343,7 @@ function AppContent() {
       newDepts[deptIndex] = { ...newDepts[deptIndex], data: newData, count: newData.length };
       return newDepts;
     });
-  };
+  }, []);
 
   const handleMarkEmployeeAbsent = (
     deptId: string,
@@ -2481,6 +2570,14 @@ function AppContent() {
     }
   }, [annotationsLeft, annotationsRight]);
 
+  const handleReturnFromAnnotationLeft = useCallback((groupIdx: number, itemIdx: number) => {
+    handleReturnFromAnnotation(true, groupIdx, itemIdx);
+  }, [handleReturnFromAnnotation]);
+
+  const handleReturnFromAnnotationRight = useCallback((groupIdx: number, itemIdx: number) => {
+    handleReturnFromAnnotation(false, groupIdx, itemIdx);
+  }, [handleReturnFromAnnotation]);
+
   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
 
   // --- Dynamic Statistical Calculations ---
@@ -2658,14 +2755,14 @@ function AppContent() {
                 <div className="flex gap-4 pb-2 ml-2 pr-2">
                   {specialShiftData.map((emp, idx) => (
                     <SpecialShiftSlot 
-                      key={emp.id || idx} 
+                      key={emp.id} 
                       emp={emp} 
                       index={idx} 
                       allDepartments={departmentsData}
-                      onUpdate={(field, value) => handleUpdateSpecialShiftEmployee(idx, field, value)}
-                      onTransfer={(targetDeptId) => handleTransferFromSpecialShift(idx, targetDeptId)}
+                      onUpdate={handleUpdateSpecialShiftEmployee}
+                      onTransfer={handleTransferFromSpecialShift}
                       activeEdit={activeEdits[emp.id]}
-                      onStartEdit={() => handleStartEdit(emp.id)}
+                      onStartEdit={handleStartEdit}
                     />
                   ))}
                 </div>
@@ -2675,7 +2772,7 @@ function AppContent() {
             {/* Main Content Area */}
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCorners}
+              collisionDetection={pointerWithin}
               modifiers={[scaleCompensationModifier]}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
@@ -2691,15 +2788,16 @@ function AppContent() {
                         department={dept} 
                         allDepartments={departmentsData}
                         maxCount={maxCount}
-                        onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
+                        onMove={handleMove}
                         onUpdateEmployee={handleUpdateEmployeeField}
                         onDelete={handleDelete}
-                        onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
-                        onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent(dept.id, empIndex, absenceType)}
+                        onTransferToSpecial={handleTransferToSpecialShift}
+                        onMarkAbsent={handleMarkEmployeeAbsent}
                         isDarkMode={isDarkMode}
                         is6HActive={is6HActive}
                         activeEdits={activeEdits}
                         onStartEdit={handleStartEdit}
+                        isDragActive={activeId !== null}
                       />
                     </div>
                   ))}
@@ -2711,8 +2809,8 @@ function AppContent() {
                       rightGroups={annotationsRight} 
                       onUpdateLeft={handleUpdateAnnotationLeft}
                       onUpdateRight={handleUpdateAnnotationRight}
-                      onReturnLeft={(groupIdx, itemIdx) => handleReturnFromAnnotation(true, groupIdx, itemIdx)}
-                      onReturnRight={(groupIdx, itemIdx) => handleReturnFromAnnotation(false, groupIdx, itemIdx)}
+                      onReturnLeft={handleReturnFromAnnotationLeft}
+                      onReturnRight={handleReturnFromAnnotationRight}
                     />
                   </div>
                 </div>
@@ -2739,6 +2837,7 @@ function AppContent() {
                         onMoveToSpecial={handleTransferSupportToSpecialShift}
                         onMarkAbsent={handleMarkSupportAbsent}
                         onDeleteSupport={handleDeleteSupport}
+                        isDragActive={activeId !== null}
                       />
                     </div>
                   ))}
@@ -2858,7 +2957,7 @@ function AppContent() {
 
 // --- Components ---
 
-function DepartmentCard({ 
+const DepartmentCard = React.memo(({ 
   department, 
   allDepartments,
   maxCount,
@@ -2870,7 +2969,8 @@ function DepartmentCard({
   isDarkMode,
   is6HActive,
   activeEdits,
-  onStartEdit
+  onStartEdit,
+  isDragActive
 }: { 
   department: Department;
   allDepartments: Department[];
@@ -2884,11 +2984,16 @@ function DepartmentCard({
   is6HActive: boolean;
   activeEdits: Record<string, ActiveEdit>;
   onStartEdit: (empId: string) => void;
-}) {
+  isDragActive?: boolean;
+}) => {
   const theme = getDeptTheme(department.id);
   const { setNodeRef } = useDroppable({
     id: department.id,
   });
+
+  // Array de IDs memoizado para o SortableContext: evita criar nova 
+  // referência de array a cada render (previne loop infinito no dnd-kit).
+  const sortableItems = React.useMemo(() => department.data.map(e => e.id || e.name), [department.data]);
 
   return (
     <div className="dept-card-panel bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
@@ -2907,26 +3012,29 @@ function DepartmentCard({
       </div>
 
       {/* Área Direita (Grade de Colaboradores) */}
-      <div ref={setNodeRef} className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
-        <SortableContext id={department.id} items={department.data.map(e => e.id)} strategy={verticalListSortingStrategy}>
+      <div ref={setNodeRef} className="flex-1 p-5 pb-[150px] bg-[#0D0E12]/30 flex flex-col">
+        <SortableContext id={department.id} items={sortableItems} strategy={verticalListSortingStrategy}>
         <div className="grid grid-cols-1 gap-4 flex-1">
           {department.data.map((emp, i) => (
             <EmployeeRow
               key={emp.id}
               emp={emp}
+              index={i}
               department={department}
               allDepartments={allDepartments}
-              onMove={(targetId) => onMove(targetId, i)}
-              onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
-              onDelete={() => onDelete(department.id, i)}
-              onTransferToSpecial={() => onTransferToSpecial(i)}
-              onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
+              onMove={onMove}
+              onUpdateEmployee={onUpdateEmployee}
+              onDelete={onDelete}
+              onTransferToSpecial={onTransferToSpecial}
+              onMarkAbsent={onMarkAbsent}
               isDarkMode={isDarkMode}
               is6HActive={is6HActive}
               activeEdit={activeEdits[emp.id]}
-              onStartEdit={() => onStartEdit(emp.id)}
+              onStartEdit={onStartEdit}
+              isDragActive={isDragActive}
             />
           ))}
+
           {/* Slots vazios de preenchimento para igualar a altura máxima */}
           {Array.from({ length: Math.max(0, maxCount - department.data.length) }).map((_, idx) => (
             <div
@@ -2939,10 +3047,36 @@ function DepartmentCard({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  if (prevProps.department !== nextProps.department) return false;
+  if (prevProps.maxCount !== nextProps.maxCount) return false;
+  if (prevProps.isDarkMode !== nextProps.isDarkMode) return false;
+  if (prevProps.is6HActive !== nextProps.is6HActive) return false;
+  if (prevProps.onMove !== nextProps.onMove) return false;
+  if (prevProps.onUpdateEmployee !== nextProps.onUpdateEmployee) return false;
+  if (prevProps.onDelete !== nextProps.onDelete) return false;
+  if (prevProps.onTransferToSpecial !== nextProps.onTransferToSpecial) return false;
+  if (prevProps.onMarkAbsent !== nextProps.onMarkAbsent) return false;
+  if (prevProps.onStartEdit !== nextProps.onStartEdit) return false;
+  
+  const prevData = prevProps.department.data;
+  const nextData = nextProps.department.data;
+  
+  if (prevData.length !== nextData.length) return false;
+  
+  for (let i = 0; i < prevData.length; i++) {
+    const empId = prevData[i].id;
+    if (prevProps.activeEdits[empId] !== nextProps.activeEdits[empId]) {
+      return false;
+    }
+  }
+  
+  return true;
+});
 
-function EmployeeRow({
+const EmployeeRow = React.memo(({
   emp,
+  index,
   department,
   allDepartments,
   onMove,
@@ -2954,23 +3088,27 @@ function EmployeeRow({
   is6HActive,
   isDragOverlay,
   activeEdit,
-  onStartEdit
+  onStartEdit,
+  isGhost,
+  isDragActive
 }: {
-  key?: string | number;
   emp: Employee;
+  index: number;
   department: Department;
   allDepartments: Department[];
-  onMove: (targetId: string) => void;
-  onUpdateEmployee: (field: keyof Employee, value: string) => void;
-  onDelete: () => void;
-  onTransferToSpecial: () => void;
-  onMarkAbsent: (absenceType: StatusType) => void;
+  onMove: (targetDeptId: string, empIndex: number) => void;
+  onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
+  onDelete: (deptId: string, empIndex: number) => void;
+  onTransferToSpecial: (empIndex: number) => void;
+  onMarkAbsent: (empIndex: number, absenceType: StatusType) => void;
   isDarkMode: boolean;
   is6HActive: boolean;
   isDragOverlay?: boolean;
   activeEdit?: ActiveEdit;
-  onStartEdit?: () => void;
-}) {
+  onStartEdit?: (empId: string) => void;
+  isGhost?: boolean;
+  isDragActive?: boolean;
+}) => {
   const [showLineDropdown, setShowLineDropdown] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showTransferMenu, setShowTransferMenu] = useState(false);
@@ -2978,6 +3116,7 @@ function EmployeeRow({
   const theme = getDeptTheme(department.id);
   const otherDepts = allDepartments.filter(d => d.id !== department.id);
 
+  // ID estável via prop: o pai (DepartmentCard) garante emp.id estável.
   const {
     attributes,
     listeners,
@@ -3005,10 +3144,11 @@ function EmployeeRow({
     : activeEdit;
 
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(isDragging ? null : transform),
-    transition: isDragging ? undefined : transition,
-    touchAction: isDragging ? 'none' : 'pan-y',
-    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {})
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    touchAction: 'none',
+    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {}),
+    ...(isDragging ? { zIndex: 50, position: 'relative' } : {})
   };
 
   // Helper para borda lateral de destaque conforme o setor no modo claro/escuro
@@ -3037,6 +3177,30 @@ function EmployeeRow({
   const [lineRect, setLineRect] = useState<DOMRect | null>(null);
   const [absentRect, setAbsentRect] = useState<DOMRect | null>(null);
 
+  const handleMoveLocal = useCallback((targetId: string) => {
+    onMove(targetId, index);
+  }, [onMove, index]);
+
+  const handleUpdateEmployeeFieldLocal = useCallback((field: keyof Employee, value: string) => {
+    onUpdateEmployee(department.id, index, field, value);
+  }, [onUpdateEmployee, department.id, index]);
+
+  const handleDeleteLocal = useCallback(() => {
+    onDelete(department.id, index);
+  }, [onDelete, department.id, index]);
+
+  const handleTransferToSpecialLocal = useCallback(() => {
+    onTransferToSpecial(index);
+  }, [onTransferToSpecial, index]);
+
+  const handleMarkAbsentLocal = useCallback((absenceType: StatusType) => {
+    onMarkAbsent(index, absenceType);
+  }, [onMarkAbsent, index]);
+
+  const handleStartEditLocal = useCallback(() => {
+    onStartEdit?.(emp.id);
+  }, [onStartEdit, emp.id]);
+
   return (
     <motion.div
       ref={setNodeRef}
@@ -3045,24 +3209,22 @@ function EmployeeRow({
       {...listeners}
       initial={{ scale: 0.98, opacity: 0.4 }}
       animate={{ 
-        scale: isDragging ? 0.98 : 1, 
-        opacity: isDragging ? 0.4 : 1 
+        scale: 1, 
+        opacity: (isDragging || isGhost) ? 0.30 : 1 
       }}
       transition={{ 
         type: 'spring', 
         stiffness: 400, 
         damping: 25 
       }}
-      className={`employee-row-card relative flex flex-col min-h-[140px] justify-between rounded-[14px] transition-all duration-300 dept-${department.id} ${
+      className={`employee-row-card relative flex flex-col min-h-[140px] justify-between rounded-[14px] ${isDragActive ? '' : 'transition-all duration-300'} dept-${department.id} ${
         emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
       } ${getBorderLeftClass(department.id, emp.error)} ${
-        isDragOverlay 
-          ? 'shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] ring-1 ring-white/10 opacity-95 cursor-grabbing z-[9999] !transition-none' 
-          : isDragging 
-            ? 'opacity-30 z-50 shadow-none' 
-            : showAbsentMenu
-              ? 'opacity-40 z-[100] shadow-none'
-              : 'shadow-sm hover:shadow-md hover:-translate-y-1 cursor-grab'
+        (isDragging || isGhost) 
+          ? 'opacity-30 border-dashed border-2 border-white/10 bg-white/[0.02] shadow-none pointer-events-none' 
+          : showAbsentMenu
+            ? 'opacity-40 z-[100] shadow-none'
+            : 'shadow-sm hover:shadow-md hover:-translate-y-1 cursor-grab'
       }`}
     >
       {/* Active Edit Badge */}
@@ -3110,7 +3272,7 @@ function EmployeeRow({
               <input
                 type="text"
                 value={emp.name}
-                onChange={(e) => onUpdateEmployee('name', e.target.value.toUpperCase())}
+                onChange={(e) => handleUpdateEmployeeFieldLocal('name', e.target.value.toUpperCase())}
                 className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
                 placeholder="NOME SOBRENOME"
               />
@@ -3139,7 +3301,7 @@ function EmployeeRow({
             </button>
             {is6HActive && (
               <button
-                onClick={(e) => { e.stopPropagation(); onTransferToSpecial(); }}
+                onClick={(e) => { e.stopPropagation(); handleTransferToSpecialLocal(); }}
                 className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1"
               >
                 TURNO 6H
@@ -3178,7 +3340,7 @@ function EmployeeRow({
               onFocus={(e) => {
                 setShowLineDropdown(true);
                 setLineRect(e.currentTarget.getBoundingClientRect());
-                onStartEdit?.();
+                handleStartEditLocal();
               }}
               onBlur={() => {
                 setTimeout(() => {
@@ -3187,7 +3349,7 @@ function EmployeeRow({
                 }, 200);
               }}
               onChange={(e) => {
-                onUpdateEmployee('line', e.target.value);
+                handleUpdateEmployeeFieldLocal('line', e.target.value);
                 setShowLineDropdown(true);
                 setLineRect(e.currentTarget.getBoundingClientRect());
               }}
@@ -3199,8 +3361,8 @@ function EmployeeRow({
             <input
               type="text"
               value={emp.machine}
-              onFocus={() => onStartEdit?.()}
-              onChange={(e) => onUpdateEmployee('machine', e.target.value)}
+              onFocus={handleStartEditLocal}
+              onChange={(e) => handleUpdateEmployeeFieldLocal('machine', e.target.value)}
               className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Loco</span>
@@ -3211,97 +3373,92 @@ function EmployeeRow({
       {/* === PORTALS: renderizados fora do overflow-hidden === */}
 
       {/* Portal: Menu Deletar (Avatar) */}
-      <AnimatePresence>
-        {showAvatarMenu && avatarRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -5 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -5 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                position: 'fixed',
-                top: avatarRect.bottom + 10,
-                left: avatarRect.left,
-                zIndex: 1000,
+      {showAvatarMenu && avatarRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -5 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -5 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: 'fixed',
+              top: avatarRect.bottom + 10,
+              left: avatarRect.left,
+              zIndex: 1000,
+            }}
+            className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAvatarMenu(false);
+                setAvatarRect(null);
+                handleDeleteLocal();
               }}
-              className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+              className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAvatarMenu(false);
-                  setAvatarRect(null);
-                  onDelete();
-                }}
-                className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
-              >
-                <Trash2 className="w-[16px] h-[16px] mr-2" />
-                Deletar
-              </button>
-            </motion.div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
+              <Trash2 className="w-[16px] h-[16px] mr-2" />
+              Deletar
+            </button>
+          </motion.div>
+        </PortalMenu>
+      )}
 
       {/* Portal: Menu Transferir */}
-      <AnimatePresence>
-        {showTransferMenu && transferRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setShowTransferMenu(false); setTransferRect(null); }} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -5 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -5 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                position: 'fixed',
-                top: transferRect.bottom + 6,
-                left: transferRect.right - 180,
-                zIndex: 1000,
-              }}
-              className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
-            >
-              <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
-              {otherDepts.map(d => {
-                const theme = getDeptTheme(d.id);
-                return (
-                  <button
-                    key={d.id}
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onMove(d.id); 
-                      setShowTransferMenu(false); 
-                      setTransferRect(null);
-                    }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                      isDarkMode 
-                        ? 'text-white hover:bg-white/10 active:bg-white/15' 
-                        : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-1.5 rounded-[8px] ${theme.bg} ${theme.color}`}>
-                        {React.cloneElement(theme.icon, { className: 'w-3.5 h-3.5 shrink-0' })}
-                      </div>
-                      <span>{d.title}</span>
+      {showTransferMenu && transferRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setShowTransferMenu(false); setTransferRect(null); }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -5 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -5 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: 'fixed',
+              top: transferRect.bottom + 6,
+              left: transferRect.right - 180,
+              zIndex: 1000,
+            }}
+            className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+          >
+            <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
+            {otherDepts.map(d => {
+              const theme = getDeptTheme(d.id);
+              return (
+                <button
+                  key={d.id}
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    handleMoveLocal(d.id); 
+                    setShowTransferMenu(false); 
+                    setTransferRect(null);
+                  }}
+                  className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
+                    isDarkMode 
+                      ? 'text-white hover:bg-white/10 active:bg-white/15' 
+                      : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-[8px] ${theme.bg} ${theme.color}`}>
+                      {React.cloneElement(theme.icon, { className: 'w-3.5 h-3.5 shrink-0' })}
                     </div>
-                    <ChevronRight 
-                      className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                        isDarkMode 
-                          ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
-                          : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
-                      }`} 
-                    />
-                  </button>
-                );
-              })}
-              {/* Opções Tarefa Especial e De Férias Removidas */}
-            </motion.div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
+                    <span>{d.title}</span>
+                  </div>
+                  <ChevronRight 
+                    className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
+                      isDarkMode 
+                        ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
+                        : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
+                    }`} 
+                  />
+                </button>
+              );
+            })}
+          </motion.div>
+        </PortalMenu>
+      )}
 
       {/* Portal: Dropdown de Linhas */}
       <AnimatePresence>
@@ -3325,7 +3482,7 @@ function EmployeeRow({
                   key={linha}
                   onMouseDown={(e) => {
                     e.preventDefault(); 
-                    onUpdateEmployee('line', linha);
+                    handleUpdateEmployeeFieldLocal('line', linha);
                     setShowLineDropdown(false);
                     setLineRect(null);
                   }}
@@ -3347,9 +3504,9 @@ function EmployeeRow({
             <div
               style={{
                 position: 'fixed',
-                top: absentRect.bottom + 10, // Abaixo do botão com espaçamento nítido de 10px
-                left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do botão
-                transform: 'translateX(-50%)', // Centraliza horizontalmente
+                top: absentRect.bottom + 10,
+                left: absentRect.left + absentRect.width / 2,
+                transform: 'translateX(-50%)',
                 zIndex: 1000,
               }}
             >
@@ -3382,7 +3539,7 @@ function EmployeeRow({
                         e.stopPropagation();
                         setShowAbsentMenu(false);
                         setAbsentRect(null);
-                        onMarkAbsent(opt.type as StatusType);
+                        handleMarkAbsentLocal(opt.type as StatusType);
                       }}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
                         isDarkMode 
@@ -3412,9 +3569,9 @@ function EmployeeRow({
 
     </motion.div>
   );
-}
+});
 
-function SupportCard({ 
+const SupportCard = React.memo(({ 
   roles, 
   groupIndex, 
   isDarkMode,
@@ -3425,7 +3582,8 @@ function SupportCard({
   onMoveSupport,
   onMoveToSpecial,
   onMarkAbsent,
-  onDeleteSupport
+  onDeleteSupport,
+  isDragActive
 }: { 
   roles: SupportRole[]; 
   groupIndex: number; 
@@ -3438,7 +3596,8 @@ function SupportCard({
   onMoveToSpecial: (groupIndex: number, empIndex: number) => void;
   onMarkAbsent: (groupIndex: number, empIndex: number, absenceType: StatusType) => void;
   onDeleteSupport: (groupIndex: number, empIndex: number) => void;
-}) {
+  isDragActive?: boolean;
+}) => {
   const themes = [
     { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
     { bg: "bg-[#FF9F0A]/10", border: "border-[#FF9F0A]/20", text: "text-[#FF9F0A]", bar: "bg-[#FF9F0A]" },
@@ -3448,6 +3607,9 @@ function SupportCard({
   const { setNodeRef } = useDroppable({
     id: `support-group-${groupIndex}`,
   });
+
+  // Array de IDs memoizado para o SortableContext
+  const sortableItems = React.useMemo(() => roles.map(e => e.id || e.name), [roles]);
 
   return (
     <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative min-h-full">
@@ -3469,32 +3631,35 @@ function SupportCard({
       </div>
       
       {/* Support List */}
-      <div ref={setNodeRef} className="p-3 space-y-2 flex-1 min-h-[150px] flex flex-col">
-        <SortableContext id={`support-group-${groupIndex}`} items={roles.map(e => e.id || '')} strategy={verticalListSortingStrategy}>
+      <div ref={setNodeRef} className="p-3 pb-[150px] space-y-2 flex-1 min-h-[150px] flex flex-col">
+        <SortableContext id={`support-group-${groupIndex}`} items={sortableItems} strategy={verticalListSortingStrategy}>
         {roles.map((emp, i) => (
           <SupportRoleRow 
-            key={emp.id || i} 
+            key={emp.id} 
             emp={emp} 
+            index={i}
             groupIndex={groupIndex}
             isDarkMode={isDarkMode}
             is6HActive={is6HActive}
-            onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
-            onUpdateName={(newName) => onUpdateName(groupIndex, i, newName)} 
-            onUpdateMatricula={(newMatricula) => onUpdateMatricula(groupIndex, i, newMatricula)}
-            onMove={(targetGroupIndex) => onMoveSupport(groupIndex, targetGroupIndex, i)}
-            onMoveToSpecial={() => onMoveToSpecial(groupIndex, i)}
-            onMarkAbsent={(absenceType) => onMarkAbsent(groupIndex, i, absenceType)}
-            onDelete={() => onDeleteSupport(groupIndex, i)}
+            onUpdateRole={onUpdateRole} 
+            onUpdateName={onUpdateName} 
+            onUpdateMatricula={onUpdateMatricula}
+            onMove={onMoveSupport}
+            onMoveToSpecial={onMoveToSpecial}
+            onMarkAbsent={onMarkAbsent}
+            onDelete={onDeleteSupport}
+            isDragActive={isDragActive}
           />
         ))}
         </SortableContext>
       </div>
     </div>
   );
-}
+});
 
-function SupportRoleRow({ 
+const SupportRoleRow = React.memo(({ 
   emp, 
+  index,
   groupIndex,
   isDarkMode,
   is6HActive,
@@ -3505,27 +3670,32 @@ function SupportRoleRow({
   onMove,
   onMoveToSpecial,
   onMarkAbsent,
-  onDelete
+  onDelete,
+  isGhost,
+  isDragActive
 }: { 
-  key?: string | number;
   emp: SupportRole; 
+  index: number;
   groupIndex: number;
   isDarkMode: boolean;
   is6HActive: boolean;
   isDragOverlay?: boolean;
-  onUpdateRole: (newRole: string) => void;
-  onUpdateName: (newName: string) => void;
-  onUpdateMatricula: (newMatricula: string) => void;
-  onMove: (targetGroupIndex: number) => void;
-  onMoveToSpecial?: () => void;
-  onMarkAbsent: (absenceType: StatusType) => void;
-  onDelete: () => void;
-}) {
+  onUpdateRole: (groupIndex: number, empIndex: number, newRole: string) => void;
+  onUpdateName: (groupIndex: number, empIndex: number, newName: string) => void;
+  onUpdateMatricula: (groupIndex: number, empIndex: number, newMatricula: string) => void;
+  onMove: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
+  onMoveToSpecial?: (groupIndex: number, empIndex: number) => void;
+  onMarkAbsent: (groupIndex: number, empIndex: number, absenceType: StatusType) => void;
+  onDelete: (groupIndex: number, empIndex: number) => void;
+  isGhost?: boolean;
+  isDragActive?: boolean;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [showAbsentMenu, setShowAbsentMenu] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
-  
+
+  // ID estável via prop: o pai (SupportCard) garante emp.id estável.
   const {
     attributes,
     listeners,
@@ -3534,7 +3704,7 @@ function SupportRoleRow({
     transition,
     isDragging,
   } = useSortable({
-    id: emp.id || '',
+    id: emp.id,
     data: {
       type: 'Support',
       employee: emp,
@@ -3544,9 +3714,10 @@ function SupportRoleRow({
   });
 
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(isDragging ? null : transform),
-    transition: isDragging ? undefined : transition,
-    touchAction: isDragging ? 'none' : 'pan-y',
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    touchAction: 'none',
+    ...(isDragging ? { zIndex: 50, position: 'relative' } : {})
   };
 
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
@@ -3562,20 +3733,46 @@ function SupportRoleRow({
   const [roleRect, setRoleRect] = useState<DOMRect | null>(null);
   const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
 
+  const handleUpdateRoleLocal = useCallback((newRole: string) => {
+    onUpdateRole(groupIndex, index, newRole);
+  }, [onUpdateRole, groupIndex, index]);
+
+  const handleUpdateNameLocal = useCallback((newName: string) => {
+    onUpdateName(groupIndex, index, newName);
+  }, [onUpdateName, groupIndex, index]);
+
+  const handleUpdateMatriculaLocal = useCallback((newMatricula: string) => {
+    onUpdateMatricula(groupIndex, index, newMatricula);
+  }, [onUpdateMatricula, groupIndex, index]);
+
+  const handleMoveLocal = useCallback((targetGroupIdx: number) => {
+    onMove(groupIndex, targetGroupIdx, index);
+  }, [onMove, groupIndex, index]);
+
+  const handleMoveToSpecialLocal = useCallback(() => {
+    onMoveToSpecial?.(groupIndex, index);
+  }, [onMoveToSpecial, groupIndex, index]);
+
+  const handleMarkAbsentLocal = useCallback((absenceType: StatusType) => {
+    onMarkAbsent(groupIndex, index, absenceType);
+  }, [onMarkAbsent, groupIndex, index]);
+
+  const handleDeleteLocal = useCallback(() => {
+    onDelete(groupIndex, index);
+  }, [onDelete, groupIndex, index]);
+
   return (
     <div 
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`px-4 py-2.5 flex items-center rounded-[12px] transition-all duration-300 relative h-[56px] w-full ${
-        isDragOverlay 
-          ? 'bg-[#252836] shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] ring-1 ring-white/10 opacity-95 cursor-grabbing z-[9999]' 
-          : isDragging 
-            ? 'bg-[#111217] opacity-30 z-50 shadow-none' 
-            : showAbsentMenu
-              ? 'bg-[#111217] opacity-40 z-[100] shadow-none'
-              : 'bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab'
+      className={`px-4 py-2.5 flex items-center rounded-[12px] ${isDragActive ? '' : 'transition-all duration-300'} relative h-[56px] w-full ${
+        (isDragging || isGhost) 
+          ? 'opacity-30 border-dashed border border-white/10 bg-white/[0.02] shadow-none pointer-events-none' 
+          : showAbsentMenu
+            ? 'bg-[#111217] opacity-40 z-[100] shadow-none'
+            : 'bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab'
       }`}
     >
       {/* Coluna 1: Avatar, Nome e Matrícula */}
@@ -3602,7 +3799,7 @@ function SupportRoleRow({
           <input
             type="text"
             value={emp.name}
-            onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
+            onChange={(e) => handleUpdateNameLocal(e.target.value.toUpperCase())}
             className="font-bold text-[14px] text-white bg-transparent outline-none w-full placeholder:text-white/30 truncate leading-none"
             placeholder="NOME SOBRENOME"
           />
@@ -3611,7 +3808,7 @@ function SupportRoleRow({
             <input 
               type="text" 
               value={emp.matricula || ''} 
-              onChange={(e) => onUpdateMatricula(e.target.value)}
+              onChange={(e) => handleUpdateMatriculaLocal(e.target.value)}
               placeholder="N/A"
               maxLength={8}
               className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val" 
@@ -3641,7 +3838,7 @@ function SupportRoleRow({
         </button>
         {is6HActive && (
           <button
-            onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
+            onClick={(e) => { e.stopPropagation(); handleMoveToSpecialLocal(); }}
             className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 shrink-0"
           >
             TURNO 6H
@@ -3693,238 +3890,229 @@ function SupportRoleRow({
       {/* === PORTALS: renderizados fora do overflow-hidden === */}
 
       {/* Portal: Menu Deletar Apoio (Avatar) */}
-      <AnimatePresence>
-        {showAvatarMenu && avatarRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
+      {showAvatarMenu && avatarRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -5 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -5 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: 'fixed',
+              top: avatarRect.bottom + 10,
+              left: avatarRect.left,
+              zIndex: 1000,
+            }}
+            className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAvatarMenu(false);
+                setAvatarRect(null);
+                handleDeleteLocal();
+              }}
+              className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
+            >
+              <Trash2 className="w-[16px] h-[16px] mr-2" />
+              Deletar
+            </button>
+          </motion.div>
+        </PortalMenu>
+      )}
+
+      {/* Portal: Menu Transferir Apoio */}
+      {isTransferOpen && transferRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setIsTransferOpen(false); setTransferRect(null); }} />
+          <div
+            style={{
+              position: 'fixed',
+              top: transferRect.bottom + 6,
+              left: transferRect.right - 160,
+              zIndex: 1000,
+            }}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -5 }}
               transition={{ duration: 0.15 }}
-              style={{
-                position: 'fixed',
-                top: avatarRect.bottom + 10,
-                left: avatarRect.left,
-                zIndex: 1000,
-              }}
-              className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+              className={`w-[160px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'bg-slate-950/40 border border-white/10 text-white' 
+                  : 'bg-white/40 border border-slate-300/50 text-slate-800'
+              }`}
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAvatarMenu(false);
-                  setAvatarRect(null);
-                  onDelete();
-                }}
-                className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
-              >
-                <Trash2 className="w-[16px] h-[16px] mr-2" />
-                Deletar
-              </button>
-            </motion.div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
-
-      {/* Portal: Menu Transferir Apoio */}
-      <AnimatePresence>
-        {isTransferOpen && transferRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setIsTransferOpen(false); setTransferRect(null); }} />
-            <div
-              style={{
-                position: 'fixed',
-                top: transferRect.bottom + 6,
-                left: transferRect.right - 160,
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className={`w-[160px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode 
-                    ? 'bg-slate-950/40 border border-white/10 text-white' 
-                    : 'bg-white/40 border border-slate-300/50 text-slate-800'
-                }`}
-              >
-                <div className="px-3 py-1 text-[9px] font-extrabold text-[#a0aec0] uppercase tracking-wider select-none">Mudar para</div>
-                {groupsList.map(g => {
-                  const names = ["Recepção", "Classificação", "Formação"];
-                  const deptId = ["recepcao", "classificacao", "formacao"][g] || "";
-                  const theme = getDeptTheme(deptId);
-                  return (
-                    <button
-                      key={g}
-                      onClick={() => {
-                        onMove(g);
-                        setIsTransferOpen(false);
-                        setTransferRect(null);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                        isDarkMode 
-                          ? 'text-white hover:bg-white/10 active:bg-white/15' 
-                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {theme && (
-                          <div className={`p-1.5 rounded-[8px] ${theme.bg} ${theme.color}`}>
-                            {React.cloneElement(theme.icon, { className: 'w-3.5 h-3.5 shrink-0' })}
-                          </div>
-                        )}
-                        <span>{names[g] || `Grupo ${g + 1}`}</span>
-                      </div>
-                      <ChevronRight 
-                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                          isDarkMode 
-                            ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
-                            : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
-                        }`} 
-                      />
-                    </button>
-                  );
-                })}
-                {/* Opção Turno Especial Removida */}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
-
-      {/* Portal: Dropdown de Role Apoio */}
-      <AnimatePresence>
-        {isOpen && roleRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setIsOpen(false); setRoleRect(null); }} />
-            <div
-              style={{
-                position: 'fixed',
-                top: roleRect.bottom + 6,
-                left: roleRect.left + roleRect.width / 2,
-                transform: 'translateX(-50%)',
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className={`w-[145px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode 
-                    ? 'bg-slate-950/40 border border-white/10 text-white' 
-                    : 'bg-white/40 border border-slate-300/50 text-slate-800'
-                }`}
-              >
-                {SUPPORT_ROLES_OPTIONS.map((opt) => (
+              <div className="px-3 py-1 text-[9px] font-extrabold text-[#a0aec0] uppercase tracking-wider select-none">Mudar para</div>
+              {groupsList.map(g => {
+                const names = ["Recepção", "Classificação", "Formação"];
+                const deptId = ["recepcao", "classificacao", "formacao"][g] || "";
+                const theme = getDeptTheme(deptId);
+                return (
                   <button
-                    key={opt}
+                    key={g}
                     onClick={() => {
-                      onUpdateRole(opt);
-                      setIsOpen(false);
-                      setRoleRect(null);
+                      handleMoveLocal(g);
+                      setIsTransferOpen(false);
+                      setTransferRect(null);
                     }}
-                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[12px] text-[11px] font-bold w-full transition-all text-center uppercase cursor-pointer border-none bg-transparent ${
-                      opt === emp.role
-                        ? isDarkMode
-                          ? 'text-[#FF6B00] bg-white/5 font-extrabold'
-                          : 'text-[#FF6B00] bg-slate-800/5 font-extrabold'
-                        : isDarkMode
-                          ? 'text-white hover:bg-white/10 active:bg-white/15'
-                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
+                    className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
+                      isDarkMode 
+                        ? 'text-white hover:bg-white/10 active:bg-white/15' 
+                        : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
                     }`}
                   >
-                    <span>{opt}</span>
-                    {opt === emp.role && (
-                      <CheckCircle2 className="w-3 h-3 text-[#FF6B00] shrink-0" />
-                    )}
+                    <div className="flex items-center gap-3">
+                      {theme && (
+                        <div className={`p-1.5 rounded-[8px] ${theme.bg} ${theme.color}`}>
+                          {React.cloneElement(theme.icon, { className: 'w-3.5 h-3.5 shrink-0' })}
+                        </div>
+                      )}
+                      <span>{names[g] || `Grupo ${g + 1}`}</span>
+                    </div>
+                    <ChevronRight 
+                      className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
+                        isDarkMode 
+                          ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
+                          : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
+                      }`} 
+                    />
                   </button>
-                ))}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
+                );
+              })}
+            </motion.div>
+          </div>
+        </PortalMenu>
+      )}
+
+      {/* Portal: Dropdown de Role Apoio */}
+      {isOpen && roleRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setIsOpen(false); setRoleRect(null); }} />
+          <div
+            style={{
+              position: 'fixed',
+              top: roleRect.bottom + 6,
+              left: roleRect.left + roleRect.width / 2,
+              transform: 'translateX(-50%)',
+              zIndex: 1000,
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className={`w-[145px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'bg-slate-950/40 border border-white/10 text-white' 
+                  : 'bg-white/40 border border-slate-300/50 text-slate-800'
+              }`}
+            >
+              {SUPPORT_ROLES_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => {
+                    handleUpdateRoleLocal(opt);
+                    setIsOpen(false);
+                    setRoleRect(null);
+                  }}
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[12px] text-[11px] font-bold w-full transition-all text-center uppercase cursor-pointer border-none bg-transparent ${
+                    opt === emp.role
+                      ? isDarkMode
+                        ? 'text-[#FF6B00] bg-white/5 font-extrabold'
+                        : 'text-[#FF6B00] bg-slate-800/5 font-extrabold'
+                      : isDarkMode
+                        ? 'text-white hover:bg-white/10 active:bg-white/15'
+                        : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
+                  }`}
+                >
+                  <span>{opt}</span>
+                  {opt === emp.role && (
+                    <CheckCircle2 className="w-3 h-3 text-[#FF6B00] shrink-0" />
+                  )}
+                </button>
+              ))}
+            </motion.div>
+          </div>
+        </PortalMenu>
+      )}
 
       {/* Portal: Menu Ausente Apoio */}
-      <AnimatePresence>
-        {showAbsentMenu && absentRect && (
-          <PortalMenu>
-            <div className="fixed inset-0 z-[999]" onClick={() => { setShowAbsentMenu(false); setAbsentRect(null); }} />
-            <div
-              style={{
-                position: 'fixed',
-                top: absentRect.bottom + 10,
-                left: absentRect.left + absentRect.width / 2,
-                transform: 'translateX(-50%)',
-                zIndex: 1000,
-              }}
+      {showAbsentMenu && absentRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[999]" onClick={() => { setShowAbsentMenu(false); setAbsentRect(null); }} />
+          <div
+            style={{
+              position: 'fixed',
+              top: absentRect.bottom + 10,
+              left: absentRect.left + absentRect.width / 2,
+              transform: 'translateX(-50%)',
+              zIndex: 1000,
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -8 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'bg-slate-950/40 border border-white/10 text-white' 
+                  : 'bg-white/40 border border-slate-300/50 text-slate-800'
+              }`}
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode 
-                    ? 'bg-slate-950/40 border border-white/10 text-white' 
-                    : 'bg-white/40 border border-slate-300/50 text-slate-800'
-                }`}
-              >
-                {[
-                  { type: 'FÉRIAS' },
-                  { type: 'FORA' },
-                  { type: 'ATM' },
-                  { type: 'RESTRIÇÃO' },
-                  { type: 'INSS' }
-                ].map((opt) => {
-                  const meta = STATUS_METADATA[opt.type as StatusType];
-                  const Icon = meta.icon;
-                  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
+              {[
+                { type: 'FÉRIAS' },
+                { type: 'FORA' },
+                { type: 'ATM' },
+                { type: 'RESTRIÇÃO' },
+                { type: 'INSS' }
+              ].map((opt) => {
+                const meta = STATUS_METADATA[opt.type as StatusType];
+                const Icon = meta.icon;
+                const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
 
-                  return (
-                    <button
-                      key={opt.type}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAbsentMenu(false);
-                        setAbsentRect(null);
-                        onMarkAbsent(opt.type as StatusType);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
+                return (
+                  <button
+                    key={opt.type}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAbsentMenu(false);
+                      setAbsentRect(null);
+                      handleMarkAbsentLocal(opt.type as StatusType);
+                    }}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
+                      isDarkMode 
+                        ? 'text-white hover:bg-white/10 active:bg-white/15' 
+                        : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
+                      <span className={colorClass}>{meta.label}</span>
+                    </div>
+                    <ChevronRight 
+                      className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
                         isDarkMode 
-                          ? 'text-white hover:bg-white/10 active:bg-white/15' 
-                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
-                        <span className={colorClass}>{meta.label}</span>
-                      </div>
-                      <ChevronRight 
-                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                          isDarkMode 
-                            ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
-                            : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
-                        }`} 
-                      />
-                    </button>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-      </AnimatePresence>
+                          ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
+                          : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
+                      }`} 
+                    />
+                  </button>
+                );
+              })}
+            </motion.div>
+          </div>
+        </PortalMenu>
+      )}
     </div>
   );
-}
+});
 
-function SpecialShiftSlot({
+const SpecialShiftSlot = React.memo(({
   emp,
   index,
   allDepartments,
@@ -3933,19 +4121,34 @@ function SpecialShiftSlot({
   activeEdit,
   onStartEdit
 }: { 
-  key?: string | number; 
   emp: Employee; 
   index: number; 
   allDepartments: Department[];
-  onUpdate: (field: keyof Employee, value: string) => void;
-  onTransfer: (targetDeptId: string) => void;
+  onUpdate: (empIndex: number, field: keyof Employee, value: string) => void;
+  onTransfer: (empIndex: number, targetDeptId: string) => void;
   activeEdit?: ActiveEdit;
-  onStartEdit?: () => void;
-}) {
+  onStartEdit?: (empId: string) => void;
+}) => {
 
   const style: React.CSSProperties = {
     ...(activeEdit ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: '1.5px' } : {})
   };
+
+  const [showOofMenu, setShowOofMenu] = useState(false);
+  const oofButtonRef = useRef<HTMLButtonElement>(null);
+  const oofRect = useAnchoredRect(oofButtonRef, showOofMenu);
+
+  const handleUpdateLocal = useCallback((field: keyof Employee, value: string) => {
+    onUpdate(index, field, value);
+  }, [onUpdate, index]);
+
+  const handleTransferLocal = useCallback((targetDeptId: string) => {
+    onTransfer(index, targetDeptId);
+  }, [onTransfer, index]);
+
+  const handleStartEditLocal = useCallback(() => {
+    onStartEdit?.(emp.id);
+  }, [onStartEdit, emp.id]);
 
   return (
     <div 
@@ -3971,8 +4174,8 @@ function SpecialShiftSlot({
             <input
               type="text"
               value={emp.name}
-              onFocus={() => onStartEdit?.()}
-              onChange={(e) => onUpdate('name', e.target.value.toUpperCase())}
+              onFocus={handleStartEditLocal}
+              onChange={(e) => handleUpdateLocal('name', e.target.value.toUpperCase())}
               className="font-bold text-[12px] text-white bg-transparent outline-none w-[130px] truncate uppercase leading-none placeholder:text-white/30"
               placeholder="NOME SOBRENOME"
             />
@@ -3980,7 +4183,7 @@ function SpecialShiftSlot({
               <span 
                 onClick={(e) => {
                   e.stopPropagation();
-                  onUpdate('tagType', emp.tagType === 'MAQUINISTA' ? 'OOF' : 'MAQUINISTA');
+                  handleUpdateLocal('tagType', emp.tagType === 'MAQUINISTA' ? 'OOF' : 'MAQUINISTA');
                 }}
                 className={`text-[8px] font-extrabold uppercase px-1 py-0.5 rounded w-max mt-0.5 tracking-wider cursor-pointer transition-all hover:scale-105 active:scale-95 select-none ${
                   emp.tagType === 'MAQUINISTA' 
@@ -3995,7 +4198,7 @@ function SpecialShiftSlot({
         </div>
         <div className="flex items-center gap-1.5">
           <button
-            onClick={(e) => { e.stopPropagation(); onTransfer(emp.originalDeptId || 'recepcao'); }}
+            onClick={(e) => { e.stopPropagation(); handleTransferLocal(emp.originalDeptId || 'recepcao'); }}
             className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#0052B3] to-[#003D8A] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
           >
             TURNO 7H
@@ -4006,21 +4209,14 @@ function SpecialShiftSlot({
       <div className="flex items-center justify-center gap-2 mt-auto">
         {emp.tagType === 'OOF' ? (
           <div className="flex flex-col items-center">
-            <input
-              type="text"
-              list="oof-options"
-              value={emp.line}
-              onFocus={() => onStartEdit?.()}
-              onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
-              placeholder="LOCAL DE APOIO"
-              className="h-[26px] px-2 rounded-md text-[10px] font-bold w-[120px] text-center uppercase placeholder-white/40 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
-            />
-            <datalist id="oof-options">
-              <option value="RECEPÇÃO" />
-              <option value="VIRADOR" />
-              <option value="CLASSIFICAÇÃO" />
-              <option value="FORMAÇÃO" />
-            </datalist>
+            <button
+              ref={oofButtonRef}
+              onClick={(e) => { e.stopPropagation(); setShowOofMenu(true); }}
+              className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-colors"
+            >
+              <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
+              <ChevronDown className="w-3 h-3 shrink-0" />
+            </button>
           </div>
         ) : (
           <>
@@ -4028,8 +4224,8 @@ function SpecialShiftSlot({
               <input
                 type="text"
                 value={emp.line}
-                onFocus={() => onStartEdit?.()}
-                onChange={(e) => onUpdate('line', e.target.value.toUpperCase())}
+                onFocus={handleStartEditLocal}
+                onChange={(e) => handleUpdateLocal('line', e.target.value.toUpperCase())}
                 placeholder="LINHA"
                 className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
               />
@@ -4038,8 +4234,8 @@ function SpecialShiftSlot({
               <input
                 type="text"
                 value={emp.machine}
-                onFocus={() => onStartEdit?.()}
-                onChange={(e) => onUpdate('machine', e.target.value.toUpperCase())}
+                onFocus={handleStartEditLocal}
+                onChange={(e) => handleUpdateLocal('machine', e.target.value.toUpperCase())}
                 placeholder="LOCO"
                 className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
               />
@@ -4048,9 +4244,46 @@ function SpecialShiftSlot({
         )}
       </div>
 
+      {/* OOF Menu (Semitransparente) */}
+      {showOofMenu && oofRect && (
+        <PortalMenu>
+          <div className="fixed inset-0 z-[200]" onClick={(e) => { e.stopPropagation(); setShowOofMenu(false); }}>
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="bg-[#1a1c23]/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl py-2 w-48 overflow-hidden z-[210] flex flex-col"
+              style={{
+                position: 'absolute',
+                top: `${oofRect.bottom + 8}px`,
+                left: `${Math.min(oofRect.left, window.innerWidth - 192 - 16)}px`
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {['RECEPÇÃO', 'VIRADOR', 'CLASSIFICAÇÃO', 'FORMAÇÃO'].map((opcao) => (
+                <button
+                  key={opcao}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdateLocal('line', opcao);
+                    setShowOofMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 text-[11px] font-bold tracking-wider hover:bg-white/10 transition-colors uppercase ${
+                    emp.line === opcao ? 'text-[#FF9F0A] bg-[#FF9F0A]/10' : 'text-slate-300'
+                  }`}
+                >
+                  {opcao}
+                </button>
+              ))}
+            </motion.div>
+          </div>
+        </PortalMenu>
+      )}
+
     </div>
   );
-}
+});
 
 export default function App() {
   return (
