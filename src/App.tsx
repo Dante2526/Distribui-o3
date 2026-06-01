@@ -516,6 +516,70 @@ function AdminModal({
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // --- Visual Viewport Tracking para Mobile (Centralização Perfeita e Sem Zoom) ---
+  const [viewportStyles, setViewportStyles] = useState<{
+    backdrop: React.CSSProperties;
+    card: React.CSSProperties;
+  }>({
+    backdrop: {},
+    card: {}
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePosition = () => {
+      if (window.visualViewport) {
+        const { width, height, offsetLeft, offsetTop, scale } = window.visualViewport;
+        const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
+        if (isMobile) {
+          setViewportStyles({
+            backdrop: {
+              position: 'absolute',
+              left: `${offsetLeft}px`,
+              top: `${offsetTop}px`,
+              width: `${width}px`,
+              height: `${height}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 100,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(5px)',
+              animation: 'fadeIn 0.2s ease-out forwards',
+            },
+            card: {
+              transform: `scale(${1 / scale})`,
+              transformOrigin: 'center center',
+              maxHeight: `${height * 0.95}px`,
+              // No mobile, abrimos instantaneamente sem animações de zoom (fadeInScale), usando fadeIn apenas
+              animation: 'fadeIn 0.25s ease-out forwards',
+            }
+          });
+        } else {
+          setViewportStyles({
+            backdrop: {},
+            card: {}
+          });
+        }
+      }
+    };
+
+    const handler = () => {
+      requestAnimationFrame(updatePosition);
+    };
+
+    window.visualViewport?.addEventListener('resize', handler);
+    window.visualViewport?.addEventListener('scroll', handler);
+    updatePosition(); // Inicial
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handler);
+      window.visualViewport?.removeEventListener('scroll', handler);
+    };
+  }, [isOpen]);
+
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     const newTimestamps = [...charTimestamps];
@@ -575,10 +639,12 @@ function AdminModal({
 
   if (!isOpen) return null;
 
+  const isViewportBackdrop = !!viewportStyles.backdrop.position;
+
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{
+      className={isViewportBackdrop ? "" : "fixed inset-0 z-[100] flex items-center justify-center p-4"}
+      style={isViewportBackdrop ? viewportStyles.backdrop : {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(5px)',
         animation: 'fadeIn 0.2s ease-out forwards',
@@ -586,15 +652,17 @@ function AdminModal({
       onClick={handleClose}
     >
       <div
-        className={`rounded-[32px] shadow-2xl w-full text-center relative mx-4 transition-all duration-300 animate-[fadeInScale_0.25s_ease-out_forwards] flex flex-col ${
+        className={`rounded-[32px] shadow-2xl w-full text-center relative mx-4 transition-all duration-300 flex flex-col ${
           isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[370px] p-8'
         } max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
           isDarkMode 
             ? 'bg-[#1E2029] border border-white/10 text-white' 
             : 'bg-white border border-gray-100 text-[#1F2937]'
+        } ${
+          viewportStyles.card.transform ? '' : 'animate-[fadeInScale_0.25s_ease-out_forwards]'
         }`}
         onClick={(e) => e.stopPropagation()}
-        style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
+        style={viewportStyles.card.transform ? viewportStyles.card : { animation: 'fadeInScale 0.25s ease-out forwards' }}
       >
         <button
           onClick={handleClose}
