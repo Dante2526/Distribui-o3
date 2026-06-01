@@ -7,7 +7,7 @@ import {
   closestCorners,
   closestCenter,
   pointerWithin,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -1431,7 +1431,7 @@ function AppContent() {
   }, [departmentsData, supportRolesData]);
   // -----------------------------------------------------------------------------------------
 
-  const pointerSensor = useSensor(PointerSensor, React.useMemo(() => ({
+  const mouseSensor = useSensor(MouseSensor, React.useMemo(() => ({
     activationConstraint: {
       distance: 5,
     },
@@ -1439,12 +1439,12 @@ function AppContent() {
 
   const touchSensor = useSensor(TouchSensor, React.useMemo(() => ({
     activationConstraint: {
-      delay: 500, // Requer meio segundo de pressão firme para iniciar o arraste no celular
-      tolerance: 8, // Permite que o dedo "trema" até 8px sem cancelar a intenção de arraste
+      delay: 250, // Requer 1/4 de segundo de pressão firme para iniciar o arraste no celular
+      tolerance: 5, // Permite que o dedo "trema" até 5px sem cancelar a intenção de arraste
     },
   }), []));
 
-  const sensors = useSensors(pointerSensor, touchSensor);
+  const sensors = useSensors(mouseSensor, touchSensor);
 
   const findContainer = useCallback((id: string, departments: Department[]) => {
     if (departments.some(d => d.id === id)) return id;
