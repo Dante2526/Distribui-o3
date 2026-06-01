@@ -1439,8 +1439,8 @@ function AppContent() {
 
   const touchSensor = useSensor(TouchSensor, React.useMemo(() => ({
     activationConstraint: {
-      delay: 250,
-      tolerance: 6,
+      delay: 500, // Requer meio segundo de pressão firme para iniciar o arraste no celular
+      tolerance: 8, // Permite que o dedo "trema" até 8px sem cancelar a intenção de arraste
     },
   }), []));
 
@@ -3791,7 +3791,7 @@ const SupportRoleRow = React.memo(({
         </button>
         <div className="flex flex-col min-w-0 flex-1">
           <span
-            className="font-bold text-[14px] text-white w-full truncate leading-none uppercase tracking-wide block"
+            className="font-bold text-[14px] text-white w-full truncate leading-none uppercase tracking-wide block input-emp-name"
           >
             {emp.name}
           </span>
@@ -4164,7 +4164,7 @@ const SpecialShiftSlot = React.memo(({
           </div>
           <div className="flex flex-col min-w-0">
             <span
-              className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block"
+              className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block input-emp-name"
             >
               {emp.name}
             </span>

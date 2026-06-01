@@ -205,8 +205,7 @@ a {
 }
 
 /* --- Textos --- */
-/* Impede que o texto branco seja sobrescrito para escuro em botões, inputs, ícones SVG e badges coloridos */
-.light-mode .text-white:not(button):not(input):not(svg):not(button *):not(.bg-\[\#FF6B00\]):not(.bg-\[\#10B981\]):not(.bg-gradient-to-r) {
+.light-mode .text-white:not(button):not(input):not(svg):not(button *):not(.bg-\[\#FF6B00\]):not(.bg-\[\#10B981\]):not(.bg-gradient-to-r):not(.input-emp-name) {
   color: #1a202c !important;
 }
 .light-mode .text-\[\#a0aec0\] {
