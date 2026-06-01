@@ -512,7 +512,8 @@ function AdminModal({
   isDarkMode: boolean;
 }) {
   const [password, setPassword] = useState('');
-  const [charTimestamps, setCharTimestamps] = useState<number[]>([]);
+  const [visibleIndex, setVisibleIndex] = useState(-1);
+  const timerRef = useRef<any>(null);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -581,44 +582,31 @@ function AdminModal({
   }, [isOpen]);
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    const newTimestamps = [...charTimestamps];
-
-    if (newValue.length > password.length) {
-      // Caractere adicionado
-      const diffIndex = e.target.selectionStart !== null ? e.target.selectionStart - 1 : newValue.length - 1;
-      newTimestamps.splice(diffIndex, 0, Date.now());
-
-      setTimeout(() => {
-        setCharTimestamps((prev) => [...prev]);
-      }, 1010);
-    } else if (newValue.length < password.length) {
-      // Caractere removido
-      const diffIndex = e.target.selectionStart !== null ? e.target.selectionStart : newValue.length;
-      newTimestamps.splice(diffIndex, password.length - newValue.length);
+    const val = e.target.value;
+    
+    if (val.length > password.length) {
+      setVisibleIndex(val.length - 1);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setVisibleIndex(-1);
+      }, 1000);
     } else {
-      // Substituição (tamanho igual)
-      const diffIndex = e.target.selectionStart !== null ? e.target.selectionStart - 1 : 0;
-      newTimestamps[diffIndex] = Date.now();
-      setTimeout(() => {
-        setCharTimestamps((prev) => [...prev]);
-      }, 1010);
+      setVisibleIndex(-1);
     }
-
-    setPassword(newValue);
-    setCharTimestamps(newTimestamps);
+    
+    setPassword(val);
   };
 
   const toggleShowPassword = () => {
     if (showPassword) {
-      setCharTimestamps(new Array(password.length).fill(0));
+      setVisibleIndex(-1);
     }
     setShowPassword(!showPassword);
   };
 
   const handleClose = () => {
     setPassword('');
-    setCharTimestamps([]);
+    setVisibleIndex(-1);
     setError('');
     setShowPassword(false);
     onClose();
@@ -629,7 +617,7 @@ function AdminModal({
     setError('');
     if (password === ADMIN_PASSWORD) {
       setPassword('');
-      setCharTimestamps([]);
+      setVisibleIndex(-1);
       onLogin(password);
     } else {
       setError('Senha incorreta! Digite tudo em minúsculo.');
@@ -857,11 +845,11 @@ function AdminModal({
                         letterSpacing: 'normal'
                       }}
                     >
-                      {password.split('').map((char, i) => {
-                        const ts = charTimestamps[i];
-                        const isVisible = ts && (Date.now() - ts < 1000);
-                        return isVisible ? char : '●';
-                      }).join('')}
+                      {password.split('').map((char, index) => (
+                        <span key={index}>
+                          {index === visibleIndex ? char : '●'}
+                        </span>
+                      ))}
                     </div>
                   )}
                   <button
