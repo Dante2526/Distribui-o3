@@ -3269,13 +3269,11 @@ const EmployeeRow = React.memo(({
             </div>
             
             <div className="flex flex-col min-w-0">
-              <input
-                type="text"
-                value={emp.name}
-                onChange={(e) => handleUpdateEmployeeFieldLocal('name', e.target.value.toUpperCase())}
-                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
-                placeholder="NOME SOBRENOME"
-              />
+              <span
+                className={`font-bold text-[14px] tracking-wide uppercase truncate leading-none w-[180px] block input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
+              >
+                {emp.name}
+              </span>
               <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matrícula: {emp.machine || 'N/A'}</span>
             </div>
           </div>
@@ -3737,10 +3735,6 @@ const SupportRoleRow = React.memo(({
     onUpdateRole(groupIndex, index, newRole);
   }, [onUpdateRole, groupIndex, index]);
 
-  const handleUpdateNameLocal = useCallback((newName: string) => {
-    onUpdateName(groupIndex, index, newName);
-  }, [onUpdateName, groupIndex, index]);
-
   const handleUpdateMatriculaLocal = useCallback((newMatricula: string) => {
     onUpdateMatricula(groupIndex, index, newMatricula);
   }, [onUpdateMatricula, groupIndex, index]);
@@ -3796,13 +3790,11 @@ const SupportRoleRow = React.memo(({
           <User className="w-[14px] h-[14px]" strokeWidth={2.5} />
         </button>
         <div className="flex flex-col min-w-0 flex-1">
-          <input
-            type="text"
-            value={emp.name}
-            onChange={(e) => handleUpdateNameLocal(e.target.value.toUpperCase())}
-            className="font-bold text-[14px] text-white bg-transparent outline-none w-full placeholder:text-white/30 truncate leading-none"
-            placeholder="NOME SOBRENOME"
-          />
+          <span
+            className="font-bold text-[14px] text-white w-full truncate leading-none uppercase tracking-wide block"
+          >
+            {emp.name}
+          </span>
           <div className="flex items-center gap-1 mt-1">
             <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
             <input 
@@ -4171,14 +4163,11 @@ const SpecialShiftSlot = React.memo(({
             <User className="w-3 h-3" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col min-w-0">
-            <input
-              type="text"
-              value={emp.name}
-              onFocus={handleStartEditLocal}
-              onChange={(e) => handleUpdateLocal('name', e.target.value.toUpperCase())}
-              className="font-bold text-[12px] text-white bg-transparent outline-none w-[130px] truncate uppercase leading-none placeholder:text-white/30"
-              placeholder="NOME SOBRENOME"
-            />
+            <span
+              className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block"
+            >
+              {emp.name}
+            </span>
             {emp.tagType && (
               <span 
                 onClick={(e) => {
