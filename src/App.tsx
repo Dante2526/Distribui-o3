@@ -843,6 +843,7 @@ function AdminModal({
                     } ${
                       showPassword ? '' : 'text-transparent select-all caret-[#FF6B00]'
                     }`}
+                    style={{ fontSize: '16px' }}
                     autoFocus
                     autoComplete="off"
                     autoCorrect="off"
@@ -856,7 +857,8 @@ function AdminModal({
                       }`}
                       style={{ 
                         lineHeight: '1',
-                        letterSpacing: 'normal'
+                        letterSpacing: 'normal',
+                        fontSize: '16px'
                       }}
                     >
                       {password.split('').map((char, i) => {
