@@ -1578,9 +1578,37 @@ function AppContent() {
 
     if (!overContainer || !overType) return;
 
-    // Se estiver no mesmo container, retornar imediatamente!
-    // A reordenação interna é feita de forma visual pelo useSortable e gravada apenas no handleDragEnd!
+    // Se estiver no mesmo container, movemos o item no estado React em tempo real!
+    // Isso garante que o "fantasma" físico acompanhe as posições exatas.
+    // Como os componentes filhos agora estão perfeitamente memoizados, isso não causará LAG.
     if (activeContainer === overContainer) {
+      if (activeType === 'maquinista') {
+        const dept = departmentsDataRef.current.find(d => d.id === activeContainer);
+        if (dept) {
+          const activeIndex = dept.data.findIndex(e => e.id === activeId);
+          const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
+          if (activeIndex !== overIndex && activeIndex !== -1) {
+            setDepartmentsData(prev => prev.map(d => {
+              if (d.id === activeContainer) {
+                return { ...d, data: arrayMove(d.data, activeIndex, overIndex) };
+              }
+              return d;
+            }));
+          }
+        }
+      } else if (activeType === 'apoio') {
+        const groupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
+        if (!isNaN(groupIdx)) {
+          const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(e => e.id === activeId);
+          const overIndex = overIdx >= 0 ? overIdx : supportRolesDataRef.current[groupIdx].length - 1;
+          if (activeIndex !== overIndex && activeIndex !== -1) {
+            setSupportRolesData(prev => prev.map((g, idx) => {
+              if (idx === groupIdx) return arrayMove(g, activeIndex, overIndex);
+              return g;
+            }));
+          }
+        }
+      }
       return;
     }
 
@@ -2853,6 +2881,7 @@ function AppContent() {
               </DragOverlay>
 
             </DndContext>
+          </div>
         </div>
       </div>
     </div>
@@ -3572,6 +3601,12 @@ const EmployeeRow = React.memo(({
 
     </motion.div>
   );
+}, (prevProps, nextProps) => {
+  if (prevProps.emp.id !== nextProps.emp.id) return false;
+  if (prevProps.index !== nextProps.index) return false;
+  if (prevProps.isDragActive !== nextProps.isDragActive) return false;
+  if (prevProps.activeEdit !== nextProps.activeEdit) return false;
+  return true;
 });
 
 const SupportCard = React.memo(({ 
@@ -4107,6 +4142,11 @@ const SupportRoleRow = React.memo(({
       )}
     </div>
   );
+}, (prevProps, nextProps) => {
+  if (prevProps.emp.id !== nextProps.emp.id) return false;
+  if (prevProps.index !== nextProps.index) return false;
+  if (prevProps.isDragActive !== nextProps.isDragActive) return false;
+  return true;
 });
 
 const SpecialShiftSlot = React.memo(({
