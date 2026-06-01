@@ -1581,35 +1581,6 @@ function AppContent() {
     // Se estiver no mesmo container, retornar imediatamente!
     // A reordenação interna é feita de forma visual pelo useSortable e gravada apenas no handleDragEnd!
     if (activeContainer === overContainer) {
-      // HOTFIX: Se o usuário escorregar o cartão para a pista de pouso (padding vazio) 
-      // do PRÓPRIO container, o dnd-kit aborta a animação visual por não achar um SortableItem.
-      // Para o fantasma não ficar preso na posição antiga, forçamos o cartão pro final do array no React!
-      if (overIdx === -1) {
-        if (activeType === 'maquinista') {
-          setDepartmentsData(prev => prev.map(d => {
-            if (d.id === activeContainer && activeIdx !== d.data.length - 1) {
-              const newData = [...d.data];
-              const item = newData.splice(activeIdx, 1)[0];
-              newData.push(item);
-              return { ...d, data: newData, count: newData.length };
-            }
-            return d;
-          }));
-        } else if (activeType === 'apoio') {
-          const groupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
-          if (!isNaN(groupIdx)) {
-            setSupportRolesData(prev => prev.map((g, idx) => {
-              if (idx === groupIdx && activeIdx !== g.length - 1) {
-                const newGroup = [...g];
-                const item = newGroup.splice(activeIdx, 1)[0];
-                newGroup.push(item);
-                return newGroup;
-              }
-              return g;
-            }));
-          }
-        }
-      }
       return;
     }
 
