@@ -532,8 +532,12 @@ function AdminModal({
       if (window.visualViewport) {
         const { width, height, offsetLeft, offsetTop, scale } = window.visualViewport;
         const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+        
+        // Ativamos o posicionamento absoluto e correção de escala apenas se houver zoom ativo
+        // (escala diferente de 1.0 com tolerância de 0.03)
+        const isZoomed = isMobile && Math.abs(scale - 1) > 0.03;
 
-        if (isMobile) {
+        if (isZoomed) {
           setViewportStyles({
             backdrop: {
               position: 'absolute',
@@ -558,6 +562,7 @@ function AdminModal({
             }
           });
         } else {
+          // Sem zoom, o fixed inset-0 nativo é 100% preciso em todos os navegadores (evitando bugs com barras de endereço no rodapé)
           setViewportStyles({
             backdrop: {},
             card: {}
