@@ -2743,7 +2743,7 @@ function AppContent() {
             {/* Main Content Area */}
             <DndContext
               sensors={sensors}
-              collisionDetection={pointerWithin}
+              collisionDetection={closestCenter}
               modifiers={[scaleCompensationModifier]}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
