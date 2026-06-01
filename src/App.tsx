@@ -917,6 +917,15 @@ function AddUserModal({
   const [continueAdding, setContinueAdding] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  // --- Visual Viewport Tracking para Mobile (Centralização Perfeita e Sem Zoom) ---
+  const [viewportStyles, setViewportStyles] = useState<{
+    backdrop: React.CSSProperties;
+    card: React.CSSProperties;
+  }>({
+    backdrop: {},
+    card: {}
+  });
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => nameInputRef.current?.focus(), 150);
@@ -924,6 +933,61 @@ function AddUserModal({
       setName('');
       setMatricula('');
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePosition = () => {
+      if (window.visualViewport) {
+        const { width, height, offsetLeft, offsetTop, scale } = window.visualViewport;
+        const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
+        if (isMobile) {
+          setViewportStyles({
+            backdrop: {
+              position: 'absolute',
+              left: `${offsetLeft}px`,
+              top: `${offsetTop}px`,
+              width: `${width}px`,
+              height: `${height}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 100,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(5px)',
+              animation: 'fadeIn 0.2s ease-out forwards',
+            },
+            card: {
+              transform: `scale(${1 / scale})`,
+              transformOrigin: 'center center',
+              maxHeight: `${height * 0.95}px`,
+              // No mobile, abrimos instantaneamente sem animações de zoom (fadeInScale), usando fadeIn apenas
+              animation: 'fadeIn 0.25s ease-out forwards',
+            }
+          });
+        } else {
+          setViewportStyles({
+            backdrop: {},
+            card: {}
+          });
+        }
+      }
+    };
+
+    const handler = () => {
+      requestAnimationFrame(updatePosition);
+    };
+
+    window.visualViewport?.addEventListener('resize', handler);
+    window.visualViewport?.addEventListener('scroll', handler);
+    updatePosition(); // Inicial
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handler);
+      window.visualViewport?.removeEventListener('scroll', handler);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -950,10 +1014,12 @@ function AddUserModal({
     onClose();
   };
 
+  const isViewportBackdrop = !!viewportStyles.backdrop.position;
+
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{
+      className={isViewportBackdrop ? "" : "fixed inset-0 z-[100] flex items-center justify-center p-4"}
+      style={isViewportBackdrop ? viewportStyles.backdrop : {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(5px)',
         animation: 'fadeIn 0.2s ease-out forwards',
@@ -961,13 +1027,15 @@ function AddUserModal({
       onClick={handleClose}
     >
       <div
-        className={`rounded-[32px] shadow-2xl w-full max-w-[390px] p-8 relative mx-4 transition-all duration-300 animate-[fadeInScale_0.25s_ease-out_forwards] flex flex-col ${
+        className={`rounded-[32px] shadow-2xl w-full max-w-[390px] p-6 md:p-8 relative mx-4 transition-all duration-300 flex flex-col ${
           isDarkMode 
             ? 'bg-[#1E2029] border border-white/10 text-white' 
             : 'bg-white border border-gray-100 text-[#1F2937]'
+        } ${
+          viewportStyles.card.transform ? '' : 'animate-[fadeInScale_0.25s_ease-out_forwards]'
         }`}
         onClick={(e) => e.stopPropagation()}
-        style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
+        style={viewportStyles.card.transform ? viewportStyles.card : { animation: 'fadeInScale 0.25s ease-out forwards' }}
       >
         <button
           onClick={handleClose}
@@ -2120,7 +2188,7 @@ function AppContent() {
 
     let minScale = 0.2;
     if (scalableContainer.offsetWidth > 0) {
-      minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+      minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
     }
 
     const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
@@ -2192,7 +2260,7 @@ function AppContent() {
 
         let minScale = 0.2;
         if (scalableContainer.offsetWidth > 0) {
-          minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+          minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
         }
 
         if (newScale < minScale) {
@@ -2222,7 +2290,7 @@ function AppContent() {
 
         let minScale = 0.2;
         if (scalableContainer.offsetWidth > 0) {
-          minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+          minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
         }
 
         if (newScale < minScale) {
