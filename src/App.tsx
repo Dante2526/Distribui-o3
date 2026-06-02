@@ -516,6 +516,7 @@ function AdminModal({
   const timerRef = useRef<any>(null);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const maskScrollRef = useRef<HTMLDivElement>(null);
 
   // --- Visual Viewport Tracking para Mobile (Centralização Perfeita e Sem Zoom) ---
   const [viewportStyles, setViewportStyles] = useState<{
@@ -527,7 +528,10 @@ function AdminModal({
   });
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setViewportStyles({ backdrop: {}, card: {} });
+      return;
+    }
 
     const updatePosition = () => {
       if (window.visualViewport) {
@@ -542,38 +546,23 @@ function AdminModal({
               top: `${offsetTop}px`,
               width: `${width}px`,
               height: `${height}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 100,
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(5px)',
-              animation: 'fadeIn 0.2s ease-out forwards',
             },
             card: {
               transform: `scale(${1 / scale})`,
               transformOrigin: 'center center',
               maxHeight: `${height * 0.95}px`,
-              // No mobile, abrimos instantaneamente sem animações de zoom (fadeInScale), usando fadeIn apenas
-              animation: 'fadeIn 0.25s ease-out forwards',
             }
           });
         } else {
-          setViewportStyles({
-            backdrop: {},
-            card: {}
-          });
+          setViewportStyles({ backdrop: {}, card: {} });
         }
       }
     };
 
-    const handler = () => {
-      requestAnimationFrame(updatePosition);
-    };
-
+    const handler = () => requestAnimationFrame(updatePosition);
     window.visualViewport?.addEventListener('resize', handler);
     window.visualViewport?.addEventListener('scroll', handler);
-    updatePosition(); // Inicial
+    updatePosition(); 
 
     return () => {
       window.visualViewport?.removeEventListener('resize', handler);
@@ -625,33 +614,42 @@ function AdminModal({
     }
   };
 
-  if (!isOpen) return null;
-
   const isViewportBackdrop = !!viewportStyles.backdrop.position;
 
   return (
-    <div
-      className={isViewportBackdrop ? "" : "fixed inset-0 z-[100] flex items-center justify-center p-4"}
-      style={isViewportBackdrop ? viewportStyles.backdrop : {
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(5px)',
-        animation: 'fadeIn 0.2s ease-out forwards',
-      }}
-      onClick={handleClose}
-    >
-      <div
-        className={`rounded-[32px] shadow-2xl w-full text-center relative transition-all duration-300 flex flex-col ${
-          isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[384px] px-4 py-6 md:p-8'
-        } max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
-          isDarkMode 
-            ? 'bg-[#1E2029] border border-white/10 text-white' 
-            : 'bg-white border border-gray-100 text-[#1F2937]'
-        } ${
-          viewportStyles.card.transform ? '' : 'animate-[fadeInScale_0.25s_ease-out_forwards]'
-        }`}
-        onClick={(e) => e.stopPropagation()}
-        style={viewportStyles.card.transform ? viewportStyles.card : { animation: 'fadeInScale 0.25s ease-out forwards' }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className={isViewportBackdrop ? "flex items-center justify-center p-4 overflow-hidden z-[100]" : "fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden"}
+          style={isViewportBackdrop ? {
+            ...viewportStyles.backdrop,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          } : {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={`rounded-[24px] shadow-2xl w-full text-center relative flex flex-col transition-colors duration-300 ${
+              isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[370px] px-4 py-6 md:p-8'
+            } max-h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+              isDarkMode 
+                ? 'bg-[#1E2029] border border-white/10 text-white' 
+                : 'bg-white border border-gray-100 text-[#1F2937]'
+            }`}
+            style={isViewportBackdrop ? viewportStyles.card : {}}
+            onClick={(e) => e.stopPropagation()}
+          >
         <button
           onClick={handleClose}
           className={`absolute top-5 right-5 text-3xl font-light z-10 transition-colors cursor-pointer ${
@@ -824,7 +822,7 @@ function AdminModal({
                     placeholder="E-mail do Administrador"
                     value={password}
                     onChange={handlePasswordChange}
-                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-mono transition-all relative z-10 ${
+                    className={`text-base w-full p-4 pr-10 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-mono transition-all relative z-10 ${
                       isDarkMode 
                         ? `bg-[#111217] border border-white/10 placeholder-white/30 ${showPassword ? 'text-white' : 'text-transparent'}` 
                         : `bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 ${showPassword ? 'text-gray-900' : 'text-transparent'}`
@@ -834,22 +832,30 @@ function AdminModal({
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
+                    onScroll={(e) => {
+                      if (maskScrollRef.current) {
+                        maskScrollRef.current.style.transform = `translateX(-${e.currentTarget.scrollLeft}px)`;
+                      }
+                    }}
                   />
                   {!showPassword && password.length > 0 && (
                     <div 
-                      className={`text-base absolute inset-y-0 left-4 right-12 flex items-center pointer-events-none z-20 font-mono truncate text-left select-none overflow-hidden whitespace-nowrap ${
-                        isDarkMode ? 'text-white' : 'text-gray-900'
-                      }`}
-                      style={{ 
-                        lineHeight: '1',
-                        letterSpacing: 'normal'
-                      }}
+                      className={`text-base absolute inset-y-0 left-4 right-10 flex items-center pointer-events-none z-20 overflow-hidden`}
                     >
-                      {password.split('').map((char, index) => (
-                        <span key={index}>
-                          {index === visibleIndex ? char : '●'}
-                        </span>
-                      ))}
+                      <div
+                        ref={maskScrollRef}
+                        className={`font-mono whitespace-nowrap flex items-center h-full ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                        style={{ 
+                          lineHeight: '1',
+                          letterSpacing: 'normal'
+                        }}
+                      >
+                        {password.split('').map((char, index) => (
+                          <span key={index}>
+                            {index === visibleIndex ? char : '●'}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                   <button
@@ -870,9 +876,7 @@ function AdminModal({
                   * Digite tudo em minúsculo
                 </span>
               </div>
-              {error && (
-                <p className="text-sm text-red-400 font-semibold text-left px-1">{error}</p>
-              )}
+
               <button
                 type="submit"
                 className="w-full py-3 bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[#FF6B00]/30"
@@ -882,8 +886,10 @@ function AdminModal({
             </form>
           </>
         )}
-      </div>
-    </div>
+      </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -915,16 +921,10 @@ function AddUserModal({
   });
 
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => nameInputRef.current?.focus(), 150);
-    } else {
-      setName('');
-      setMatricula('');
+    if (!isOpen) {
+      setViewportStyles({ backdrop: {}, card: {} });
+      return;
     }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
 
     const updatePosition = () => {
       if (window.visualViewport) {
@@ -939,38 +939,23 @@ function AddUserModal({
               top: `${offsetTop}px`,
               width: `${width}px`,
               height: `${height}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 100,
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(5px)',
-              animation: 'fadeIn 0.2s ease-out forwards',
             },
             card: {
               transform: `scale(${1 / scale})`,
               transformOrigin: 'center center',
               maxHeight: `${height * 0.95}px`,
-              // No mobile, abrimos instantaneamente sem animações de zoom (fadeInScale), usando fadeIn apenas
-              animation: 'fadeIn 0.25s ease-out forwards',
             }
           });
         } else {
-          setViewportStyles({
-            backdrop: {},
-            card: {}
-          });
+          setViewportStyles({ backdrop: {}, card: {} });
         }
       }
     };
 
-    const handler = () => {
-      requestAnimationFrame(updatePosition);
-    };
-
+    const handler = () => requestAnimationFrame(updatePosition);
     window.visualViewport?.addEventListener('resize', handler);
     window.visualViewport?.addEventListener('scroll', handler);
-    updatePosition(); // Inicial
+    updatePosition(); 
 
     return () => {
       window.visualViewport?.removeEventListener('resize', handler);
@@ -978,53 +963,50 @@ function AddUserModal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    onAddUser(name.trim().toUpperCase(), matricula.trim(), sectorId);
-
-    setName('');
-    setMatricula('');
-
-    if (continueAdding) {
-      setTimeout(() => nameInputRef.current?.focus(), 50);
+  // Efeito adicional para o foco no input
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => nameInputRef.current?.focus(), 150);
     } else {
-      onClose();
+      setName('');
+      setMatricula('');
     }
-  };
-
-  const handleClose = () => {
-    setName('');
-    setMatricula('');
-    onClose();
-  };
+  }, [isOpen]);
 
   const isViewportBackdrop = !!viewportStyles.backdrop.position;
 
   return (
-    <div
-      className={isViewportBackdrop ? "" : "fixed inset-0 z-[100] flex items-center justify-center p-4"}
-      style={isViewportBackdrop ? viewportStyles.backdrop : {
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(5px)',
-        animation: 'fadeIn 0.2s ease-out forwards',
-      }}
-      onClick={handleClose}
-    >
-      <div
-        className={`rounded-[32px] shadow-2xl w-full max-w-[390px] p-6 md:p-8 relative mx-4 transition-all duration-300 flex flex-col ${
-          isDarkMode 
-            ? 'bg-[#1E2029] border border-white/10 text-white' 
-            : 'bg-white border border-gray-100 text-[#1F2937]'
-        } ${
-          viewportStyles.card.transform ? '' : 'animate-[fadeInScale_0.25s_ease-out_forwards]'
-        }`}
-        onClick={(e) => e.stopPropagation()}
-        style={viewportStyles.card.transform ? viewportStyles.card : { animation: 'fadeInScale 0.25s ease-out forwards' }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className={isViewportBackdrop ? "flex items-center justify-center p-4 overflow-hidden z-[100]" : "fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden"}
+          style={isViewportBackdrop ? {
+            ...viewportStyles.backdrop,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          } : {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={`rounded-[32px] shadow-2xl w-full max-w-[390px] p-6 md:p-8 relative mx-4 flex flex-col transition-colors duration-300 ${
+              isDarkMode 
+                ? 'bg-[#1E2029] border border-white/10 text-white' 
+                : 'bg-white border border-gray-100 text-[#1F2937]'
+            } max-h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}
+            style={isViewportBackdrop ? viewportStyles.card : {}}
+            onClick={(e) => e.stopPropagation()}
+          >
         <button
           onClick={handleClose}
           className={`absolute top-5 right-5 text-3xl font-light z-10 transition-colors cursor-pointer ${
@@ -1149,8 +1131,10 @@ function AddUserModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -1686,7 +1670,7 @@ function AppContent() {
           overType = 'apoio';
         } else {
           for (let idx = 0; idx < supportRolesData.length; idx++) {
-            const supportIdx = supportRolesData[idx].findIndex(e => e.id === activeId);
+            const supportIdx = supportRolesData[idx].findIndex(e => e.id === overId);
             if (supportIdx !== -1) {
               overContainer = `support-group-${idx}`;
               overType = 'apoio';
@@ -2175,8 +2159,10 @@ function AppContent() {
     if (!viewport || !scalableContainer || !contentWrapper) return;
 
     let minScale = 0.2;
-    if (scalableContainer.offsetWidth > 0) {
-      minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
+    if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
+      const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
+      const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
+      minScale = Math.min(1.0, Math.max(scaleW, scaleH));
     }
 
     const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
@@ -2247,14 +2233,14 @@ function AppContent() {
         let newScale = initialScaleValue * scaleRatio;
 
         let minScale = 0.2;
-        if (scalableContainer.offsetWidth > 0) {
-          minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
+        if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
+          const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
+          const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
+          minScale = Math.min(1.0, Math.max(scaleW, scaleH));
         }
-
-        if (newScale < minScale) {
-          newScale = minScale;
-          if (scaleStateRef.current.currentScale === minScale) return;
-        }
+        
+        newScale = Math.max(minScale, Math.min(newScale, 2.0));
+        if (scaleStateRef.current.currentScale === newScale) return;
 
         const originX = touchCenter.x - viewport.getBoundingClientRect().left;
         const originY = touchCenter.y - viewport.getBoundingClientRect().top;
@@ -2277,14 +2263,14 @@ function AppContent() {
         let newScale = scaleStateRef.current.currentScale + delta * scaleStateRef.current.currentScale;
 
         let minScale = 0.2;
-        if (scalableContainer.offsetWidth > 0) {
-          minScale = Math.min(1.0, viewport.clientWidth / scalableContainer.offsetWidth);
+        if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
+          const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
+          const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
+          minScale = Math.min(1.0, Math.max(scaleW, scaleH));
         }
 
-        if (newScale < minScale) {
-          newScale = minScale;
-          if (scaleStateRef.current.currentScale === minScale) return;
-        }
+        newScale = Math.max(minScale, Math.min(newScale, 2.0));
+        if (scaleStateRef.current.currentScale === newScale) return;
 
         const originX = e.clientX - viewport.getBoundingClientRect().left;
         const originY = e.clientY - viewport.getBoundingClientRect().top;
@@ -2354,6 +2340,8 @@ function AppContent() {
     viewport.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+    viewport.addEventListener('touchstart', handleTouchStart as EventListener, { passive: false });
+    viewport.addEventListener('touchmove', handleTouchMove as EventListener, { passive: false });
     viewport.style.cursor = 'grab';
 
     return () => {
@@ -2365,6 +2353,8 @@ function AppContent() {
       if (viewport) {
         viewport.removeEventListener('wheel', handleWheel);
         viewport.removeEventListener('mousedown', handleMouseDown);
+        viewport.removeEventListener('touchstart', handleTouchStart as EventListener);
+        viewport.removeEventListener('touchmove', handleTouchMove as EventListener);
       }
     };
   }, [initializeScale, setScale]);
@@ -2943,7 +2933,7 @@ function AppContent() {
                 </div>
 
                 {/* Support Roles Grid - Always 3 columns */}
-                <div className="flex gap-6 w-max pb-[50vh]">
+                <div className="flex gap-6 w-max pb-8">
                   {supportRolesData.map((group, index) => (
                     <div key={index} className="w-[600px] shrink-0">
                       <SupportCard 
@@ -3953,7 +3943,7 @@ const SupportRoleRow = React.memo(({
         </button>
         <div className="flex flex-col min-w-0 flex-1">
           <span
-            className="font-bold text-[14px] text-white w-full truncate leading-none uppercase tracking-wide block input-emp-name"
+            className="font-bold text-[14px] text-white w-full truncate leading-none uppercase tracking-wide block"
           >
             {emp.name}
           </span>
@@ -4331,7 +4321,7 @@ const SpecialShiftSlot = React.memo(({
           </div>
           <div className="flex flex-col min-w-0">
             <span
-              className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block input-emp-name"
+              className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block"
             >
               {emp.name}
             </span>
