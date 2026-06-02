@@ -824,7 +824,7 @@ function AdminModal({
                     placeholder="E-mail do Administrador"
                     value={password}
                     onChange={handlePasswordChange}
-                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-sans transition-all relative z-10 ${
+                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-mono transition-all relative z-10 ${
                       isDarkMode 
                         ? `bg-[#111217] border border-white/10 placeholder-white/30 ${showPassword ? 'text-white' : 'text-transparent'}` 
                         : `bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 ${showPassword ? 'text-gray-900' : 'text-transparent'}`
@@ -837,7 +837,7 @@ function AdminModal({
                   />
                   {!showPassword && password.length > 0 && (
                     <div 
-                      className={`text-base absolute inset-y-0 left-0 flex items-center pl-4 pr-12 pointer-events-none z-20 font-sans text-left select-none ${
+                      className={`text-base absolute inset-y-0 left-0 flex items-center pl-4 pr-12 pointer-events-none z-20 font-mono truncate text-left select-none overflow-hidden whitespace-nowrap ${
                         isDarkMode ? 'text-white' : 'text-gray-900'
                       }`}
                       style={{ 
