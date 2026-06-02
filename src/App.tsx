@@ -837,7 +837,7 @@ function AdminModal({
                   />
                   {!showPassword && password.length > 0 && (
                     <div 
-                      className={`text-base absolute inset-y-0 left-0 flex items-center pl-4 pr-12 pointer-events-none z-20 font-mono truncate text-left select-none overflow-hidden whitespace-nowrap ${
+                      className={`text-base absolute inset-y-0 left-4 right-12 flex items-center pointer-events-none z-20 font-mono truncate text-left select-none overflow-hidden whitespace-nowrap ${
                         isDarkMode ? 'text-white' : 'text-gray-900'
                       }`}
                       style={{ 
