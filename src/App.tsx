@@ -640,8 +640,8 @@ function AdminModal({
       onClick={handleClose}
     >
       <div
-        className={`rounded-[32px] shadow-2xl w-full text-center relative mx-4 transition-all duration-300 flex flex-col ${
-          isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[370px] p-6 md:p-8'
+        className={`rounded-[32px] shadow-2xl w-full text-center relative transition-all duration-300 flex flex-col ${
+          isAdmin ? 'max-w-[448px] px-4 py-4 md:px-8 md:py-8' : 'max-w-[384px] px-4 py-6 md:p-8'
         } max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
           isDarkMode 
             ? 'bg-[#1E2029] border border-white/10 text-white' 
