@@ -67,7 +67,7 @@ const StatCard = React.memo(({ label, value, colorClass, bgClass }: { label: str
 ));
 
 // --- Status Types and Predefined Styles ---
-export type StatusType = 'FÉRIAS' | 'FORA' | 'ATM' | 'RESTRIÇÃO' | 'INSS';
+export type StatusType = 'FÉRIAS' | 'FORA' | 'ATM' | 'RESTRIÇÃO' | 'INSS' | 'TREINAMENTO' | 'REVEZAMENTO' | 'ESTÁGIO';
 
 export const STATUS_METADATA: Record<StatusType, {
   label: string;
@@ -110,6 +110,27 @@ export const STATUS_METADATA: Record<StatusType, {
     colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro
     dotColor: 'bg-[#FF453A]',
     icon: FileText,
+  },
+  'TREINAMENTO': {
+    label: 'TREINAMENTO',
+    colorDark: 'text-[#0A84FF]',      // Azul (iOS Blue)
+    colorLight: 'text-[#2563EB]',     // Azul forte no claro
+    dotColor: 'bg-[#0A84FF]',
+    icon: UserCog,
+  },
+  'REVEZAMENTO': {
+    label: 'REVEZAMENTO',
+    colorDark: 'text-[#32ADE6]',      // Azul claro/Ciano
+    colorLight: 'text-[#0284C7]',     // Sky forte
+    dotColor: 'bg-[#32ADE6]',
+    icon: RefreshCw,
+  },
+  'ESTÁGIO': {
+    label: 'ESTÁGIO',
+    colorDark: 'text-[#10B981]',      // Verde Esmeralda
+    colorLight: 'text-[#059669]',     // Verde forte
+    dotColor: 'bg-[#10B981]',
+    icon: User,
   }
 };
 
@@ -232,7 +253,7 @@ const initialSupportData: SupportRole[][] = [
 
 const initialAnnotationsLeft: AnnotationGroup[] = [
   {
-    title: 'FÉRIAS/ATM/TE/TREIN./REVEZA',
+    title: 'FÉRIAS/TE/TREIN./REVEZA',
     items: [
       { id: 'emp-' + (29), name: 'WEBERTH SILVA', status: 'TREINAMENTO', matricula: '00014820', originalDeptId: 'recepcao' },
       { id: 'emp-' + (30), name: 'RAFAEL SOUZA', status: 'TREINAMENTO', matricula: '00038100', originalDeptId: 'classificacao' },
@@ -241,11 +262,18 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
     ]
   },
   {
-    title: 'AUSENTES/FORA/FÉRIAS',
+    title: 'FÉRIAS',
     items: [
       { id: 'emp-' + (35), name: 'ALDO RIBEIRO', status: 'FÉRIAS', matricula: '00000725', originalDeptId: 'recepcao' },
       { id: 'emp-' + (36), name: 'KEYLSON LIMA', status: 'FÉRIAS', matricula: '00000298', originalDeptId: 'classificacao' },
       { id: 'emp-' + (37), name: 'JOANDERSON ALVES', status: 'FÉRIAS', matricula: '00000801', originalDeptId: 'formacao' },
+    ]
+  },
+  {
+    title: 'ATM / FORA',
+    items: [
+      { id: 'emp-empty-1', name: '', status: '', matricula: '' },
+      { id: 'emp-empty-2', name: '', status: '', matricula: '' },
     ]
   }
 ];
@@ -264,7 +292,7 @@ const initialAnnotationsRight: AnnotationGroup[] = [
     ]
   },
   {
-    title: 'TREINAMENTO / FÉRIAS/ ATM / TE',
+    title: 'RESTRIÇÃO',
     items: [
       { id: 'emp-' + (48), name: 'ANA PAULA SILVA', status: 'RESTRIÇÃO', matricula: '00000811', originalDeptId: 'recepcao' },
       { id: 'emp-' + (49), name: 'JONH CARDOSO', status: 'RESTRIÇÃO', matricula: '00000812', originalDeptId: 'classificacao' },
@@ -276,7 +304,7 @@ const initialAnnotationsRight: AnnotationGroup[] = [
     ]
   },
   {
-    title: 'FÉRIAS/IN SP/LICENÇA',
+    title: 'INSS',
     items: [
       { id: 'emp-' + (57), name: 'EDNELSON MELO', status: 'INSS', matricula: '00002801', originalDeptId: 'recepcao' },
     ]
@@ -1362,7 +1390,9 @@ function AppContent() {
     report += `AFASTAMENTOS:\n`;
     report += `• Férias: ${totalFerias}\n`;
     report += `• Fora: ${totalFora}\n`;
-    report += `• ATM: ${totalATM}\n\n`;
+    report += `• ATM: ${totalATM}\n`;
+    report += `• Treinamento: ${todasAnotacoes.filter(item => item.status.toUpperCase().includes('TREINA')).length}\n`;
+    report += `• Revezamento: ${todasAnotacoes.filter(item => item.status.toUpperCase().includes('REVEZA')).length}\n\n`;
     report += `Colaboradores por Setor:\n`;
     departmentsData.forEach(d => {
       report += `\n[${d.title}] (${d.count} Colab.)\n`;
@@ -2162,7 +2192,7 @@ function AppContent() {
     if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
       const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
       const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
-      minScale = Math.min(1.0, Math.max(scaleW, scaleH));
+      minScale = Math.max(scaleW, scaleH);
     }
 
     const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
@@ -2193,8 +2223,12 @@ function AppContent() {
       const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 0.85);
       setScale(finalScale, 0, 0);
     } else {
-      // Escala fixa otimizada de 0.92 para o enquadramento perfeito das 3 colunas principais (Recepção, Classificação, Formação)
-      setScale(0.92, 0, 0);
+      // Escala dinâmica para mostrar exatamente as 3 colunas principais em qualquer tela (PC ou TV)
+      // 3 colunas (3x500px) + gaps (2x24px) + padding esquerdo (32px) = 1580px. 
+      // Usamos 1600px para dar uma margem direita de 20px, escondendo perfeitamente a 4ª coluna.
+      const threeColumnsScale = viewport.clientWidth / 1600;
+      const finalScale = Math.min(Math.max(threeColumnsScale, 0.3), 2.0);
+      setScale(finalScale, 0, 0);
     }
   }, [setScale]);
 
@@ -2236,7 +2270,7 @@ function AppContent() {
         if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
           const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
           const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
-          minScale = Math.min(1.0, Math.max(scaleW, scaleH));
+          minScale = Math.max(scaleW, scaleH);
         }
         
         newScale = Math.max(minScale, Math.min(newScale, 2.0));
@@ -2266,7 +2300,7 @@ function AppContent() {
         if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
           const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
           const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
-          minScale = Math.min(1.0, Math.max(scaleW, scaleH));
+          minScale = Math.max(scaleW, scaleH);
         }
 
         newScale = Math.max(minScale, Math.min(newScale, 2.0));
@@ -2486,15 +2520,21 @@ function AppContent() {
     let targetRightGroupIndex = -1;
 
     if (absenceType === 'FÉRIAS') {
-      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+      targetLeftGroupIndex = 1; // "FÉRIAS"
     } else if (absenceType === 'FORA') {
-      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+      targetLeftGroupIndex = 2; // "ATM / FORA"
     } else if (absenceType === 'ATM') {
-      targetLeftGroupIndex = 0; // "FÉRIAS/ATM/TE/TREIN./REVEZA"
+      targetLeftGroupIndex = 2; // "ATM / FORA"
     } else if (absenceType === 'RESTRIÇÃO') {
-      targetRightGroupIndex = 1; // "TREINAMENTO / FÉRIAS/ ATM / TE"
+      targetRightGroupIndex = 1; // "RESTRIÇÃO"
     } else if (absenceType === 'INSS') {
-      targetRightGroupIndex = 2; // "FÉRIAS/IN SP/LICENÇA"
+      targetRightGroupIndex = 2; // "INSS"
+    } else if (absenceType === 'TREINAMENTO') {
+      targetLeftGroupIndex = 0; // "FÉRIAS/TE/TREIN./REVEZA"
+    } else if (absenceType === 'REVEZAMENTO') {
+      targetLeftGroupIndex = 0; // "FÉRIAS/TE/TREIN./REVEZA"
+    } else if (absenceType === 'ESTÁGIO') {
+      targetRightGroupIndex = 0; // "MAQ/OFF - ESTÁGIO"
     }
 
     if (targetLeftGroupIndex !== -1) {
@@ -2558,15 +2598,21 @@ function AppContent() {
     let targetRightGroupIndex = -1;
 
     if (absenceType === 'FÉRIAS') {
-      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+      targetLeftGroupIndex = 1; // "FÉRIAS"
     } else if (absenceType === 'FORA') {
-      targetLeftGroupIndex = 1; // "AUSENTES/FORA/FÉRIAS"
+      targetLeftGroupIndex = 2; // "ATM / FORA"
     } else if (absenceType === 'ATM') {
-      targetLeftGroupIndex = 0; // "FÉRIAS/ATM/TE/TREIN./REVEZA"
+      targetLeftGroupIndex = 2; // "ATM / FORA"
     } else if (absenceType === 'RESTRIÇÃO') {
-      targetRightGroupIndex = 1; // "TREINAMENTO / FÉRIAS/ ATM / TE"
+      targetRightGroupIndex = 1; // "RESTRIÇÃO"
     } else if (absenceType === 'INSS') {
-      targetRightGroupIndex = 2; // "FÉRIAS/IN SP/LICENÇA"
+      targetRightGroupIndex = 2; // "INSS"
+    } else if (absenceType === 'TREINAMENTO') {
+      targetLeftGroupIndex = 0; // "FÉRIAS/TE/TREIN./REVEZA"
+    } else if (absenceType === 'REVEZAMENTO') {
+      targetLeftGroupIndex = 0; // "FÉRIAS/TE/TREIN./REVEZA"
+    } else if (absenceType === 'ESTÁGIO') {
+      targetRightGroupIndex = 0; // "MAQ/OFF - ESTÁGIO"
     }
 
     const originalSupportGroupIndex = groupIndex;
@@ -2723,6 +2769,8 @@ function AppContent() {
   ).length;
 
   const totalINSS = todasAnotacoes.filter(item => item.status.toUpperCase() === 'INSS').length;
+  const totalTreinamento = todasAnotacoes.filter(item => item.status.toUpperCase().includes('TREINA')).length;
+  const totalRevezamento = todasAnotacoes.filter(item => item.status.toUpperCase().includes('REVEZA')).length;
 
   return (
     <>
@@ -2847,6 +2895,8 @@ function AppContent() {
                   <StatCard label="Restrição" value={totalRestricao} colorClass="text-[#BF5AF2]" bgClass="bg-[#BF5AF2]/10" />
                   <StatCard label="Estágio" value={totalEstagio} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
                   <StatCard label="INSS" value={totalINSS} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
+                  <StatCard label="Treinam." value={totalTreinamento} colorClass="text-[#0A84FF]" bgClass="bg-[#0A84FF]/10" />
+                  <StatCard label="Revezam." value={totalRevezamento} colorClass="text-[#32ADE6]" bgClass="bg-[#32ADE6]/10" />
                 </div>
               </div>
             </div>
@@ -2903,7 +2953,7 @@ function AppContent() {
                         onUpdateEmployee={handleUpdateEmployeeField}
                         onDelete={handleDelete}
                         onTransferToSpecial={handleTransferToSpecialShift}
-                        onMarkAbsent={handleMarkEmployeeAbsent}
+                        onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent(dept.id, empIndex, absenceType)}
                         isDarkMode={isDarkMode}
                         is6HActive={is6HActive}
                         activeEdits={activeEdits}
@@ -3158,7 +3208,7 @@ const DepartmentCard = React.memo(({
       </div>
 
       {/* Área Direita (Grade de Colaboradores) */}
-      <div ref={setNodeRef} className="flex-1 p-5 pb-[150px] bg-[#0D0E12]/30 flex flex-col">
+      <div ref={setNodeRef} className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
         <SortableContext id={department.id} items={sortableItems} strategy={verticalListSortingStrategy}>
         <div className="grid grid-cols-1 gap-4 flex-1">
           {department.data.map((emp, i) => (
@@ -3670,7 +3720,10 @@ const EmployeeRow = React.memo(({
                   { type: 'FORA' },
                   { type: 'ATM' },
                   { type: 'RESTRIÇÃO' },
-                  { type: 'INSS' }
+                  { type: 'INSS' },
+                  { type: 'TREINAMENTO' },
+                  { type: 'REVEZAMENTO' },
+                  { type: 'ESTÁGIO' }
                 ].map((opt) => {
                   const meta = STATUS_METADATA[opt.type as StatusType];
                   const Icon = meta.icon;
@@ -3781,7 +3834,7 @@ const SupportCard = React.memo(({
       </div>
       
       {/* Support List */}
-      <div ref={setNodeRef} className="p-3 pb-[150px] space-y-2 flex-1 min-h-[150px] flex flex-col">
+      <div ref={setNodeRef} className="p-3 space-y-2 flex-1 min-h-[150px] flex flex-col">
         <SortableContext id={`support-group-${groupIndex}`} items={sortableItems} strategy={verticalListSortingStrategy}>
         {roles.map((emp, i) => (
           <SupportRoleRow 
@@ -3799,6 +3852,14 @@ const SupportCard = React.memo(({
             onMarkAbsent={onMarkAbsent}
             onDelete={onDeleteSupport}
             isDragActive={isDragActive}
+          />
+        ))}
+
+        {/* Slots vazios de preenchimento para garantir espaço de 5 usuários */}
+        {Array.from({ length: Math.max(0, 5 - roles.length) }).map((_, idx) => (
+          <div
+            key={`empty-support-${groupIndex}-${idx}`}
+            className="min-h-[56px] select-none pointer-events-none"
           />
         ))}
         </SortableContext>
@@ -4213,7 +4274,10 @@ const SupportRoleRow = React.memo(({
                 { type: 'FORA' },
                 { type: 'ATM' },
                 { type: 'RESTRIÇÃO' },
-                { type: 'INSS' }
+                { type: 'INSS' },
+                { type: 'TREINAMENTO' },
+                { type: 'REVEZAMENTO' },
+                { type: 'ESTÁGIO' }
               ].map((opt) => {
                 const meta = STATUS_METADATA[opt.type as StatusType];
                 const Icon = meta.icon;
