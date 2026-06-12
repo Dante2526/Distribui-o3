@@ -1,0 +1,282 @@
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Clock, User, ArrowRight, FileText, ChevronDown, X } from 'lucide-react';
+import { MovementLog } from '../../types';
+import { useViewportStyles } from '../../hooks/useViewportStyles';
+
+interface HistoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  logs: MovementLog[];
+  isDarkMode: boolean;
+}
+
+export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModalProps) {
+  const viewportStyles = useViewportStyles(isOpen);
+  const isViewportBackdrop = !!viewportStyles.backdrop.position;
+
+  // Estado para controlar quais agrupamentos estão expandidos
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (employeeName: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [employeeName]: !prev[employeeName]
+    }));
+  };
+
+  // Agrupar as movimentações por funcionário
+  const groupedLogs = useMemo(() => {
+    const groups: Record<string, MovementLog[]> = {};
+    logs.forEach(log => {
+      if (!groups[log.employeeName]) {
+        groups[log.employeeName] = [];
+      }
+      groups[log.employeeName].push(log);
+    });
+    
+    // Converter para array e ordenar
+    return Object.values(groups).map(groupLogs => {
+      // Ordenar os logs internos do mais recente para o mais antigo
+      const sortedMovements = [...groupLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      
+      return {
+        employeeName: sortedMovements[0].employeeName,
+        movements: sortedMovements,
+        count: sortedMovements.length,
+        lastMove: sortedMovements[0].timestamp.getTime(),
+      };
+    }).sort((a, b) => b.lastMove - a.lastMove); // Ordenar os grupos pelo mais recente
+  }, [logs]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className={isViewportBackdrop ? "flex items-center justify-center p-4 overflow-hidden z-[100]" : "fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden"}
+          style={isViewportBackdrop ? {
+            ...viewportStyles.backdrop,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          } : {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className={`rounded-[24px] shadow-2xl w-full max-w-[800px] flex flex-col relative overflow-hidden transition-colors duration-300 ${
+              isDarkMode 
+                ? 'bg-[#1E2029]/95 border border-white/10 text-white backdrop-blur-xl' 
+                : 'bg-white/95 border border-gray-200 text-[#1F2937] backdrop-blur-xl'
+            }`}
+            style={isViewportBackdrop ? viewportStyles.card : { maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`p-6 md:p-8 shrink-0 flex items-center gap-4 ${
+              isDarkMode ? 'border-b border-white/10 bg-white/5' : 'border-b border-gray-100 bg-gray-50/50'
+            }`}>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30">
+                <Clock className="w-6 h-6 text-white" strokeWidth={2.5} />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl md:text-2xl font-black uppercase tracking-wide">
+                  Histórico de Movimentações
+                </h2>
+                <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Registro agrupado por funcionário
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                  isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <X className="w-5 h-5" strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {groupedLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
+                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
+                  }`}>
+                    <FileText className={`w-10 h-10 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+                  </div>
+                  <h3 className="text-lg font-bold">Nenhuma movimentação</h3>
+                  <p className={`text-sm mt-2 max-w-[250px] mx-auto ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    As alterações feitas nos cartões aparecerão aqui.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {groupedLogs.map((group) => {
+                    const isExpanded = expandedGroups[group.employeeName];
+                    const lastDataFormatada = new Intl.DateTimeFormat('pt-BR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    }).format(new Date(group.lastMove));
+
+                    return (
+                      <div 
+                        key={group.employeeName} 
+                        className={`rounded-[16px] overflow-hidden transition-all ${
+                          isDarkMode 
+                            ? 'bg-white/5 border border-white/5' 
+                            : 'bg-gray-50 border border-gray-100 shadow-sm'
+                        }`}
+                      >
+                        {/* Summary Header (Clickable) */}
+                        <div 
+                          onClick={() => toggleGroup(group.employeeName)}
+                          className={`p-4 md:p-5 flex items-center justify-between cursor-pointer transition-colors hover:bg-black/5 ${
+                            isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-200/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              isDarkMode ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'bg-[#4F46E5]/10 text-[#4F46E5]'
+                            }`}>
+                              <User className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-base">{group.employeeName}</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'
+                                }`}>
+                                  {group.count} {group.count === 1 ? 'Movimentação' : 'Movimentações'}
+                                </span>
+                                <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  Última às {lastDataFormatada}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${
+                            isExpanded ? 'rotate-180' : ''
+                          } ${isDarkMode ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-500'}`}>
+                            <ChevronDown className="w-5 h-5" />
+                          </div>
+                        </div>
+
+                        {/* Expanded Movements List */}
+                        <AnimatePresence initial={false}>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            >
+                              <div className={`border-t p-4 space-y-3 ${
+                                isDarkMode ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-white/50'
+                              }`}>
+                                {group.movements.map(log => {
+                                  const horaFormatada = new Intl.DateTimeFormat('pt-BR', {
+                                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                                  }).format(log.timestamp);
+                                  
+                                  return (
+                                    <div 
+                                      key={log.id} 
+                                      className={`p-3 rounded-[12px] flex flex-col md:flex-row md:items-center gap-3 ${
+                                        isDarkMode ? 'bg-white/5' : 'bg-white shadow-sm border border-gray-100'
+                                      }`}
+                                    >
+                                      {/* Hora da movimentação individual */}
+                                      <div className="flex items-center gap-2 shrink-0 md:min-w-[90px]">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#6366F1]' : 'bg-[#4F46E5]'}`}></div>
+                                        <span className="font-bold text-sm">{horaFormatada}</span>
+                                      </div>
+
+                                      {/* De -> Para e Info (Linha/Loco) */}
+                                      <div className="flex-1 flex flex-col justify-center gap-1.5">
+                                        <div className="flex items-center gap-2 text-sm flex-wrap">
+                                          <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider ${
+                                            isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-100 text-gray-700'
+                                          }`}>
+                                            {log.from}
+                                          </span>
+                                          <ArrowRight className={`w-3 h-3 shrink-0 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                                          <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider ${
+                                            isDarkMode ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'bg-[#4F46E5]/10 text-[#4F46E5]'
+                                          }`}>
+                                            {log.to}
+                                          </span>
+                                        </div>
+                                        {(log.line || log.machine) && (
+                                          <div className="flex items-center gap-1.5">
+                                            {log.line && (
+                                              <span className={`text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                                                L: {log.line}
+                                              </span>
+                                            )}
+                                            {log.machine && (
+                                              <span className={`text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                                                LOCO: {log.machine}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* ADM Responsável */}
+                                      <div className="shrink-0 flex items-center gap-2 md:justify-end">
+                                        <div className="flex flex-col text-right">
+                                          <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            POR
+                                          </span>
+                                          <span className="text-xs font-semibold">
+                                            {log.adminName}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
+            {/* Footer */}
+            <div className={`p-4 md:p-6 shrink-0 flex justify-end ${
+              isDarkMode ? 'border-t border-white/10 bg-white/5' : 'border-t border-gray-100 bg-gray-50/50'
+            }`}>
+              <button
+                onClick={onClose}
+                className={`px-8 py-3 rounded-xl font-bold transition-all active:scale-95 ${
+                  isDarkMode 
+                    ? 'bg-white/10 hover:bg-white/20 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                }`}
+              >
+                FECHAR
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

@@ -1,3 +1,4 @@
+/* Cache buster */
 @import "tailwindcss";
 
 /* === GENERAL STYLES === */
@@ -12,7 +13,28 @@ body,
     overscroll-behavior: none;
     background-color: #111217;
     -webkit-overflow-scrolling: touch;
-    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === THEME VIEW TRANSITION === */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+  will-change: clip-path;
+}
+
+html.dark-to-light::view-transition-old(root) {
+  z-index: 2;
+  will-change: clip-path;
+}
+html.dark-to-light::view-transition-new(root) {
+  z-index: 1;
 }
 
 /* === CUSTOM SCROLLBARS (PAINEL DSS STYLE) === */
@@ -103,63 +125,100 @@ a {
   }
 }
 
-/* === MODO CLARO - Cobertura Completa === */
-
-/* --- Raiz e viewport --- */
-.light-mode,
-.light-mode body {
-  background-color: #eef2f7 !important;
-  color: #1a202c !important;
+/* === THEME VARIABLES === */
+:root {
+  --bg-app: #111217;
+  --bg-viewport: #111217;
+  --bg-card: #111217;
+  --bg-dept: #1E2029;
+  --bg-header-dept: #15171E;
+  --bg-body-dept: rgba(13, 14, 18, 0.3);
+  --bg-row: #111217;
+  --bg-row-hover: #252836;
+  --bg-error: #3A1414;
+  --bg-error-hover: #4A1818;
+  
+  --text-main: #f7fafc;
+  --text-muted: #a0aec0;
+  
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-card: transparent;
+  --shadow-card: none;
+  --shadow-row-hover: none;
+  --transform-row-hover: none;
+  
+  --bg-popup: rgba(30, 32, 41, 0.8);
+  --border-popup: rgba(255, 255, 255, 0.1);
+  
+  --scroll-track: #1e293b;
+  --scroll-thumb: #475569;
+  --scroll-thumb-hover: #64748b;
 }
 
-/* viewport e scalable container */
-.light-mode .viewport {
-  background-color: #eef2f7 !important;
-}
-.light-mode .scalable-container {
-  background-color: #eef2f7 !important;
+.light-mode {
+  --bg-app: #eef2f7;
+  --bg-viewport: #eef2f7;
+  --bg-card: #ffffff;
+  --bg-dept: #f1f5f9;
+  --bg-header-dept: #e2e8f0;
+  --bg-body-dept: rgba(226, 232, 240, 0.4);
+  --bg-row: #ffffff;
+  --bg-row-hover: #ffffff;
+  --bg-error: #fff5f5;
+  --bg-error-hover: #fed7d7;
+  
+  --text-main: #1a202c;
+  --text-muted: #4a5568;
+  
+  --border-light: #cbd5e0;
+  --border-card: 1px solid #e2e8f0;
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-row-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+  --transform-row-hover: translateY(-4px);
+  
+  --bg-popup: rgba(255, 255, 255, 0.65);
+  --border-popup: rgba(203, 213, 224, 0.5);
+  
+  --scroll-track: #f0f4f8;
+  --scroll-thumb: #cbd5e0;
+  --scroll-thumb-hover: #a0aec0;
 }
 
-/* --- Background escuro principal (#111217) --- */
-/* Transforma o cartão de usuário em um card branco puro elevado no modo claro */
+/* === MODO CLARO - Cobertura via Variáveis === */
+
+.light-mode, .light-mode body {
+  background-color: var(--bg-app) !important;
+  color: var(--text-main) !important;
+}
+
+.light-mode .viewport, .light-mode .scalable-container {
+  background-color: var(--bg-viewport) !important;
+}
+
 .light-mode .bg-\[\#111217\] {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+  background-color: var(--bg-card) !important;
+  border: var(--border-card) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
-/* --- Cards principais (#1E2029) --- */
-/* Inverte o fundo dos departamentos para um cinza premium */
 .light-mode .bg-\[\#1E2029\] {
-  background-color: #f1f5f9 !important;
+  background-color: var(--bg-dept) !important;
 }
 
-/* Garante que o contêiner interno de nome dentro do cartão de usuário seja branco puro por padrão */
 .light-mode .bg-\[\#111217\] .bg-\[\#1E2029\] {
-  background-color: #ffffff !important;
+  background-color: var(--bg-card) !important;
 }
 
-/* --- ESTILIZAÇÃO PREMIUM DE CABEÇALHOS COLORIDOS COM TEXTO BRANCO NO MODO CLARO --- */
-
-/* Fundo azul real sólido unificado para todos os departamentos no modo claro */
 .light-mode .bg-\[\#111217\] .bg-header-dept.bg-header-dept {
-  background-color: #0c7df2 !important; /* Azul real de alto contraste */
+  background-color: #0c7df2 !important;
   border-color: #006ee6 !important;
   box-shadow: none !important;
 }
 
-/* Garante texto branco e matrícula legível no modo claro dentro do cabeçalho colorido */
-.light-mode .bg-header-dept .input-emp-name {
-  color: #ffffff !important;
-}
-.light-mode .bg-header-dept .input-emp-name::placeholder {
-  color: rgba(255, 255, 255, 0.45) !important;
-}
-.light-mode .bg-header-dept .span-emp-matricula {
-  color: rgba(255, 255, 255, 0.75) !important; /* Texto branco-acinzentado suave de alta leitura */
-}
+.light-mode .bg-header-dept .input-emp-name { color: #ffffff !important; }
+.light-mode .bg-header-dept .input-emp-name::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
+.light-mode .bg-header-dept .span-emp-matricula { color: rgba(255, 255, 255, 0.75) !important; }
 
-/* Garante que o botão de Swap seja translúcido e o ícone fique branco */
 .light-mode .bg-header-dept .btn-emp-swap {
   background-color: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
@@ -170,7 +229,6 @@ a {
   color: #ffffff !important;
 }
 
-/* Estilo para o avatar do colaborador: círculo branco puro com ícone azul real */
 .light-mode .bg-header-dept .avatar-emp {
   background-color: #ffffff !important;
   color: #0c7df2 !important;
@@ -178,56 +236,45 @@ a {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Garante consistência de cor para cartões com erro no modo claro */
 .light-mode .bg-\[\#3A1414\] .bg-\[\#1E2029\],
 .light-mode .bg-\[\#3A1414\] .bg-header-dept {
-  background-color: #fff5f5 !important;
-  border-color: #fed7d7 !important;
+  background-color: var(--bg-error) !important;
+  border-color: var(--bg-error-hover) !important;
 }
 
-/* --- Card header interno (#15171E) --- */
 .light-mode .bg-\[\#15171E\] {
-  background-color: #e2e8f0 !important;
-  border-bottom: 1px solid #cbd5e0 !important;
+  background-color: var(--bg-header-dept) !important;
+  border-bottom: 1px solid var(--border-light) !important;
 }
 
-/* --- Área do corpo dos cards (#0D0E12/30) --- */
 .light-mode .bg-\[\#0D0E12\]\/30 {
-  background-color: rgba(226, 232, 240, 0.4) !important;
+  background-color: var(--bg-body-dept) !important;
 }
 
-/* --- Hover de linhas (#252836) --- */
-/* Efeito de elevação flutuante premium no hover do cartão do usuário */
 .light-mode .hover\:bg-\[\#252836\]:hover {
-  background-color: #ffffff !important;
-  transform: translateY(-4px) !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08) !important;
-  border-color: #cbd5e0 !important;
+  background-color: var(--bg-row-hover) !important;
+  transform: var(--transform-row-hover) !important;
+  box-shadow: var(--shadow-row-hover) !important;
+  border-color: var(--border-light) !important;
 }
 
-/* --- Linhas com erro --- */
 .light-mode .bg-\[\#3A1414\] {
-  background-color: #fff5f5 !important;
+  background-color: var(--bg-error) !important;
 }
 .light-mode .hover\:bg-\[\#4A1818\]:hover {
-  background-color: #fed7d7 !important;
+  background-color: var(--bg-error-hover) !important;
 }
 
-/* --- Textos --- */
 .light-mode .text-white:not(button):not(input):not(svg):not(button *):not(.bg-\[\#FF6B00\]):not(.bg-\[\#10B981\]):not(.bg-gradient-to-r):not(.input-emp-name) {
-  color: #1a202c !important;
+  color: var(--text-main) !important;
 }
-.light-mode .text-\[\#a0aec0\] {
-  color: #4a5568 !important;
-}
-.light-mode .text-\[\#A0A0A5\] {
-  color: #4a5568 !important;
+.light-mode .text-\[\#a0aec0\], .light-mode .text-\[\#A0A0A5\] {
+  color: var(--text-muted) !important;
 }
 .light-mode .text-\[\#f7fafc\] {
-  color: #1a202c !important;
+  color: var(--text-main) !important;
 }
 
-/* Garante texto branco com contraste total em elementos com hover laranja, botões e badges coloridos */
 .light-mode .hover\:bg-\[\#FF6B00\]:hover,
 .light-mode .bg-\[\#FF6B00\],
 .light-mode .bg-\[\#10B981\],
@@ -235,132 +282,81 @@ a {
   color: #ffffff !important;
 }
 
-/* --- Bordas --- */
-.light-mode .border-white\/5,
-.light-mode .border-white\/\[0\.02\],
-.light-mode .border-white\/\[0\.03\],
-.light-mode .border-white\/10 {
-  border-color: #cbd5e0 !important;
-}
+.light-mode .border-white\/5, .light-mode .border-white\/\[0\.02\],
+.light-mode .border-white\/\[0\.03\], .light-mode .border-white\/10,
 .light-mode .border-\[\#111217\] {
-  border-color: #e2e8f0 !important;
+  border-color: var(--border-light) !important;
 }
 
-/* --- Divisores (bg-white/5 como linha) --- */
 .light-mode .bg-white\/5 {
-  background-color: #e2e8f0 !important;
+  background-color: var(--border-light) !important;
 }
 
-/* --- Botões de ação secundários --- */
 .light-mode button.bg-white\/5 {
-  background-color: #e2e8f0 !important;
-  color: #4a5568 !important;
+  background-color: var(--border-light) !important;
+  color: var(--text-muted) !important;
 }
 .light-mode button.hover\:bg-white\/10:hover {
-  background-color: #cbd5e0 !important;
+  background-color: var(--border-light) !important;
 }
 
-/* --- Inputs transparentes sobre fundo escuro --- */
 .light-mode input.bg-transparent {
-  color: #1a202c !important;
+  color: var(--text-main) !important;
 }
 .light-mode input::placeholder {
-  color: #a0aec0 !important;
+  color: var(--text-muted) !important;
 }
 
-/* --- Dropdown menus --- */
 .light-mode .bg-\[\#1E2029\].rounded-\[12px\],
 .light-mode .bg-\[\#1E2029\].rounded-\[10px\],
-.light-mode .bg-\[\#1E2029\].rounded-\[8px\] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e0 !important;
+.light-mode .bg-\[\#1E2029\].rounded-\[8px\],
+.light-mode .bg-\[\#2D3748\] {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
   box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
 }
 
-/* --- Popups semi-transparentes com opacidade (bg-[#1E2029]/80) --- */
-/* No modo claro, todos os portais de popup ficam brancos semi-transparentes (efeito vidro fosco) */
 .light-mode .bg-\[\#1E2029\]\/80 {
-  background-color: rgba(255, 255, 255, 0.65) !important;
-  border-color: rgba(203, 213, 224, 0.5) !important;
+  background-color: var(--bg-popup) !important;
+  border-color: var(--border-popup) !important;
   box-shadow: 0 8px 32px rgba(0,0,0,0.10) !important;
   backdrop-filter: blur(16px) saturate(1.5) !important;
   -webkit-backdrop-filter: blur(16px) saturate(1.5) !important;
 }
-/* Texto escuro dentro dos popups no modo claro */
-.light-mode .bg-\[\#1E2029\]\/80 .text-\[\#a0aec0\] {
-  color: #718096 !important;
-}
-/* Hover sutil dentro dos popups no modo claro */
-.light-mode .bg-\[\#1E2029\]\/80 .hover\:bg-white\/5:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-.light-mode .bg-\[\#1E2029\]\/80 .border-b.border-white\/5 {
-  border-color: rgba(203, 213, 224, 0.7) !important;
-}
+.light-mode .bg-\[\#1E2029\]\/80 .text-\[\#a0aec0\] { color: #718096 !important; }
+.light-mode .bg-\[\#1E2029\]\/80 .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.05) !important; }
+.light-mode .bg-\[\#1E2029\]\/80 .border-b.border-white\/5 { border-color: rgba(203, 213, 224, 0.7) !important; }
 
-/* --- Cores escuras por status no popup ausente (modo claro) --- */
+.light-mode .px-3\.5.py-2.text-white { color: var(--text-main) !important; }
+.light-mode .text-\[\#a0aec0\].uppercase { color: #718096 !important; }
 
-.light-mode .bg-\[\#2D3748\] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e0 !important;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
-}
-
-/* hover item dropdown */
-.light-mode .hover\:bg-\[\#252836\]:hover {
-  background-color: #f0f4f8 !important;
-}
-.light-mode .px-3\.5.py-2.text-white {
-  color: #1a202c !important;
-}
-.light-mode .text-\[\#a0aec0\].uppercase {
-  color: #718096 !important;
-}
-
-/* --- Botão OOF/role selector (#1A202C) --- */
 .light-mode .bg-\[\#1A202C\] {
-  background-color: #e2e8f0 !important;
-  color: #4a5568 !important;
+  background-color: var(--border-light) !important;
+  color: var(--text-muted) !important;
 }
 .light-mode .hover\:bg-\[\#4a5568\]:hover {
-  background-color: #cbd5e0 !important;
+  background-color: var(--border-light) !important;
 }
 
-/* --- Slot Turno 6H card --- */
-.light-mode .rounded-2xl.bg-\[\#111217\] {
-  background-color: #ffffff !important;
-  border-color: #cbd5e0 !important;
-}
-
-/* --- Modal de admin --- */
+.light-mode .rounded-2xl.bg-\[\#111217\],
 .light-mode .bg-\[\#1E2029\].rounded-2xl {
-  background-color: #ffffff !important;
-  border-color: #cbd5e0 !important;
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
 }
 .light-mode .bg-\[\#111217\].rounded-xl {
-  background-color: #f0f4f8 !important;
-  border-color: #e2e8f0 !important;
+  background-color: var(--bg-dept) !important;
+  border-color: var(--border-light) !important;
 }
 .light-mode input.bg-\[\#111217\] {
-  background-color: #f0f4f8 !important;
-  border-color: #cbd5e0 !important;
-  color: #1a202c !important;
+  background-color: var(--bg-dept) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-main) !important;
 }
 
-/* --- Scrollbar no modo claro --- */
-.light-mode * {
-  scrollbar-color: #cbd5e0 #f0f4f8;
-}
-.light-mode *::-webkit-scrollbar-track {
-  background: #f0f4f8 !important;
-}
-.light-mode *::-webkit-scrollbar-thumb {
-  background-color: #cbd5e0 !important;
-  border-color: #f0f4f8 !important;
-}
-.light-mode *::-webkit-scrollbar-thumb:hover {
-  background-color: #a0aec0 !important;
-}
+.light-mode * { scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+.light-mode *::-webkit-scrollbar-track { background: var(--scroll-track) !important; }
+.light-mode *::-webkit-scrollbar-thumb { background-color: var(--scroll-thumb) !important; border-color: var(--scroll-track) !important; }
+.light-mode *::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover) !important; }
 
 /* === BB-8 TOGGLE STYLES === */
 .bb8-toggle {
@@ -804,6 +800,10 @@ a {
   background: #111217;
   border-radius: 6px;
   z-index: 0;
+}
+
+.light-mode .animate-border-spin::after {
+  background: var(--bg-card) !important;
 }
 
 .animate-border-spin > * {
