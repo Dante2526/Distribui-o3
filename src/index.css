@@ -21,20 +21,34 @@ body,
   animation: none;
   mix-blend-mode: normal;
 }
+
 ::view-transition-old(root) {
   z-index: 1;
 }
 ::view-transition-new(root) {
   z-index: 2;
-  will-change: clip-path;
 }
 
-html.dark-to-light::view-transition-old(root) {
-  z-index: 2;
-  will-change: clip-path;
+html.dark-transition::view-transition-new(root) {
+  animation: circle-in 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-html.dark-to-light::view-transition-new(root) {
+
+html.light-transition::view-transition-old(root) {
+  animation: circle-out 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+html.light-transition::view-transition-new(root) {
   z-index: 1;
+}
+
+@keyframes circle-in {
+  from { clip-path: circle(0px at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+  to { clip-path: circle(var(--toggle-r, 100%) at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+}
+
+@keyframes circle-out {
+  from { clip-path: circle(var(--toggle-r, 100%) at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+  to { clip-path: circle(0px at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
 }
 
 /* === CUSTOM SCROLLBARS (PAINEL DSS STYLE) === */

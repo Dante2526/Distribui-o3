@@ -1149,9 +1149,12 @@ function AppContent() {
       Math.max(y, window.innerHeight - y)
     );
 
-    if (!isSwitchingToDark) {
-      document.documentElement.classList.add('dark-to-light');
-    }
+    document.documentElement.style.setProperty('--toggle-x', `${x}px`);
+    document.documentElement.style.setProperty('--toggle-y', `${y}px`);
+    document.documentElement.style.setProperty('--toggle-r', `${endRadius}px`);
+
+    const transitionClass = isSwitchingToDark ? 'dark-transition' : 'light-transition';
+    document.documentElement.classList.add(transitionClass);
 
     const transition = (document as any).startViewTransition(() => {
       flushSync(() => {
@@ -1160,26 +1163,10 @@ function AppContent() {
     });
 
     transition.finished.finally(() => {
-      document.documentElement.classList.remove('dark-to-light');
-    });
-
-    transition.ready.then(() => {
-      const clipPath = [
-        `circle(0px at ${x}px ${y}px)`,
-        `circle(${endRadius}px at ${x}px ${y}px)`
-      ];
-
-      if (isSwitchingToDark) {
-        document.documentElement.animate(
-          { clipPath },
-          { duration: 550, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)', fill: 'forwards' }
-        );
-      } else {
-        document.documentElement.animate(
-          { clipPath: [...clipPath].reverse() },
-          { duration: 550, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', pseudoElement: '::view-transition-old(root)', fill: 'forwards' }
-        );
-      }
+      document.documentElement.classList.remove(transitionClass);
+      document.documentElement.style.removeProperty('--toggle-x');
+      document.documentElement.style.removeProperty('--toggle-y');
+      document.documentElement.style.removeProperty('--toggle-r');
     });
   }, [isDarkMode]);
 
