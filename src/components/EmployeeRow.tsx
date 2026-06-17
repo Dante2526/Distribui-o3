@@ -352,11 +352,7 @@ export const EmployeeRow = React.memo(({
       {showAvatarMenu && avatarRect && (
         <PortalMenu>
           <div className="fixed inset-0 z-[999]" onClick={() => { setShowAvatarMenu(false); setAvatarRect(null); }} />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -5 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -5 }}
-            transition={{ duration: 0.15 }}
+          <div
             style={{
               position: 'fixed',
               ...(window.innerHeight - avatarRect.bottom < 120
@@ -365,21 +361,28 @@ export const EmployeeRow = React.memo(({
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
-            className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAvatarMenu(false);
-                setAvatarRect(null);
-                handleDeleteLocal();
-              }}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAvatarMenu(false);
+                  setAvatarRect(null);
+                  handleDeleteLocal();
+                }}
               className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
             >
-              <Trash2 className="w-[16px] h-[16px] mr-2" />
-              Deletar
-            </button>
-          </motion.div>
+                <Trash2 className="w-[16px] h-[16px] mr-2" />
+                Deletar
+              </button>
+            </motion.div>
+          </div>
         </PortalMenu>
       )}
 
@@ -387,11 +390,7 @@ export const EmployeeRow = React.memo(({
       {showTransferMenu && transferRect && (
         <PortalMenu>
           <div className="fixed inset-0 z-[999]" onClick={() => { setShowTransferMenu(false); setTransferRect(null); }} />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -5 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -5 }}
-            transition={{ duration: 0.15 }}
+          <div
             style={{
               position: 'fixed',
               ...(window.innerHeight - transferRect.bottom < 250
@@ -400,9 +399,15 @@ export const EmployeeRow = React.memo(({
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
-            className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
           >
-            <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+            >
+              <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
             {otherDepts.map(d => {
               const deptTheme = getDeptTheme(d.id);
               return (
@@ -436,7 +441,8 @@ export const EmployeeRow = React.memo(({
                 </button>
               );
             })}
-          </motion.div>
+            </motion.div>
+          </div>
         </PortalMenu>
       )}
 
@@ -462,11 +468,7 @@ export const EmployeeRow = React.memo(({
                 (document.activeElement as HTMLElement)?.blur();
               }}
             />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.15 }}
+            <div
               style={{
                 position: 'fixed',
                 ...(window.innerHeight - lineRect.bottom < 180
@@ -475,9 +477,15 @@ export const EmployeeRow = React.memo(({
                 transform: 'scale(var(--app-scale, 1))',
                 zIndex: 1000,
               }}
-              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar"
             >
-              {PREDEFINED_LINES.filter(l => l.toLowerCase().includes(localLine.toLowerCase())).map((linha) => (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar"
+              >
+                {PREDEFINED_LINES.filter(l => l.toLowerCase().includes(localLine.toLowerCase())).map((linha) => (
                 <button
                   key={linha}
                   onMouseDown={(e) => {
@@ -490,9 +498,10 @@ export const EmployeeRow = React.memo(({
                   className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] rounded-[8px] transition-all duration-150 outline-none"
                 >
                   {linha}
-                </button>
-              ))}
-            </motion.div>
+                  </button>
+                ))}
+              </motion.div>
+            </div>
           </PortalMenu>
         )}
       </AnimatePresence>

@@ -56,14 +56,14 @@ export const AnnotationsBoard = React.memo(({
                 {group.items.map((item, itemIdx) => {
                   const animKey = `left-${groupIdx}-${itemIdx}`;
                   return (
-                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 transition-all duration-300 hover:-translate-y-1 hover:bg-[#252836] hover:border-[#FF9F0A]/30 hover:shadow-md group ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
+                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 transition-all duration-300 md:hover:-translate-y-1 md:hover:bg-[#252836] md:hover:border-[#FF9F0A]/30 md:hover:shadow-md group ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
                       <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
                         <input 
                           type="text" 
                           value={item.name} 
                           onChange={(e) => onUpdateLeft(groupIdx, itemIdx, 'name', e.target.value)}
                           placeholder="NOME E SOBRENOME"
-                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none group-hover:text-[#FF9F0A] transition-colors duration-300" 
+                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none md:group-hover:text-[#FF9F0A] transition-colors duration-300" 
                         />
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
@@ -82,7 +82,7 @@ export const AnnotationsBoard = React.memo(({
                         <button
                           onClick={() => handleReturn('left', groupIdx, itemIdx)}
                           title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
-                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
+                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] md:hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
                         >
                           <RotateCcw className={`w-3.5 h-3.5 ${animatingItems[animKey] ? 'animate-spin' : ''}`} />
                         </button>
@@ -116,14 +116,14 @@ export const AnnotationsBoard = React.memo(({
                 {group.items.map((item, itemIdx) => {
                   const animKey = `right-${groupIdx}-${itemIdx}`;
                   return (
-                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 transition-all duration-300 hover:-translate-y-1 hover:bg-[#252836] hover:border-[#FF9F0A]/30 hover:shadow-md group ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
+                    <div key={itemIdx} className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 transition-all duration-300 md:hover:-translate-y-1 md:hover:bg-[#252836] md:hover:border-[#FF9F0A]/30 md:hover:shadow-md group ${animatingItems[animKey] ? 'animate-border-spin' : ''}`}>
                       <div className="flex flex-col gap-0.5 w-[60%] min-w-0">
                         <input 
                           type="text" 
                           value={item.name} 
                           onChange={(e) => onUpdateRight(groupIdx, itemIdx, 'name', e.target.value)}
                           placeholder="NOME E SOBRENOME"
-                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none group-hover:text-[#FF9F0A] transition-colors duration-300" 
+                          className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none md:group-hover:text-[#FF9F0A] transition-colors duration-300" 
                         />
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-[#A0A0A5] font-medium whitespace-nowrap leading-none select-none">Matrícula:</span>
@@ -142,7 +142,7 @@ export const AnnotationsBoard = React.memo(({
                         <button
                           onClick={() => handleReturn('right', groupIdx, itemIdx)}
                           title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
-                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
+                          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] md:hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
                         >
                           <RotateCcw className={`w-3.5 h-3.5 ${animatingItems[animKey] ? 'animate-spin' : ''}`} />
                         </button>
