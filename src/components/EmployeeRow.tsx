@@ -355,9 +355,9 @@ export const EmployeeRow = React.memo(({
           <div
             style={{
               position: 'fixed',
-              ...(window.innerHeight - avatarRect.bottom < 120
-                ? { bottom: window.innerHeight - avatarRect.top + 6, left: avatarRect.left, transformOrigin: 'bottom left' }
-                : { top: avatarRect.bottom + 6, left: avatarRect.left, transformOrigin: 'top left' }),
+              top: avatarRect.bottom + 6,
+              left: avatarRect.left,
+              transformOrigin: 'top left',
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
@@ -393,9 +393,9 @@ export const EmployeeRow = React.memo(({
           <div
             style={{
               position: 'fixed',
-              ...(window.innerHeight - transferRect.bottom < 250
-                ? { bottom: window.innerHeight - transferRect.top + 6, left: transferRect.right - 180, transformOrigin: 'bottom right' }
-                : { top: transferRect.bottom + 6, left: transferRect.right - 180, transformOrigin: 'top right' }),
+              top: transferRect.bottom + 6,
+              left: transferRect.right - 180,
+              transformOrigin: 'top right',
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
@@ -471,9 +471,9 @@ export const EmployeeRow = React.memo(({
             <div
               style={{
                 position: 'fixed',
-                ...(window.innerHeight - lineRect.bottom < 180
-                  ? { bottom: window.innerHeight - lineRect.top + 4, left: lineRect.left + lineRect.width / 2 - 65, transformOrigin: 'bottom center' }
-                  : { top: lineRect.bottom + 4, left: lineRect.left + lineRect.width / 2 - 65, transformOrigin: 'top center' }),
+                top: lineRect.bottom + 4,
+                left: lineRect.left + lineRect.width / 2 - 65,
+                transformOrigin: 'top center',
                 transform: 'scale(var(--app-scale, 1))',
                 zIndex: 1000,
               }}

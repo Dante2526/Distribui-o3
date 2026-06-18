@@ -245,9 +245,9 @@ export const SupportRoleRow = React.memo(({
             transition={{ duration: 0.15 }}
             style={{
               position: 'fixed',
-              ...(window.innerHeight - avatarRect.bottom < 120
-                ? { bottom: window.innerHeight - avatarRect.top + 6, left: avatarRect.left, transformOrigin: 'bottom left' }
-                : { top: avatarRect.bottom + 6, left: avatarRect.left, transformOrigin: 'top left' }),
+              top: avatarRect.bottom + 6,
+              left: avatarRect.left,
+              transformOrigin: 'top left',
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
@@ -276,9 +276,9 @@ export const SupportRoleRow = React.memo(({
           <div
             style={{
               position: 'fixed',
-              ...(window.innerHeight - transferRect.bottom < 200
-                ? { bottom: window.innerHeight - transferRect.top + 6, left: transferRect.right - 160, transformOrigin: 'bottom right' }
-                : { top: transferRect.bottom + 6, left: transferRect.right - 160, transformOrigin: 'top right' }),
+              top: transferRect.bottom + 6,
+              left: transferRect.right - 160,
+              transformOrigin: 'top right',
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}
@@ -343,9 +343,9 @@ export const SupportRoleRow = React.memo(({
           <div
             style={{
               position: 'fixed',
-              ...(window.innerHeight - roleRect.bottom < 250
-                ? { bottom: window.innerHeight - roleRect.top + 6, left: roleRect.left + roleRect.width / 2, transformOrigin: 'bottom center' }
-                : { top: roleRect.bottom + 6, left: roleRect.left + roleRect.width / 2, transformOrigin: 'top center' }),
+              top: roleRect.bottom + 6,
+              left: roleRect.left + roleRect.width / 2,
+              transformOrigin: 'top center',
               transform: 'translateX(-50%) scale(var(--app-scale, 1))',
               zIndex: 1000,
             }}

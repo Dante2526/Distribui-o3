@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Brilho do Núcleo -->
+    <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Filtro de brilho sutil roxo para os anéis -->
+    <filter id="purpleGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Gradiente do Núcleo (Ciano a Escuro) -->
+    <radialGradient id="coreGradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#67e8f9"/>
+      <stop offset="60%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#083344"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Fundo invisível para manter dimensões corretas -->
+  <rect width="64" height="64" fill="transparent" />
+
+  <!-- ANÉIS DE DADOS ROXOS -->
+  <!-- Anel 1: Externo, traço esparso para simular transmissão de bits lógicos -->
+  <circle cx="32" cy="32" r="28" stroke="#7e22ce" stroke-width="2" fill="none" stroke-dasharray="3 7" filter="url(#purpleGlow)" opacity="0.8"/>
+  
+  <!-- Anel 2: Intermediário, dados assimétricos e contínuos -->
+  <circle cx="32" cy="32" r="21" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="10 4 2 4" filter="url(#purpleGlow)"/>
+  
+  <!-- "Nós" do Anel Intermediário (Dados pulsando) -->
+  <circle cx="32" cy="11" r="2.5" fill="#d8b4fe" filter="url(#purpleGlow)"/>
+  <circle cx="13.5" cy="42" r="2.5" fill="#d8b4fe" filter="url(#purpleGlow)"/>
+  <circle cx="50.5" cy="42" r="2.5" fill="#d8b4fe" filter="url(#purpleGlow)"/>
+
+  <!-- Anel 3: Interno, denso, alta velocidade próximo ao núcleo -->
+  <circle cx="32" cy="32" r="14" stroke="#c084fc" stroke-width="1.5" fill="none" stroke-dasharray="4 2" opacity="0.9"/>
+  
+  <!-- "Nós" Internos de estabilização do núcleo -->
+  <circle cx="18" cy="32" r="1.5" fill="#f3e8ff" />
+  <circle cx="46" cy="32" r="1.5" fill="#f3e8ff" />
+  <circle cx="32" cy="18" r="1.5" fill="#f3e8ff" />
+  <circle cx="32" cy="46" r="1.5" fill="#f3e8ff" />
+
+  <!-- NÚCLEO CIANO -->
+  <!-- Halo envolvente -> O ecossistema mental base -->
+  <circle cx="32" cy="32" r="9" fill="#22d3ee" opacity="0.4" filter="url(#coreGlow)" />
+  
+  <!-- A central do Orbe -->
+  <circle cx="32" cy="32" r="7" fill="url(#coreGradient)" filter="url(#coreGlow)" />
+  
+  <!-- Ponto de energia pura ao centro -->
+  <circle cx="32" cy="32" r="2" fill="#ffffff" filter="url(#coreGlow)" />
+</svg>

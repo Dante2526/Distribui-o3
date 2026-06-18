@@ -56,6 +56,7 @@ import { AdminModal } from './components/modals/AdminModal';
 import { AddUserModal } from './components/modals/AddUserModal';
 import { HistoryModal } from './components/modals/HistoryModal';
 import { ReportModal } from './components/modals/ReportModal';
+import { Sidebar } from './components/Sidebar';
 import Footer from './components/Footer';
 
 // Components extraídos que são usados no DragOverlay
@@ -98,6 +99,7 @@ function AppContent() {
   });
   
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [activePage, setActivePage] = useState('home');
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
@@ -1170,6 +1172,52 @@ function AppContent() {
     });
   }, [isDarkMode]);
 
+  const handlePageChange = useCallback((page: string, e?: React.MouseEvent) => {
+    if (page === activePage) return;
+    
+    if (!('startViewTransition' in document)) {
+      setActivePage(page);
+      return;
+    }
+
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight / 2;
+    
+    if (e && e.nativeEvent && typeof e.nativeEvent.clientX === 'number' && e.nativeEvent.clientX > 0) {
+      x = e.nativeEvent.clientX;
+      y = e.nativeEvent.clientY;
+    } else if (e && e.target instanceof Element) {
+      const targetEl = e.target.closest('button, a') || e.target;
+      const rect = targetEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    document.documentElement.style.setProperty('--toggle-x', `${x}px`);
+    document.documentElement.style.setProperty('--toggle-y', `${y}px`);
+    document.documentElement.style.setProperty('--toggle-r', `${endRadius}px`);
+
+    document.documentElement.classList.add('page-transition');
+
+    const transition = (document as any).startViewTransition(() => {
+      flushSync(() => {
+        setActivePage(page);
+      });
+    });
+
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('page-transition');
+      document.documentElement.style.removeProperty('--toggle-x');
+      document.documentElement.style.removeProperty('--toggle-y');
+      document.documentElement.style.removeProperty('--toggle-r');
+    });
+  }, [activePage]);
+
   const handleUpdateSpecialShiftEmployee = useCallback((empIndex: number, field: keyof Employee, value: any) => {
     setSpecialShiftData(prev => {
       const newData = [...prev];
@@ -1351,9 +1399,9 @@ function AppContent() {
     if (!viewport || !scalableContainer || !contentWrapper) return;
 
     let minScale = 0.2;
-    if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
-      const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
-      const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
+    if (scalableContainer.scrollWidth > 0 && scalableContainer.scrollHeight > 0) {
+      const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
+      const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
       minScale = Math.max(scaleW, scaleH);
     }
 
@@ -1363,12 +1411,8 @@ function AppContent() {
     scalableContainer.style.transform = `scale(${finalScale})`;
     document.documentElement.style.setProperty('--app-scale', finalScale.toString());
 
-    // Limpar dimensões do wrapper para o min-height: 100% não inflar a medição
-    contentWrapper.style.width = '';
-    contentWrapper.style.height = '';
-
-    const originalWidth = scalableContainer.offsetWidth;
-    const originalHeight = scalableContainer.offsetHeight;
+    const originalWidth = scalableContainer.scrollWidth;
+    const originalHeight = scalableContainer.scrollHeight;
 
     contentWrapper.style.width = `${originalWidth * finalScale}px`;
     contentWrapper.style.height = `${originalHeight * finalScale}px`;
@@ -1406,48 +1450,84 @@ function AppContent() {
     let initialDistance = 0;
     let initialScaleValue = 1;
     let scrollStart = { x: 0, y: 0 };
-    let touchCenter = { x: 0, y: 0 };
+    let initialContentCenter = { x: 0, y: 0 };
+    let viewportRect = { left: 0, top: 0 };
+    let touchRafId: number | null = null;
+    let wheelRafId: number | null = null;
+    let pendingTouch = { scale: 0, scrollX: 0, scrollY: 0, valid: false };
+    let pendingWheel = { scale: 0, scrollX: 0, scrollY: 0, valid: false };
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        initialDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+
+        // Guarda contra initialDistance === 0 (divisão por zero)
+        if (initialDistance < 1) initialDistance = 1;
+
         initialScaleValue = scaleStateRef.current.currentScale;
         scrollStart = { x: viewport.scrollLeft, y: viewport.scrollTop };
-        touchCenter = {
-          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-          y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+
+        // Cache do getBoundingClientRect - uma vez por gesto, não a cada frame
+        const rect = viewport.getBoundingClientRect();
+        viewportRect = { left: rect.left, top: rect.top };
+
+        // Ponto do conteúdo sob o centro inicial dos dedos
+        const cx0 = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - viewportRect.left;
+        const cy0 = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - viewportRect.top;
+        initialContentCenter = {
+          x: (scrollStart.x + cx0) / initialScaleValue,
+          y: (scrollStart.y + cy0) / initialScaleValue,
         };
+
+        pendingTouch.valid = false;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        const scaleRatio = currentDistance / initialDistance;
-        let newScale = initialScaleValue * scaleRatio;
 
-        let minScale = 0.2;
-        if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
-          const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
-          const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
-          minScale = Math.max(scaleW, scaleH);
+        // Centro atual dos dedos (recalculado a cada frame)
+        const currentCx = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - viewportRect.left;
+        const currentCy = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - viewportRect.top;
+
+        const currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+
+        let computedMinScale = 0.2;
+        if (scalableContainer.scrollWidth > 0 && scalableContainer.scrollHeight > 0) {
+          const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
+          const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
+          computedMinScale = Math.max(scaleW, scaleH);
         }
-        
-        newScale = Math.max(minScale, Math.min(newScale, 2.0));
+
+        let newScale = Math.max(computedMinScale, Math.min(initialScaleValue * (currentDistance / initialDistance), 2.0));
         if (scaleStateRef.current.currentScale === newScale) return;
 
-        const originX = touchCenter.x - viewport.getBoundingClientRect().left;
-        const originY = touchCenter.y - viewport.getBoundingClientRect().top;
+        // Sempre atualiza os valores mais recentes ANTES de checar o rAF
+        pendingTouch = {
+          scale: newScale,
+          scrollX: (initialContentCenter.x * newScale) - currentCx,
+          scrollY: (initialContentCenter.y * newScale) - currentCy,
+          valid: true,
+        };
 
-        const contentOriginX = (scrollStart.x + originX) / initialScaleValue;
-        const contentOriginY = (scrollStart.y + originY) / initialScaleValue;
+        // Se já há um rAF agendado, ele vai pegar o pendingTouch atualizado acima
+        if (touchRafId) return;
 
-        const newScrollX = (contentOriginX * newScale) - originX;
-        const newScrollY = (contentOriginY * newScale) - originY;
-
-        setScale(newScale, newScrollX, newScrollY);
+        touchRafId = requestAnimationFrame(() => {
+          if (pendingTouch.valid) {
+            setScale(pendingTouch.scale, pendingTouch.scrollX, pendingTouch.scrollY);
+            pendingTouch.valid = false;
+          }
+          touchRafId = null;
+        });
       }
     };
 
@@ -1459,17 +1539,18 @@ function AppContent() {
         let newScale = scaleStateRef.current.currentScale + delta * scaleStateRef.current.currentScale;
 
         let minScale = 0.2;
-        if (scalableContainer.offsetWidth > 0 && scalableContainer.offsetHeight > 0) {
-          const scaleW = viewport.clientWidth / scalableContainer.offsetWidth;
-          const scaleH = viewport.clientHeight / scalableContainer.offsetHeight;
+        if (scalableContainer.scrollWidth > 0 && scalableContainer.scrollHeight > 0) {
+          const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
+          const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
           minScale = Math.max(scaleW, scaleH);
         }
 
         newScale = Math.max(minScale, Math.min(newScale, 2.0));
         if (scaleStateRef.current.currentScale === newScale) return;
 
-        const originX = e.clientX - viewport.getBoundingClientRect().left;
-        const originY = e.clientY - viewport.getBoundingClientRect().top;
+        const rect = viewport.getBoundingClientRect();
+        const originX = e.clientX - rect.left;
+        const originY = e.clientY - rect.top;
 
         const contentOriginX = (viewport.scrollLeft + originX) / scaleStateRef.current.currentScale;
         const contentOriginY = (viewport.scrollTop + originY) / scaleStateRef.current.currentScale;
@@ -1477,7 +1558,16 @@ function AppContent() {
         const newScrollX = (contentOriginX * newScale) - originX;
         const newScrollY = (contentOriginY * newScale) - originY;
 
-        setScale(newScale, newScrollX, newScrollY);
+        pendingWheel = { scale: newScale, scrollX: newScrollX, scrollY: newScrollY, valid: true };
+
+        if (wheelRafId) return;
+        wheelRafId = requestAnimationFrame(() => {
+          if (pendingWheel.valid) {
+            setScale(pendingWheel.scale, pendingWheel.scrollX, pendingWheel.scrollY);
+            pendingWheel.valid = false;
+          }
+          wheelRafId = null;
+        });
       }
     };
 
@@ -1506,6 +1596,8 @@ function AppContent() {
       viewport.style.userSelect = 'none';
     };
 
+    let rafId: number | null = null;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragScrollRef.current.isDragging) return;
       e.preventDefault();
@@ -1518,11 +1610,20 @@ function AppContent() {
         dragScrollRef.current.moved = true;
       }
 
-      viewport.scrollLeft = dragScrollRef.current.scrollLeft - walkX;
-      viewport.scrollTop = dragScrollRef.current.scrollTop - walkY;
+      if (rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        viewport.scrollLeft = dragScrollRef.current.scrollLeft - walkX;
+        viewport.scrollTop = dragScrollRef.current.scrollTop - walkY;
+        rafId = null;
+      });
     };
 
     const handleMouseUp = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (!dragScrollRef.current.isDragging) return;
       dragScrollRef.current.isDragging = false;
       viewport.style.cursor = 'grab';
@@ -1552,6 +1653,9 @@ function AppContent() {
 
     return () => {
       clearTimeout(initTimer);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (touchRafId) cancelAnimationFrame(touchRafId);
+      if (wheelRafId) cancelAnimationFrame(wheelRafId);
       window.removeEventListener('load', initializeScale);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
@@ -1563,7 +1667,7 @@ function AppContent() {
         viewport.removeEventListener('touchmove', handleTouchMove as EventListener);
       }
     };
-  }, [initializeScale, setScale]);
+  }, [initializeScale, setScale, activePage]);
 
   const handleUpdateSupportRole = useCallback((groupIndex: number, empIndex: number, newRole: string) => {
     setSupportRolesData(prev => {
@@ -1975,10 +2079,30 @@ function AppContent() {
 
   return (
     <>
-    <div className={`bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative ${!isDarkMode ? 'light-mode' : ''}`}>
-      <div ref={viewportRef} className={`viewport fixed inset-0 ${isDarkMode ? 'bg-[#111217]' : 'bg-[#eef2f7]'}`}>
-        <div ref={contentWrapperRef} className="origin-top-left overflow-hidden">
-          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
+    <div 
+      className={`flex h-screen w-screen overflow-hidden text-[#f7fafc] font-sans selection:bg-blue-500/30 relative transition-colors duration-500 ${!isDarkMode ? 'light-mode' : ''} bg-[var(--app-bg)]`}
+    >
+      <div className="shrink-0 w-[80px] h-full flex items-center pointer-events-none z-auto">
+        <div className="pointer-events-auto w-full relative z-50">
+          <Sidebar activePage={activePage} onPageChange={handlePageChange} isDarkMode={isDarkMode} />
+        </div>
+      </div>
+      
+      <div className={`flex-1 w-full h-full relative overflow-hidden transition-all duration-500 ${activePage === 'ecossistema-mental' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        
+        {/* iFrame Painel DSS */}
+        <iframe 
+          src="https://painel-dss.vercel.app" 
+          className={`w-full h-full border-0 absolute inset-0 transition-opacity duration-300 ${activePage === 'painel-dss' ? 'opacity-100 z-0' : 'opacity-0 -z-10 pointer-events-none'}`}
+          title="Painel DSS"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+
+        {activePage === 'home' ? (
+          <div ref={viewportRef} className={`viewport absolute inset-0 ${isDarkMode ? 'bg-[#111217]' : 'bg-[#eef2f7]'}`}>
+            <div ref={contentWrapperRef} className="origin-top-left overflow-hidden">
+              <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
 
             {/* Header Card */}
             <div className="bg-[#1E2029] border border-white/5 rounded-3xl py-9 px-6 md:py-16 md:px-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
@@ -2257,6 +2381,21 @@ function AppContent() {
           </div>
         </div>
       </div>
+        ) : activePage !== 'painel-dss' && activePage !== 'ecossistema-mental' ? (
+          <div className={`absolute inset-0 flex items-center justify-center text-2xl font-bold tracking-wider ${isDarkMode ? 'text-white/50 bg-[#111217]' : 'text-slate-800/50 bg-[#eef2f7]'}`}>
+            Página {activePage} em construção...
+          </div>
+        ) : null}
+      </div>
+
+      {/* iFrame do Ecossistema Mental renderizado em Full Screen (por trás da barra) */}
+      <iframe 
+        src="https://ecossistema-mental.vercel.app/" 
+        className={`w-screen h-screen border-0 absolute top-0 left-0 transition-opacity duration-300 ${activePage === 'ecossistema-mental' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 -z-10 pointer-events-none'}`}
+        title="Ecossistema Mental"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
     </div>
 
     <AdminModal

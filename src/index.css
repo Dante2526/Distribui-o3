@@ -29,7 +29,8 @@ body,
   z-index: 2;
 }
 
-html.dark-transition::view-transition-new(root) {
+html.dark-transition::view-transition-new(root),
+html.page-transition::view-transition-new(root) {
   animation: circle-in 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -805,6 +806,53 @@ a {
   background: conic-gradient(transparent, transparent, transparent, #FF9F0A);
   animation: spin-border 0.8s linear infinite;
   z-index: 0;
+}
+
+:root {
+  --app-bg: #111217;
+}
+
+.light-mode {
+  --app-bg: #eef2f7;
+}
+
+/* Efeito Sidebar "Recorte" (Inverted Border Radius) */
+.sidebar-item {
+  position: relative;
+  padding-left: 12px;
+  width: 100%;
+}
+
+.sidebar-item.active {
+  background-color: var(--app-bg);
+  border-top-left-radius: 32px;
+  border-bottom-left-radius: 32px;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -24px;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-bottom-right-radius: 24px;
+  box-shadow: 10px 10px 0 10px var(--app-bg);
+  pointer-events: none;
+}
+
+.sidebar-item.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -24px;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-top-right-radius: 24px;
+  box-shadow: 10px -10px 0 10px var(--app-bg);
+  pointer-events: none;
 }
 
 .animate-border-spin::after {
