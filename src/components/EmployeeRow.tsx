@@ -148,6 +148,16 @@ export const EmployeeRow = React.memo(({
     onStartEdit?.(emp.id);
   }, [onStartEdit, emp.id]);
 
+  useEffect(() => {
+    if (showAbsentMenu || showLineDropdown || showTransferMenu || showAvatarMenu) {
+      if (emp.id) onStartEdit?.(emp.id);
+    } else {
+      // Quando todos os menus estão fechados, e se não houver um input ativo dentro do cartão (o blur do input lidaria com a parte dele),
+      // nós notificamos para parar a edição originada pelos menus.
+      if (emp.id) onStopEdit?.(emp.id);
+    }
+  }, [showAbsentMenu, showLineDropdown, showTransferMenu, showAvatarMenu, emp.id, onStartEdit, onStopEdit]);
+
   return (
     <motion.div
       ref={setNodeRef}
@@ -174,7 +184,7 @@ export const EmployeeRow = React.memo(({
         stiffness: 400, 
         damping: 25 
       }}
-      className={`employee-row-card relative flex flex-col min-h-[140px] justify-between rounded-[14px] ${isDragActive ? '' : 'transition-all duration-300'} dept-${department.id} ${
+      className={`employee-row-card relative flex flex-col min-h-[140px] justify-between rounded-[14px] ${isDragActive ? '' : 'transition duration-300'} dept-${department.id} ${
         emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
       } ${getBorderLeftClass(department.id, emp.error)} ${
         (isDragging || isGhost) 

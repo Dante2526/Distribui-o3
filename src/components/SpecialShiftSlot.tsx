@@ -68,6 +68,14 @@ export const SpecialShiftSlot = React.memo(({
     onStartEdit?.(emp.id);
   }, [onStartEdit, emp.id]);
 
+  React.useEffect(() => {
+    if (showOofMenu) {
+      if (emp.id) onStartEdit?.(emp.id);
+    } else {
+      if (emp.id) onStopEdit?.(emp.id);
+    }
+  }, [showOofMenu, emp.id, onStartEdit, onStopEdit]);
+
   return (
     <motion.div 
       ref={setNodeRef}
@@ -92,7 +100,7 @@ export const SpecialShiftSlot = React.memo(({
         stiffness: 400, 
         damping: 25 
       }}
-      className={`w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors ${
+      className={`w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 border-l-4 border-l-[#BF5AF2] shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors ${
         isDragging 
           ? 'opacity-30 border-dashed border-2 border-white/10 bg-white/[0.02] shadow-none pointer-events-none' 
           : 'cursor-grab'

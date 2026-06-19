@@ -3,7 +3,7 @@ import { User, Trash2, ArrowRightLeft, ChevronDown, ChevronRight, CheckCircle2 }
 import { motion } from 'motion/react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { SupportRole, StatusType } from '../types';
+import type { SupportRole, StatusType, ActiveEdit } from '../types';
 import { STATUS_METADATA } from '../types';
 import { getDeptTheme, SUPPORT_ROLES_OPTIONS } from '../constants/data';
 import { PortalMenu } from './PortalMenu';
@@ -24,7 +24,10 @@ export const SupportRoleRow = React.memo(({
   onMarkAbsent,
   onDelete,
   isGhost,
-  isDragActive
+  isDragActive,
+  activeEdit,
+  onStartEdit,
+  onStopEdit
 }: { 
   emp: SupportRole; 
   index: number;
@@ -41,6 +44,9 @@ export const SupportRoleRow = React.memo(({
   onDelete: (groupIndex: number, empIndex: number) => void;
   isGhost?: boolean;
   isDragActive?: boolean;
+  activeEdit?: ActiveEdit;
+  onStartEdit?: (empId: string) => void;
+  onStopEdit?: (empId: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -64,18 +70,28 @@ export const SupportRoleRow = React.memo(({
     disabled: isDragOverlay,
   });
 
+  const currentActiveEdit: ActiveEdit | undefined = isDragging
+    ? {
+        empId: emp.id,
+        userName: 'Naylan (Você)',
+        color: '#BF5AF2',
+        timestamp: Date.now()
+      }
+    : activeEdit;
+
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
     touchAction: 'none',
+    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {}),
     ...(isDragging ? { zIndex: 50, position: 'relative' } : {})
   };
 
   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
   const themes = [
-    { bg: "bg-[#0A84FF]/10", text: "text-[#0A84FF]" },
-    { bg: "bg-[#FF9F0A]/10", text: "text-[#FF9F0A]" },
-    { bg: "bg-[#30D158]/10", text: "text-[#30D158]" }
+    { bg: "bg-[#0A84FF]/10", text: "text-[#0A84FF]", borderLeft: "border-l-4 border-l-[#0A84FF]" },
+    { bg: "bg-[#FF9F0A]/10", text: "text-[#FF9F0A]", borderLeft: "border-l-4 border-l-[#FF9F0A]" },
+    { bg: "bg-[#30D158]/10", text: "text-[#30D158]", borderLeft: "border-l-4 border-l-[#30D158]" }
   ];
   const theme = themes[groupIndex] || themes[0];
 
@@ -108,20 +124,46 @@ export const SupportRoleRow = React.memo(({
     onDelete(groupIndex, index);
   }, [onDelete, groupIndex, index]);
 
+  React.useEffect(() => {
+    if (isOpen || isTransferOpen || showAbsentMenu || showAvatarMenu) {
+      if (emp.id) onStartEdit?.(emp.id);
+    } else {
+      if (emp.id) onStopEdit?.(emp.id);
+    }
+  }, [isOpen, isTransferOpen, showAbsentMenu, showAvatarMenu, emp.id, onStartEdit, onStopEdit]);
+
   return (
     <div 
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`px-4 py-2.5 flex items-center rounded-[12px] ${isDragActive ? '' : 'transition-all duration-300'} relative h-[56px] w-full ${
+      onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
+        if (e.target instanceof HTMLElement && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }
+        listeners?.onPointerDown?.(e as any);
+      }}
+      className={`px-4 py-2.5 flex items-center rounded-[12px] ${isDragActive ? '' : 'transition duration-300'} relative h-[56px] w-full ${
         (isDragging || isGhost) 
           ? 'opacity-30 border-dashed border border-white/10 bg-white/[0.02] shadow-none pointer-events-none' 
           : showAbsentMenu
             ? 'bg-[#111217] opacity-40 z-[100] shadow-none'
-            : 'bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab'
+            : `bg-[#111217] hover:bg-[#252836] ${theme.borderLeft} shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab`
       }`}
     >
+      {/* Active Edit Badge */}
+      {currentActiveEdit && !isDragOverlay && (
+        <div className="absolute -top-3 right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: currentActiveEdit.color }} />
+          <span className="text-[10px] text-white font-bold whitespace-nowrap">
+            {currentActiveEdit.userName} editando...
+          </span>
+        </div>
+      )}
+
       {/* Coluna 1: Avatar, Nome e Matrícula */}
       <div className="flex items-center min-w-0 flex-1 mr-4">
         <button
@@ -153,6 +195,12 @@ export const SupportRoleRow = React.memo(({
             <input 
               type="text" 
               value={emp.matricula || ''} 
+              onFocus={() => {
+                if (emp.id) onStartEdit?.(emp.id);
+              }}
+              onBlur={() => {
+                if (emp.id) onStopEdit?.(emp.id);
+              }}
               onChange={(e) => handleUpdateMatriculaLocal(e.target.value)}
               placeholder="N/A"
               maxLength={8}
@@ -471,6 +519,7 @@ export const SupportRoleRow = React.memo(({
     prevProps.index === nextProps.index &&
     prevProps.isDarkMode === nextProps.isDarkMode &&
     prevProps.is6HActive === nextProps.is6HActive &&
-    prevProps.groupIndex === nextProps.groupIndex
+    prevProps.groupIndex === nextProps.groupIndex &&
+    prevProps.activeEdit === nextProps.activeEdit
   );
 });

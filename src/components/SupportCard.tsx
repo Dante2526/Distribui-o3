@@ -2,7 +2,7 @@ import React from 'react';
 import { Users, CheckCircle2 } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { SupportRole, StatusType } from '../types';
+import type { SupportRole, StatusType, ActiveEdit } from '../types';
 import { SupportRoleRow } from './SupportRoleRow';
 
 export const SupportCard = React.memo(({ 
@@ -17,7 +17,10 @@ export const SupportCard = React.memo(({
   onMoveToSpecial,
   onMarkAbsent,
   onDeleteSupport,
-  isDragActive
+  isDragActive,
+  activeEdits,
+  onStartEdit,
+  onStopEdit
 }: { 
   roles: SupportRole[]; 
   groupIndex: number; 
@@ -31,6 +34,9 @@ export const SupportCard = React.memo(({
   onMarkAbsent: (groupIndex: number, empIndex: number, absenceType: StatusType) => void;
   onDeleteSupport: (groupIndex: number, empIndex: number) => void;
   isDragActive?: boolean;
+  activeEdits?: Record<string, ActiveEdit>;
+  onStartEdit?: (empId: string) => void;
+  onStopEdit?: (empId: string) => void;
 }) => {
   const themes = [
     { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
@@ -45,7 +51,7 @@ export const SupportCard = React.memo(({
   const sortableItems = React.useMemo(() => roles.map(e => e.id || e.name), [roles]);
 
   return (
-    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative min-h-full">
+    <div className="bg-[#1E2029] rounded-[24px] overflow-visible flex flex-col border border-white/[0.02] relative min-h-full">
       
       {/* Support Card Header */}
       <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
@@ -82,6 +88,9 @@ export const SupportCard = React.memo(({
             onMarkAbsent={onMarkAbsent}
             onDelete={onDeleteSupport}
             isDragActive={isDragActive}
+            activeEdit={activeEdits?.[emp.id || '']}
+            onStartEdit={onStartEdit}
+            onStopEdit={onStopEdit}
           />
         ))}
 
@@ -102,6 +111,7 @@ export const SupportCard = React.memo(({
     prevProps.isDarkMode === nextProps.isDarkMode &&
     prevProps.is6HActive === nextProps.is6HActive &&
     prevProps.isDragActive === nextProps.isDragActive &&
-    prevProps.groupIndex === nextProps.groupIndex
+    prevProps.groupIndex === nextProps.groupIndex &&
+    prevProps.activeEdits === nextProps.activeEdits
   );
 });

@@ -96,7 +96,7 @@ export function ReportModal({
                     </div>
                     
                     <div className="text-[10px] font-bold text-white bg-blue-500 px-2.5 py-1 rounded-md w-fit mb-3 relative z-10 uppercase tracking-wider mx-auto shadow-sm">
-                      PRESENTES
+                      ATIVOS
                     </div>
                     
                     <div className="relative z-10 flex flex-col items-center justify-center">
@@ -105,19 +105,19 @@ export function ReportModal({
                     </div>
                   </div>
 
-                  {/* AFASTADOS CARD (Orange) */}
-                  <div className="flex-1 bg-orange-900/20 p-3 rounded-xl border border-orange-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-orange-500/20 active:scale-[0.98] transform cursor-default">
+                  {/* AUSENTES CARD (Amber/Yellow) */}
+                  <div className="flex-1 bg-amber-900/20 p-3 rounded-xl border border-amber-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-amber-500/20 active:scale-[0.98] transform cursor-default">
                     <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                      <Hourglass className="w-16 h-16 text-orange-600" />
+                      <Hourglass className="w-16 h-16 text-amber-600" />
                     </div>
                     
-                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2.5 py-1 rounded-md w-fit mb-3 relative z-10 uppercase tracking-wider mx-auto shadow-sm">
-                      AFASTADOS
+                    <div className="text-[10px] font-bold text-white bg-amber-500 px-2.5 py-1 rounded-md w-fit mb-3 relative z-10 uppercase tracking-wider mx-auto shadow-sm">
+                      AUSENTES
                     </div>
                     
                     <div className="relative z-10 flex flex-col items-center justify-center">
                       <span className="text-[9px] uppercase text-gray-400 block font-bold mb-1">Total</span>
-                      <span className="text-4xl font-black text-white leading-none drop-shadow-md">{stats.afastados}</span>
+                      <span className="text-4xl font-black text-white leading-none drop-shadow-md">{stats.ausentes}</span>
                     </div>
                   </div>
                 </div>
@@ -125,46 +125,38 @@ export function ReportModal({
 
               {/* Métricas Quadradas (Estilo Ausentes) */}
               {stats && (
-                <div className="grid grid-cols-4 gap-2 justify-items-center mt-[-5px]">
-                  <div className="bg-amber-900/20 border border-amber-900/30 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-amber-400">{stats.ausentes || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500/80">Ausentes</span>
+                <div className="grid grid-cols-4 gap-1 w-fit mx-auto mt-[-5px]">
+                  <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#FF9F0A]">{stats.ferias || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#FF9F0A]/80">Férias</span>
                   </div>
-                  <div className="bg-[#30D158]/10 border border-[#30D158]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#30D158]">{stats.ativos || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#30D158]/80">Ativos</span>
+                  <div className="bg-[#FF453A]/10 border border-[#FF453A]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#FF453A]">{stats.fora || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#FF453A]/80">Fora</span>
                   </div>
-                  <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#FF9F0A]">{stats.ferias || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF9F0A]/80">Férias</span>
+                  <div className="bg-[#FFD60A]/10 border border-[#FFD60A]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#FFD60A]">{stats.atm || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#FFD60A]/80">ATM</span>
                   </div>
-                  <div className="bg-[#FF453A]/10 border border-[#FF453A]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#FF453A]">{stats.fora || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF453A]/80">Fora</span>
+                  <div className="bg-[#BF5AF2]/10 border border-[#BF5AF2]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#BF5AF2]">{stats.restricao || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#BF5AF2]/80">Restrição</span>
                   </div>
-                  <div className="bg-[#FFD60A]/10 border border-[#FFD60A]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#FFD60A]">{stats.atm || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#FFD60A]/80">ATM</span>
+                  <div className="bg-[#30D158]/10 border border-[#30D158]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#30D158]">{stats.estagio || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#30D158]/80">Estágio</span>
                   </div>
-                  <div className="bg-[#BF5AF2]/10 border border-[#BF5AF2]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#BF5AF2]">{stats.restricao || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#BF5AF2]/80">Restrição</span>
+                  <div className="bg-[#FF453A]/10 border border-[#FF453A]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#FF453A]">{stats.inss || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#FF453A]/80">INSS</span>
                   </div>
-                  <div className="bg-[#30D158]/10 border border-[#30D158]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#30D158]">{stats.estagio || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#30D158]/80">Estágio</span>
+                  <div className="bg-[#0A84FF]/10 border border-[#0A84FF]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#0A84FF]">{stats.treinamento || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#0A84FF]/80">Treinam.</span>
                   </div>
-                  <div className="bg-[#FF453A]/10 border border-[#FF453A]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#FF453A]">{stats.inss || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF453A]/80">INSS</span>
-                  </div>
-                  <div className="col-start-2 bg-[#0A84FF]/10 border border-[#0A84FF]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#0A84FF]">{stats.treinamento || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#0A84FF]/80">Treinam.</span>
-                  </div>
-                  <div className="bg-[#32ADE6]/10 border border-[#32ADE6]/20 rounded-xl py-2 px-3 min-w-[85px] flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[24px] font-black tracking-tight mb-0.5 text-[#32ADE6]">{stats.revezamento || 0}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#32ADE6]/80">Revezam.</span>
+                  <div className="bg-[#32ADE6]/10 border border-[#32ADE6]/20 rounded-lg py-1 px-1 w-[64px] flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[16px] font-black tracking-tight mb-0 text-[#32ADE6]">{stats.revezamento || 0}</span>
+                    <span className="text-[8px] uppercase font-bold tracking-wider text-[#32ADE6]/80">Revezam.</span>
                   </div>
                 </div>
               )}

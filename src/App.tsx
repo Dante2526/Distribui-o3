@@ -249,7 +249,16 @@ function AppContent() {
       presentes: totalFuncionarios,
       afastados: todasAnotacoes.length,
       afastadosList: todasAnotacoes.map(a => a.name),
-      ausentes: todasAnotacoes.filter(a => a.status === 'FORA').length,
+      ausentes: todasAnotacoes.filter(item => {
+        const s = item.status.toUpperCase();
+        return (
+          s.includes('FÉRIA') || s.includes('FERIA') ||
+          s === 'FORA' ||
+          s.includes('ATM') ||
+          s.includes('RESTRI') || s.includes('RESTRICAO') ||
+          s === 'INSS'
+        );
+      }).length,
       ativos: totalFuncionarios,
       ferias: totalFerias,
       fora: totalFora,
@@ -363,6 +372,8 @@ function AppContent() {
 
   const [activeEdits, setActiveEdits] = useState<Record<string, ActiveEdit>>({});
 
+  const editTimersRef = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
   const handleStartEdit = useCallback((empId: string) => {
     setActiveEdits((prev) => {
       const newEdits = { ...prev };
@@ -380,7 +391,13 @@ function AppContent() {
       return newEdits;
     });
 
-    setTimeout(() => {
+    // Cancela timer anterior do mesmo funcionário, se existir
+    if (editTimersRef.current[empId]) {
+      clearTimeout(editTimersRef.current[empId]);
+    }
+
+    editTimersRef.current[empId] = setTimeout(() => {
+      delete editTimersRef.current[empId];
       setActiveEdits((prev) => {
         const newEdits = { ...prev };
         if (newEdits[empId] && Date.now() - newEdits[empId].timestamp >= 11500) {
@@ -392,6 +409,11 @@ function AppContent() {
   }, []);
 
   const handleStopEdit = useCallback((empId: string) => {
+    // Cancela o timer de auto-limpeza imediatamente
+    if (editTimersRef.current[empId]) {
+      clearTimeout(editTimersRef.current[empId]);
+      delete editTimersRef.current[empId];
+    }
     setActiveEdits((prev) => {
       if (!prev[empId]) return prev;
       const newEdits = { ...prev };
@@ -2074,7 +2096,7 @@ function AppContent() {
 
   const departmentOptions = React.useMemo(
     () => departmentsData.map(d => ({ id: d.id, title: d.title })),
-    [] // Dependência vazia, já que os setores e seus títulos são estáticos
+    [departmentsData]
   );
 
   return (
@@ -2082,11 +2104,13 @@ function AppContent() {
     <div 
       className={`flex h-screen w-screen overflow-hidden text-[#f7fafc] font-sans selection:bg-blue-500/30 relative transition-colors duration-500 ${!isDarkMode ? 'light-mode' : ''} bg-[var(--app-bg)]`}
     >
-      <div className="shrink-0 w-[80px] h-full flex items-center pointer-events-none z-auto">
+      {/* 
+      <div className="shrink-0 w-[60px] md:w-[80px] h-full flex items-center pointer-events-none z-auto">
         <div className="pointer-events-auto w-full relative z-50">
           <Sidebar activePage={activePage} onPageChange={handlePageChange} isDarkMode={isDarkMode} />
         </div>
       </div>
+      */}
       
       <div className={`flex-1 w-full h-full relative overflow-hidden transition-all duration-500 ${activePage === 'ecossistema-mental' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         
@@ -2251,7 +2275,7 @@ function AppContent() {
                           key={emp.id} 
                           emp={emp} 
                           index={idx} 
-                          allDepartments={departmentsData}
+                          departmentOptions={departmentOptions}
                           onUpdate={handleUpdateSpecialShiftEmployee}
                           onTransfer={handleTransferFromSpecialShift}
                           activeEdit={activeEdits[emp.id]}
@@ -2309,7 +2333,11 @@ function AppContent() {
                 </div>
 
                 <div className="flex gap-6 w-max pb-8">
-                  {supportRolesData.map((group, index) => (
+                  {supportRolesData.map((group, index) => {
+                    const groupActiveEdits = Object.fromEntries(
+                      Object.entries(activeEdits).filter(([empId]) => group.some(e => e.id === empId))
+                    );
+                    return (
                     <div key={index} className="w-[600px] shrink-0">
                       <SupportCard 
                         roles={group} 
@@ -2324,9 +2352,12 @@ function AppContent() {
                         onMarkAbsent={handleMarkSupportAbsent}
                         onDeleteSupport={handleDeleteSupport}
                         isDragActive={activeId !== null}
+                        activeEdits={groupActiveEdits}
+                        onStartEdit={handleStartEdit}
+                        onStopEdit={handleStopEdit}
                       />
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
 
