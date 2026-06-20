@@ -2407,15 +2407,11 @@ function AppContent() {
               </DragOverlay>
 
             </DndContext>
-              </div>
-            </div>
-            
-            <div className="sticky left-1/2 -translate-x-1/2 w-max pb-8 pt-8 pointer-events-none">
-              <div className="pointer-events-auto">
-                <Footer />
-              </div>
-            </div>
+
+            <Footer />
           </div>
+        </div>
+      </div>
         ) : activePage !== 'painel-dss' && activePage !== 'ecossistema-mental' ? (
           <div className={`absolute inset-0 flex items-center justify-center text-2xl font-bold tracking-wider ${isDarkMode ? 'text-white/50 bg-[#111217]' : 'text-slate-800/50 bg-[#eef2f7]'}`}>
             Página {activePage} em construção...
