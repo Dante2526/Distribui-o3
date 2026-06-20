@@ -2102,7 +2102,7 @@ function AppContent() {
   return (
     <>
     <div 
-      className={`flex h-screen w-screen overflow-hidden text-[#f7fafc] font-sans selection:bg-blue-500/30 relative transition-colors duration-500 ${!isDarkMode ? 'light-mode' : ''} bg-[var(--app-bg)]`}
+      className={`flex h-full w-full overflow-hidden text-[#f7fafc] font-sans selection:bg-blue-500/30 relative transition-colors duration-500 ${!isDarkMode ? 'light-mode' : ''} bg-[var(--app-bg)]`}
     >
       {/* 
       <div className="shrink-0 w-[60px] md:w-[80px] h-full flex items-center pointer-events-none z-auto">
@@ -2407,11 +2407,15 @@ function AppContent() {
               </DragOverlay>
 
             </DndContext>
-
-            <Footer />
+              </div>
+            </div>
+            
+            <div className="sticky left-0 w-screen flex justify-center pb-8 pt-8 pointer-events-none">
+              <div className="pointer-events-auto">
+                <Footer />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
         ) : activePage !== 'painel-dss' && activePage !== 'ecossistema-mental' ? (
           <div className={`absolute inset-0 flex items-center justify-center text-2xl font-bold tracking-wider ${isDarkMode ? 'text-white/50 bg-[#111217]' : 'text-slate-800/50 bg-[#eef2f7]'}`}>
             Página {activePage} em construção...
@@ -2422,7 +2426,7 @@ function AppContent() {
       {/* iFrame do Ecossistema Mental renderizado em Full Screen (por trás da barra) */}
       <iframe 
         src="https://ecossistema-mental.vercel.app/" 
-        className={`w-screen h-screen border-0 absolute top-0 left-0 transition-opacity duration-300 ${activePage === 'ecossistema-mental' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 -z-10 pointer-events-none'}`}
+        className={`w-full h-full border-0 absolute top-0 left-0 transition-opacity duration-300 ${activePage === 'ecossistema-mental' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 -z-10 pointer-events-none'}`}
         title="Ecossistema Mental"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
