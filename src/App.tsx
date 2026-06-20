@@ -2126,7 +2126,7 @@ function AppContent() {
         {activePage === 'home' ? (
           <div ref={viewportRef} className={`viewport absolute inset-0 ${isDarkMode ? 'bg-[#111217]' : 'bg-[#eef2f7]'}`}>
             <div ref={contentWrapperRef} className="origin-top-left overflow-hidden">
-              <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
+              <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 pb-32">
 
             {/* Header Card */}
             <div className="bg-[#1E2029] border border-white/5 rounded-3xl py-9 px-6 md:py-16 md:px-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
