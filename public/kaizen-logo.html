@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kaizen Logo Vector</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #222;
+    }
+    svg {
+      max-width: 80vmin;
+      max-height: 80vmin;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- O SVG Puro -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 450">
+    <defs>
+      <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+        <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#000000" flood-opacity="0.25" />
+      </filter>
+    </defs>
+
+    <!-- Fundo Laranja Circular -->
+    <circle cx="225" cy="225" r="225" fill="#f77f00" />
+
+    <!-- Agrupando e centralizando o conteúdo no círculo -->
+    <g transform="translate(-145, 10)">
+      <!-- Figura - Pernas -->
+      <path d="M 280 190 L 280 250 L 295 250 L 295 190 Z" fill="#2c2c38" />
+      <path d="M 305 190 L 305 250 L 320 250 L 320 190 Z" fill="#2c2c38" />
+
+      <!-- Figura - Corpo -->
+      <path d="M 290 140 L 360 140 L 380 210 L 280 210 Z" fill="#2c2c38" />
+
+      <!-- Figura - Cabeça -->
+      <circle cx="315" cy="100" r="28" fill="#0055ff" />
+      
+      <!-- Figura - Cabelo -->
+      <path d="M 290 85 C 290 60, 310 50, 320 60 C 330 70, 340 50, 350 60 C 360 70, 360 90, 350 90" fill="none" stroke="#607090" stroke-width="2" />
+      
+      <!-- Figura - Rosto (Olho/Nariz) -->
+      <path d="M 305 95 L 315 95 L 315 105 L 325 105" fill="none" stroke="#1c1c28" stroke-width="2" stroke-linecap="round" />
+      <path d="M 300 115 L 330 115" fill="none" stroke="#1c1c28" stroke-width="1.5" stroke-linecap="round" />
+
+      <!-- Figura - Caixa flutuante na Mão -->
+      <g transform="translate(190, 160)">
+        <rect x="0" y="0" width="70" height="25" fill="none" stroke="#000000" stroke-width="3" rx="2" />
+        <path d="M 20 10 L 30 20 L 50 0" fill="none" stroke="#0055ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+
+      <!-- Figura - Braço -->
+      <path d="M 345 150 L 265 185" fill="none" stroke="#0055ff" stroke-width="16" stroke-linecap="round" />
+
+      <!-- Cartão Branco Base -->
+      <rect x="280" y="210" width="300" height="170" rx="8" fill="#ffffff" filter="url(#shadow)" />
+
+      <!-- Cartão - Linhas Cinzas -->
+      <rect x="315" y="225" width="180" height="10" rx="5" fill="#a0a0a0" />
+      <rect x="315" y="245" width="200" height="10" rx="5" fill="#a0a0a0" />
+
+      <!-- Cartão - Círculos Coloridos -->
+      <circle cx="530" cy="230" r="12" fill="#32cd32" />
+      <circle cx="530" cy="260" r="12" fill="#e60000" />
+      <circle cx="530" cy="290" r="12" fill="#0055ff" />
+      <circle cx="530" cy="320" r="12" fill="#9900ff" />
+
+      <!-- Cartão - Textos -->
+      <text x="315" y="305" font-family="Arial, sans-serif" font-weight="900" font-size="48" fill="#0055ff" letter-spacing="1">KAIZEN</text>
+      <text x="315" y="335" font-family="Arial, sans-serif" font-weight="800" font-size="22" fill="#f77f00">POR: NAYLAN</text>
+
+      <!-- Cartão - Caixa com Certinho Embaixo -->
+      <g transform="translate(520, 335)">
+        <rect x="0" y="0" width="30" height="20" fill="none" stroke="#000000" stroke-width="2" rx="2" />
+        <path d="M 5 8 L 12 15 L 25 -2" fill="none" stroke="#0055ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="-10" y="22" width="50" height="4" fill="#d0d0d0" rx="2" />
+      </g>
+    </g>
+  </svg>
+
+</body>
+</html>

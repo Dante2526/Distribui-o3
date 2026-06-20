@@ -109,6 +109,13 @@ function AppContent() {
   const [reportStats, setReportStats] = useState<any>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
 
+  // Inicializa o state do history se não existir
+  useEffect(() => {
+    if (!window.history.state || !window.history.state.page) {
+      window.history.replaceState({ page: 'home' }, '');
+    }
+  }, []);
+
   // Configurações e estados do painel
   const [is6HActive, setIs6HActive] = useState(true);
   const [isAutomationPaused, setIsAutomationPaused] = useState(false);
@@ -1201,9 +1208,13 @@ function AppContent() {
     });
   }, []);
 
-  const handlePageChange = useCallback((page: string, e?: React.MouseEvent) => {
+  const handlePageChange = useCallback((page: string, e?: React.MouseEvent, isPopState: boolean = false) => {
     if (page === activePage) return;
     
+    if (!isPopState) {
+      window.history.pushState({ page }, '', `?page=${page}`);
+    }
+
     if (!('startViewTransition' in document)) {
       setActivePage(page);
       return;
@@ -1246,6 +1257,17 @@ function AppContent() {
       document.documentElement.style.removeProperty('--toggle-r');
     });
   }, [activePage]);
+
+  // Listener para o botão voltar do navegador/celular
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const targetPage = event.state?.page || 'home';
+      handlePageChange(targetPage, undefined, true);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [handlePageChange]);
 
   const handleUpdateSpecialShiftEmployee = useCallback((empIndex: number, field: keyof Employee, value: any) => {
     setSpecialShiftData(prev => {
@@ -2152,13 +2174,37 @@ function AppContent() {
       <div className={`flex-1 w-full h-full relative overflow-hidden transition-all duration-500 ${activePage === 'ecossistema-mental' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         
         {/* iFrame Painel DSS */}
-        <iframe 
-          src="https://painel-dss.vercel.app" 
-          className={`w-full h-full border-0 absolute inset-0 transition-opacity duration-300 ${activePage === 'painel-dss' ? 'opacity-100 z-0' : 'opacity-0 -z-10 pointer-events-none'}`}
-          title="Painel DSS"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        {activePage === 'painel-dss' && (
+          <iframe 
+            src="https://painel-dss.vercel.app" 
+            className="w-full h-full border-0 absolute inset-0 z-0 animate-[fadeIn_0.3s_ease-in-out]"
+            title="Painel DSS"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        )}
+
+        {/* iFrame Circuito 001 */}
+        {activePage === 'circuito001' && (
+          <iframe 
+            src="https://taplink.cc/circuito001" 
+            className="w-full h-full border-0 absolute inset-0 z-0 animate-[fadeIn_0.3s_ease-in-out]"
+            title="Circuito 001"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        )}
+
+        {/* iFrame Controle Refeição */}
+        {activePage === 'controles-equipes' && (
+          <iframe 
+            src="https://controles-equipes.vercel.app/" 
+            className="w-full h-full border-0 absolute inset-0 z-0 animate-[fadeIn_0.3s_ease-in-out]"
+            title="Controle Refeição"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        )}
 
         {activePage === 'home' ? (
           <div ref={viewportRef} className={`viewport absolute inset-0 ${isDarkMode ? 'bg-[#111217]' : 'bg-[#eef2f7]'}`}>
@@ -2440,7 +2486,7 @@ function AppContent() {
           </div>
         </div>
       </div>
-        ) : activePage !== 'painel-dss' && activePage !== 'ecossistema-mental' ? (
+        ) : activePage !== 'painel-dss' && activePage !== 'ecossistema-mental' && activePage !== 'circuito001' && activePage !== 'controles-equipes' ? (
           <div className={`absolute inset-0 flex items-center justify-center text-2xl font-bold tracking-wider ${isDarkMode ? 'text-white/50 bg-[#111217]' : 'text-slate-800/50 bg-[#eef2f7]'}`}>
             Página {activePage} em construção...
           </div>
@@ -2448,13 +2494,15 @@ function AppContent() {
       </div>
 
       {/* iFrame do Ecossistema Mental renderizado em Full Screen (por trás da barra) */}
-      <iframe 
-        src="https://ecossistema-mental.vercel.app/" 
-        className={`w-full h-full border-0 absolute top-0 left-0 transition-opacity duration-300 ${activePage === 'ecossistema-mental' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 -z-10 pointer-events-none'}`}
-        title="Ecossistema Mental"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
+      {activePage === 'ecossistema-mental' && (
+        <iframe 
+          src="https://ecossistema-mental.vercel.app/" 
+          className="w-full h-full border-0 absolute top-0 left-0 z-10 pointer-events-auto animate-[fadeIn_0.3s_ease-in-out]"
+          title="Ecossistema Mental"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      )}
     </div>
 
     <AdminModal

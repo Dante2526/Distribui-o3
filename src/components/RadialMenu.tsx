@@ -1,33 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Settings, PieChart, Bell } from 'lucide-react';
+import { Utensils } from 'lucide-react';
 
 const PainelDSSIcon = ({ className }: { className?: string }) => (
   <img src="/painel-dss-icon.svg" alt="Painel DSS" className={className} />
-);
-
-const DistribuicaoIcon = ({ className }: { className?: string }) => (
-  <img src="/favicon.svg" alt="Distribuição" className={className} />
 );
 
 const EcossistemaMentalIcon = ({ className }: { className?: string }) => (
   <img src="/ecossistema-mental-icon.svg" alt="Ecossistema Mental" className={className} />
 );
 
+const CircuitoIcon = () => (
+  <img src="/circuito-logo.png" alt="Circuito 001" className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm" />
+);
+
+const RefeicaoIcon = () => (
+  <div className="absolute inset-0 rounded-full flex items-center justify-center border-[3px] border-[#10B981] box-border">
+    <Utensils className="w-1/2 h-1/2 text-[#10B981]" strokeWidth={2.5} />
+  </div>
+);
+
+// Constante estática — não é recriada a cada render
+const menuItems = [
+  { id: 'painel-dss', icon: PainelDSSIcon, label: 'Painel DSS' },
+  { id: 'ecossistema-mental', icon: EcossistemaMentalIcon, label: 'Ecossistema' },
+  { id: 'circuito001', icon: CircuitoIcon, label: 'Circuito 001' },
+  { id: 'controles-equipes', icon: RefeicaoIcon, label: 'Controle Refeição' },
+];
+
 interface RadialMenuProps {
   activePage: string;
-  onPageChange: (page: string, e?: React.MouseEvent, externalUrl?: string) => void;
+  onPageChange: (page: string, e?: React.MouseEvent) => void;
   isDarkMode: boolean;
 }
 
-export function RadialMenu({ activePage, onPageChange, isDarkMode }: RadialMenuProps) {
+export const RadialMenu = React.memo(function RadialMenu({ activePage, onPageChange, isDarkMode }: RadialMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const menuItems = [
-    { id: 'painel-dss', icon: PainelDSSIcon, label: 'Painel DSS' },
-    { id: 'ecossistema-mental', icon: EcossistemaMentalIcon, label: 'Ecossistema' },
-  ];
 
   // Fechar ao clicar fora
   useEffect(() => {
@@ -45,26 +54,24 @@ export function RadialMenu({ activePage, onPageChange, isDarkMode }: RadialMenuP
     };
   }, [isOpen]);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = useCallback(() => setIsOpen(prev => !prev), []);
 
-  const handleItemClick = (id: string, e: React.MouseEvent, externalUrl?: string) => {
-    onPageChange(id, e, externalUrl);
+  const handleItemClick = useCallback((id: string, e: React.MouseEvent) => {
+    onPageChange(id, e);
     setIsOpen(false);
-  };
+  }, [onPageChange]);
 
-  // Com apenas 2 botões, 90 graus coloca um na ponta direita (0º) e outro totalmente pra baixo (90º)
-  const radius = 100; 
-  const totalAngle = 90; // em graus
+  // Ponto exato de equilíbrio: raio 135 (meio termo entre o grudado 120 e o distante 150)
+  // Espalhando de 35º a 110º (75 graus totais)
+  const radius = 135; 
   
   return (
     <div className="relative z-50 flex items-center justify-center" ref={containerRef}>
       {/* Botões do Menu Radial */}
       <AnimatePresence>
         {isOpen && menuItems.map((item, index) => {
-          // O usuário quer eles mais próximos, mas mantendo o círculo e sem sobrepor.
-          // Com 2 botões e raio de 100, uma separação de 45 graus é perfeita (gap de ~20px).
-          // Vamos abrir um no ângulo 45º (Diagonal Direita/Baixo) e outro no 90º (Baixo).
-          const angleDeg = 45 + ((45 / (menuItems.length - 1)) * index);
+          // Espalhando de 35º até 110º (75 graus de abertura)
+          const angleDeg = 35 + ((75 / (menuItems.length - 1)) * index);
           const angleRad = (angleDeg * Math.PI) / 180;
           
           const x = Math.cos(angleRad) * radius;
@@ -93,7 +100,7 @@ export function RadialMenu({ activePage, onPageChange, isDarkMode }: RadialMenuP
                   : (isDarkMode ? 'bg-[#1E2029] text-gray-300 hover:bg-[#2A2D3A] border border-white/10' : 'bg-white text-gray-600 hover:bg-gray-100 border border-black/10')
               }`}
             >
-              <Icon className="w-6 h-6" />
+              <Icon className="w-9 h-9 md:w-10 md:h-10 object-contain drop-shadow-sm" />
               
               {/* Tooltip on hover */}
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-md">
@@ -129,4 +136,4 @@ export function RadialMenu({ activePage, onPageChange, isDarkMode }: RadialMenuP
       </motion.button>
     </div>
   );
-}
+});

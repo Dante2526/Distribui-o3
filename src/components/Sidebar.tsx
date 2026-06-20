@@ -19,7 +19,7 @@ interface SidebarProps {
   isDarkMode: boolean;
 }
 
-export function Sidebar({ activePage, onPageChange, isDarkMode }: SidebarProps) {
+export const Sidebar = React.memo(function Sidebar({ activePage, onPageChange, isDarkMode }: SidebarProps) {
   const menuItems = [
     { id: 'home', icon: DistribuicaoIcon, label: 'Distribuição' },
     { id: 'painel-dss', icon: PainelDSSIcon, label: 'Painel DSS' },
@@ -33,19 +33,26 @@ export function Sidebar({ activePage, onPageChange, isDarkMode }: SidebarProps) 
   return (
     <div className={`group w-[60px] md:w-[80px] hover:w-[160px] md:hover:w-[180px] hover:delay-150 delay-0 h-fit my-auto shrink-0 flex flex-col gap-4 py-4 z-50 transition-all duration-300 ease-in-out ${isDarkMode ? 'bg-[#1E2029] border-y border-r border-white/5' : 'bg-white border-y border-r border-black/5'} shadow-2xl relative overflow-hidden rounded-r-[24px] md:rounded-r-[32px]`}>
       <div className="flex flex-col gap-1 w-full">
-        <div className="w-full h-10 md:h-12 flex items-center justify-center shrink-0 mb-2 transition-all duration-300">
+        <button 
+          onClick={(e) => onPageChange('circuito001', e)}
+          className="w-full h-10 md:h-12 flex items-center justify-center shrink-0 mb-2 transition-all duration-300 cursor-pointer border-none bg-transparent outline-none"
+        >
            <img src="/favicon.svg" alt="Logo" className={`w-6 h-6 md:w-8 md:h-8 drop-shadow-md transition-all duration-300 ${isDarkMode ? 'brightness-0 invert opacity-80 group-hover:opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
-        </div>
+        </button>
         <div className={`w-[36px] md:w-[48px] h-px mx-auto mb-2 transition-colors ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`} />
         
         <div className="flex flex-col w-full relative">
           {menuItems.map((item) => {
             const isActive = activePage === item.id;
             const Icon = item.icon;
-            const isExternal = !!item.externalUrl;
 
-            const content = (
-              <>
+            return (
+              <button
+                key={item.id}
+                onClick={(e) => onPageChange(item.id, e)}
+                className={`relative w-full h-[48px] md:h-[56px] flex items-center justify-center md:justify-start px-[10px] md:px-[16px] transition-all duration-300 outline-none sidebar-item ${isActive ? 'active' : ''}`}
+                title={item.label}
+              >
                 <div className={`w-[40px] h-[40px] md:w-[48px] md:h-[48px] rounded-full flex shrink-0 items-center justify-center transition-all duration-300 z-10 mx-auto md:mx-0 ${
                   isActive 
                     ? `shadow-lg ${isDarkMode ? 'bg-[#111217] text-[#BF5AF2]' : 'bg-[#eef2f7] text-[#007aff]'}`
@@ -58,34 +65,6 @@ export function Sidebar({ activePage, onPageChange, isDarkMode }: SidebarProps) 
                 }`}>
                   {item.label}
                 </span>
-              </>
-            );
-
-            if (isExternal) {
-              return (
-                <a
-                  key={item.id}
-                  href={item.externalUrl}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onPageChange(item.id, e, item.externalUrl);
-                  }}
-                  className="relative w-full h-[48px] md:h-[56px] flex items-center justify-center md:justify-start px-[10px] md:px-[16px] transition-all duration-300 outline-none sidebar-item"
-                  title={item.label}
-                >
-                  {content}
-                </a>
-              );
-            }
-
-            return (
-              <button
-                key={item.id}
-                onClick={(e) => onPageChange(item.id, e)}
-                className={`relative w-full h-[48px] md:h-[56px] flex items-center justify-center md:justify-start px-[10px] md:px-[16px] transition-all duration-300 outline-none sidebar-item ${isActive ? 'active' : ''}`}
-                title={item.label}
-              >
-                {content}
               </button>
             );
           })}
@@ -102,4 +81,4 @@ export function Sidebar({ activePage, onPageChange, isDarkMode }: SidebarProps) 
       </div>
     </div>
   );
-}
+});
