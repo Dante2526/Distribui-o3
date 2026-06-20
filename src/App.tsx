@@ -57,6 +57,7 @@ import { AddUserModal } from './components/modals/AddUserModal';
 import { HistoryModal } from './components/modals/HistoryModal';
 import { ReportModal } from './components/modals/ReportModal';
 import { Sidebar } from './components/Sidebar';
+import { RadialMenu } from './components/RadialMenu';
 import Footer from './components/Footer';
 
 // Components extraídos que são usados no DragOverlay
@@ -469,11 +470,17 @@ function AppContent() {
   const departmentsDataRef = useRef(departmentsData);
   const supportRolesDataRef = useRef(supportRolesData);
   const specialShiftDataRef = useRef(specialShiftData);
+  const annotationsLeftRef = useRef(annotationsLeft);
+  const annotationsRightRef = useRef(annotationsRight);
+  const isDarkModeRef = useRef(isDarkMode);
   useEffect(() => {
     departmentsDataRef.current = departmentsData;
     supportRolesDataRef.current = supportRolesData;
     specialShiftDataRef.current = specialShiftData;
-  }, [departmentsData, supportRolesData, specialShiftData]);
+    annotationsLeftRef.current = annotationsLeft;
+    annotationsRightRef.current = annotationsRight;
+    isDarkModeRef.current = isDarkMode;
+  }, [departmentsData, supportRolesData, specialShiftData, annotationsLeft, annotationsRight, isDarkMode]);
 
   const mouseSensor = useSensor(MouseSensor, React.useMemo(() => ({
     activationConstraint: { distance: 5 },
@@ -1153,7 +1160,7 @@ function AppContent() {
       return;
     }
 
-    const isSwitchingToDark = !isDarkMode;
+    const isSwitchingToDark = !isDarkModeRef.current;
 
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
@@ -1192,7 +1199,7 @@ function AppContent() {
       document.documentElement.style.removeProperty('--toggle-y');
       document.documentElement.style.removeProperty('--toggle-r');
     });
-  }, [isDarkMode]);
+  }, []);
 
   const handlePageChange = useCallback((page: string, e?: React.MouseEvent) => {
     if (page === activePage) return;
@@ -1331,7 +1338,7 @@ function AppContent() {
   }, []);
 
   const handleTransferFromSpecialShift = useCallback((empIndex: number, targetDeptId: string) => {
-    const movedEmployee = specialShiftData[empIndex];
+    const movedEmployee = specialShiftDataRef.current[empIndex];
     if (!movedEmployee.name.trim()) return;
 
     setSpecialShiftData(prev => {
@@ -1373,7 +1380,7 @@ function AppContent() {
         return newDepts;
       });
     }
-  }, [specialShiftData]);
+  }, []);
 
   const handleUpdateAnnotationLeft = useCallback((groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => {
     setAnnotationsLeft(prev => {
@@ -1967,7 +1974,7 @@ function AppContent() {
   }, []);
 
   const handleReturnFromAnnotation = useCallback((isLeft: boolean, groupIdx: number, itemIdx: number) => {
-    const groups = isLeft ? annotationsLeft : annotationsRight;
+    const groups = isLeft ? annotationsLeftRef.current : annotationsRightRef.current;
     const item = groups[groupIdx].items[itemIdx];
     if (!item || !item.name.trim() || (!item.originalDeptId && (item as any).originalSupportGroupIndex === undefined)) return;
 
@@ -2031,7 +2038,7 @@ function AppContent() {
         return newGroups;
       });
     }
-  }, [annotationsLeft, annotationsRight]);
+  }, [logMovement]);
 
   const handleReturnFromAnnotationLeft = useCallback((groupIdx: number, itemIdx: number) => {
     handleReturnFromAnnotation(true, groupIdx, itemIdx);
@@ -2040,6 +2047,36 @@ function AppContent() {
   const handleReturnFromAnnotationRight = useCallback((groupIdx: number, itemIdx: number) => {
     handleReturnFromAnnotation(false, groupIdx, itemIdx);
   }, [handleReturnFromAnnotation]);
+
+  const isDragActive = useMemo(() => activeId !== null, [activeId]);
+
+  const editsByDept = useMemo(() => {
+    const map: Record<string, Record<string, ActiveEdit>> = {};
+    departmentsData.forEach(dept => {
+      const deptEdits: Record<string, ActiveEdit> = {};
+      Object.entries(activeEdits).forEach(([empId, edit]) => {
+        if (dept.data.some(e => e.id === empId)) {
+          deptEdits[empId] = edit;
+        }
+      });
+      map[dept.id] = deptEdits;
+    });
+    return map;
+  }, [activeEdits, departmentsData]);
+
+  const editsByGroup = useMemo(() => {
+    const map: Record<number, Record<string, ActiveEdit>> = {};
+    supportRolesData.forEach((group, index) => {
+      const groupEdits: Record<string, ActiveEdit> = {};
+      Object.entries(activeEdits).forEach(([empId, edit]) => {
+        if (group.some(e => e.id === empId)) {
+          groupEdits[empId] = edit;
+        }
+      });
+      map[index] = groupEdits;
+    });
+    return map;
+  }, [activeEdits, supportRolesData]);
 
   const {
     maxCount,
@@ -2131,10 +2168,10 @@ function AppContent() {
             {/* Header Card */}
             <div className="bg-[#1E2029] border border-white/5 rounded-3xl py-9 px-6 md:py-16 md:px-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
               <div className="flex items-center gap-6">
-                <img 
-                  src="/favicon.svg" 
-                  alt="Logo Distribuição de Equipes" 
-                  className="h-20 w-20 md:h-24 md:w-24 shrink-0 drop-shadow-md" 
+                <RadialMenu 
+                  activePage={activePage} 
+                  onPageChange={handlePageChange} 
+                  isDarkMode={isDarkMode} 
                 />
                 <div className="flex flex-col gap-1">
                   <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight uppercase">
@@ -2289,12 +2326,7 @@ function AppContent() {
               </SpecialShiftContainer>
               <div className="space-y-8">
                 <div className="flex gap-6 w-max">
-                  {departmentsData.map((dept) => {
-                    const deptActiveEdits = Object.fromEntries(
-                      Object.entries(activeEdits).filter(([empId]) => dept.data.some(e => e.id === empId))
-                    );
-
-                    return (
+                  {departmentsData.map((dept) => (
                     <div key={dept.id} className="w-[500px] shrink-0">
                       <DepartmentCard 
                         department={dept} 
@@ -2307,13 +2339,13 @@ function AppContent() {
                         onMarkAbsent={handleMarkEmployeeAbsent}
                         isDarkMode={isDarkMode}
                         is6HActive={is6HActive}
-                        activeEdits={deptActiveEdits}
+                        activeEdits={editsByDept[dept.id] || {}}
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
-                        isDragActive={activeId !== null}
+                        isDragActive={isDragActive}
                       />
                     </div>
-                  )})}
+                  ))}
 
                   <div className="w-[680px] shrink-0">
                     <AnnotationsBoard 
@@ -2333,11 +2365,7 @@ function AppContent() {
                 </div>
 
                 <div className="flex gap-6 w-max pb-8">
-                  {supportRolesData.map((group, index) => {
-                    const groupActiveEdits = Object.fromEntries(
-                      Object.entries(activeEdits).filter(([empId]) => group.some(e => e.id === empId))
-                    );
-                    return (
+                  {supportRolesData.map((group, index) => (
                     <div key={index} className="w-[600px] shrink-0">
                       <SupportCard 
                         roles={group} 
@@ -2351,13 +2379,13 @@ function AppContent() {
                         onMoveToSpecial={handleTransferSupportToSpecialShift}
                         onMarkAbsent={handleMarkSupportAbsent}
                         onDeleteSupport={handleDeleteSupport}
-                        isDragActive={activeId !== null}
-                        activeEdits={groupActiveEdits}
+                        isDragActive={isDragActive}
+                        activeEdits={editsByGroup[index] || {}}
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
                       />
                     </div>
-                  )})}
+                  ))}
                 </div>
               </div>
 
