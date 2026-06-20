@@ -2410,7 +2410,7 @@ function AppContent() {
               </div>
             </div>
             
-            <div className="sticky left-0 w-screen flex justify-center pb-8 pt-8 pointer-events-none">
+            <div className="sticky left-1/2 -translate-x-1/2 w-max pb-8 pt-8 pointer-events-none">
               <div className="pointer-events-auto">
                 <Footer />
               </div>
