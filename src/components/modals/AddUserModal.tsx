@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserPlus, X } from 'lucide-react';
+import { UserPlus, X, ArrowLeft } from 'lucide-react';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 
 export function AddUserModal({
   isOpen,
   onClose,
   onAddUser,
-  isDarkMode
+  isDarkMode,
+  onBack
 }: {
   isOpen: boolean;
   onClose: () => void;
   onAddUser: (name: string, matricula: string, sectorId: string) => void;
   isDarkMode: boolean;
+  onBack?: () => void;
 }) {
   const [name, setName] = useState('');
   const [matricula, setMatricula] = useState('');
@@ -42,7 +44,7 @@ export function AddUserModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !matricula.trim()) return;
     
     onAddUser(name, matricula, sectorId);
     
@@ -88,6 +90,15 @@ export function AddUserModal({
             onClick={(e) => e.stopPropagation()}
           >
         <button
+          onClick={onBack || handleClose}
+          className={`absolute top-4 left-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors cursor-pointer ${
+            isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+        </button>
+
+        <button
           onClick={handleClose}
           className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors cursor-pointer ${
             isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
@@ -130,6 +141,7 @@ export function AddUserModal({
           <div className="flex flex-col gap-1.5 text-left">
             <input
               type="text"
+              required
               placeholder="MATRÍCULA"
               maxLength={8}
               value={matricula}

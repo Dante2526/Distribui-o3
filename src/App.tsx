@@ -54,6 +54,7 @@ import { SupportCard } from './components/SupportCard';
 import { AnnotationsBoard } from './components/AnnotationsBoard';
 import { AdminModal } from './components/modals/AdminModal';
 import { AddUserModal } from './components/modals/AddUserModal';
+import { ImportEmployeeModal } from './components/modals/ImportEmployeeModal';
 import { HistoryModal } from './components/modals/HistoryModal';
 import { ReportModal } from './components/modals/ReportModal';
 import { Sidebar } from './components/Sidebar';
@@ -102,6 +103,7 @@ function AppContent() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState('home');
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -328,17 +330,16 @@ function AppContent() {
     showToastMessage("Equipes reorganizadas dinamicamente!", "success");
   }, [showToastMessage]);
 
-  const handleImportCollaborator = useCallback(() => {
+  const handlePerformImport = useCallback((name: string, matricula: string, sourceTurma: string) => {
     setDepartmentsData(prev => prev.map((dept, i) => {
-      if (i === 0) {
+      if (i === 0) { // Adicionando à recepção por padrão
         const newData = [...dept.data];
-        newData.push({ id: 'emp-imp-1-' + Date.now(), name: 'MARCOS AURELIO', line: 'L1', machine: '110', error: false });
-        newData.push({ id: 'emp-imp-2-' + Date.now(), name: 'PAULO SERGIO', line: 'L2', machine: '112', error: false });
+        newData.push({ id: 'emp-imp-' + Date.now(), name, line: `TURMA ${sourceTurma}`, machine: matricula, error: false });
         return { ...dept, data: newData, count: newData.length };
       }
       return dept;
     }));
-    showToastMessage("Colaboradores adicionais importados!", "success");
+    showToastMessage(`Colaborador ${name} importado da Turma ${sourceTurma}!`, "success");
   }, [showToastMessage]);
 
   const handleToggle6H = useCallback(() => {
@@ -729,7 +730,8 @@ function AppContent() {
           if (d.id === overContainer) {
             const cleaned = d.data.filter(e => e.id !== activeId);
             const newData = [...cleaned];
-            newData.splice(targetIdx, 0, activeItem);
+            const movedItem = { ...activeItem, line: '', machine: '' };
+            newData.splice(targetIdx, 0, movedItem);
             return { ...d, data: newData, count: newData.length };
           }
           return d;
@@ -2519,7 +2521,10 @@ function AppContent() {
         setIsAdminModalOpen(false);
       }}
       onReorganize={handleReorganize}
-      onImportCollaborator={handleImportCollaborator}
+      onImportCollaborator={() => {
+        setIsImportModalOpen(true);
+        setIsAdminModalOpen(false);
+      }}
       is6HActive={is6HActive}
       onToggle6H={handleToggle6H}
       onToggleAutomation={handleToggleAutomation}
@@ -2537,6 +2542,21 @@ function AppContent() {
       onClose={() => setIsAddUserModalOpen(false)}
       onAddUser={handleAddNewUser}
       isDarkMode={isDarkMode}
+      onBack={() => {
+        setIsAddUserModalOpen(false);
+        setIsAdminModalOpen(true);
+      }}
+    />
+
+    <ImportEmployeeModal
+      isOpen={isImportModalOpen}
+      onClose={() => setIsImportModalOpen(false)}
+      onImport={handlePerformImport}
+      isDarkMode={isDarkMode}
+      onBack={() => {
+        setIsImportModalOpen(false);
+        setIsAdminModalOpen(true);
+      }}
     />
 
     <HistoryModal
@@ -2544,6 +2564,10 @@ function AppContent() {
       onClose={() => setIsHistoryModalOpen(false)}
       logs={movementLogs}
       isDarkMode={isDarkMode}
+      onBack={() => {
+        setIsHistoryModalOpen(false);
+        setIsAdminModalOpen(true);
+      }}
     />
 
     <ReportModal

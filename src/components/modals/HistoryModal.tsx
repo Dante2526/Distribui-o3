@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, User, ArrowRight, FileText, ChevronDown, X } from 'lucide-react';
+import { Clock, User, ArrowRight, FileText, ChevronDown, X, ArrowLeft } from 'lucide-react';
 import { MovementLog } from '../../types';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 
@@ -9,9 +9,10 @@ interface HistoryModalProps {
   onClose: () => void;
   logs: MovementLog[];
   isDarkMode: boolean;
+  onBack?: () => void;
 }
 
-export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModalProps) {
+export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: HistoryModalProps) {
   const viewportStyles = useViewportStyles(isOpen);
   const isViewportBackdrop = !!viewportStyles.backdrop.position;
 
@@ -73,19 +74,27 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModal
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`rounded-[24px] shadow-2xl w-full max-w-[800px] flex flex-col relative overflow-hidden transition-colors duration-300 ${
+            className={`rounded-[32px] shadow-2xl w-full max-w-[800px] flex flex-col relative overflow-hidden transition-colors duration-300 ${
               isDarkMode 
-                ? 'bg-[#1E2029]/95 border border-white/10 text-white backdrop-blur-xl' 
-                : 'bg-white/95 border border-gray-200 text-[#1F2937] backdrop-blur-xl'
+                ? 'bg-[#1E2029] border border-white/10 text-white' 
+                : 'bg-white border border-gray-100 text-[#1F2937]'
             }`}
             style={isViewportBackdrop ? viewportStyles.card : { maxHeight: '90vh' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`p-6 md:p-8 shrink-0 flex items-center gap-4 ${
-              isDarkMode ? 'border-b border-white/10 bg-white/5' : 'border-b border-gray-100 bg-gray-50/50'
-            }`}>
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30">
+            <div className="p-6 md:px-8 md:pt-8 shrink-0 flex items-center gap-4">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className={`w-10 h-10 -ml-2 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                    isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+                </button>
+              )}
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#4F46E5]/50 hover:scale-105">
                 <Clock className="w-6 h-6 text-white" strokeWidth={2.5} />
               </div>
               <div className="flex-1">
@@ -107,13 +116,14 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModal
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex-1 overflow-y-auto p-4 md:px-8 md:pb-6 floating-scrollbar">
               {groupedLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
-                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
-                  }`}>
-                    <FileText className={`w-10 h-10 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+                  <div className="relative group flex justify-center mb-6 mt-4">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-[#6366F1] to-[#4F46E5] rounded-full blur opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                      <FileText className="w-10 h-10 text-white" />
+                    </div>
                   </div>
                   <h3 className="text-lg font-bold">Nenhuma movimentação</h3>
                   <p className={`text-sm mt-2 max-w-[250px] mx-auto ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -190,6 +200,12 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModal
                                     hour: '2-digit', minute: '2-digit', second: '2-digit'
                                   }).format(log.timestamp);
                                   
+                                  const isLocationMovement = 
+                                    log.from.toUpperCase().startsWith('LINHA:') || 
+                                    log.from.toUpperCase().startsWith('LOCO:') || 
+                                    log.to.toUpperCase().startsWith('LINHA:') || 
+                                    log.to.toUpperCase().startsWith('LOCO:');
+
                                   return (
                                     <div 
                                       key={log.id} 
@@ -204,34 +220,39 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModal
                                       </div>
 
                                       {/* De -> Para e Info (Linha/Loco) */}
-                                      <div className="flex-1 flex flex-col justify-center gap-1.5">
-                                        <div className="flex items-center gap-2 text-sm flex-wrap">
-                                          <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider ${
+                                      <div className="flex-1 flex items-center gap-2 text-sm flex-wrap py-1">
+                                        
+                                        {/* Coluna da Origem + Tags */}
+                                        <div className="flex flex-col gap-1.5 min-w-0">
+                                          <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider text-center w-full block whitespace-nowrap ${
                                             isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-100 text-gray-700'
                                           }`}>
                                             {log.from}
                                           </span>
-                                          <ArrowRight className={`w-3 h-3 shrink-0 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-                                          <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider ${
-                                            isDarkMode ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'bg-[#4F46E5]/10 text-[#4F46E5]'
-                                          }`}>
-                                            {log.to}
-                                          </span>
+                                          
+                                          {!isLocationMovement && (log.line || log.machine) && (
+                                            <div className="flex items-center gap-1.5 w-full mt-1">
+                                              {log.line && (
+                                                <span className={`flex-1 text-center whitespace-nowrap text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                                                  L: {log.line}
+                                                </span>
+                                              )}
+                                              {log.machine && (
+                                                <span className={`flex-1 text-center whitespace-nowrap text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                                                  LOCO: {log.machine}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
-                                        {(log.line || log.machine) && (
-                                          <div className="flex items-center gap-1.5">
-                                            {log.line && (
-                                              <span className={`text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
-                                                L: {log.line}
-                                              </span>
-                                            )}
-                                            {log.machine && (
-                                              <span className={`text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
-                                                LOCO: {log.machine}
-                                              </span>
-                                            )}
-                                          </div>
-                                        )}
+
+                                        <ArrowRight className={`w-3 h-3 shrink-0 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        
+                                        <span className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider h-fit ${
+                                          isDarkMode ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'bg-[#4F46E5]/10 text-[#4F46E5]'
+                                        }`}>
+                                          {log.to}
+                                        </span>
                                       </div>
 
                                       {/* ADM Responsável */}
@@ -260,16 +281,10 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode }: HistoryModal
             </div>
             
             {/* Footer */}
-            <div className={`p-4 md:p-6 shrink-0 flex justify-end ${
-              isDarkMode ? 'border-t border-white/10 bg-white/5' : 'border-t border-gray-100 bg-gray-50/50'
-            }`}>
+            <div className="p-4 md:px-8 md:pb-8 shrink-0 flex justify-end">
               <button
                 onClick={onClose}
-                className={`px-8 py-3 rounded-xl font-bold transition-all active:scale-95 ${
-                  isDarkMode 
-                    ? 'bg-white/10 hover:bg-white/20 text-white' 
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                }`}
+                className="px-8 py-3 bg-gradient-to-r from-[#6366F1] to-[#4F46E5] hover:from-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-[#4F46E5]/20 hover:shadow-[#4F46E5]/40 hover:-translate-y-1 active:scale-[0.98] transform uppercase text-sm cursor-pointer"
               >
                 FECHAR
               </button>

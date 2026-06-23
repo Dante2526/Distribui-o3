@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eraser, FileText, UserPlus, Repeat, Hourglass, Clock, CirclePause, CirclePlay, MousePointer, HelpCircle, Eye, EyeOff, X } from 'lucide-react';
+import { ExchangeIcon } from '../CustomIcons';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 
 const DEFAULT_HASH = 'bb5a8c3679034435aacba22a202ba4af1866d5c67bb6aa227462eb9320b9aa55'; // adm2025
@@ -240,12 +241,12 @@ export function AdminModal({
                 {/* IMPORTAR COLAB. */}
                 <button
                   onClick={onImportCollaborator}
-                  className="flex flex-col items-center justify-center p-3 bg-[#14B8A6] hover:bg-[#0D9488] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                  className="flex flex-col items-center justify-center p-3 gap-1.5 bg-[#14B8A6] hover:bg-[#0D9488] text-white rounded-xl transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform cursor-pointer"
                 >
                   <div className="scale-[0.85] md:scale-90 origin-bottom">
-                    <Repeat className="w-7 h-7 text-white" strokeWidth={2} />
+                    <ExchangeIcon className="w-7 h-7 text-white" />
                   </div>
-                  <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">IMPORTAR COLAB.</span>
+                  <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">IMPORTAR COLAB.</span>
                 </button>
                 
                 {/* DESATIVAR 6H / ATIVAR 6H */}
