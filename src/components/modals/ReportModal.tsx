@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Copy, CheckCircle2, Download, FileText, Hourglass } from 'lucide-react';
+import { X, Copy, CheckCircle2, Download, FileText, Hourglass, UserMinus } from 'lucide-react';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 import { StatCard } from '../StatCard';
 
@@ -90,7 +90,7 @@ export function ReportModal({
               {stats && (
                 <div className="flex gap-3">
                   {/* PRESENTES CARD (Blue) */}
-                  <div className="flex-1 bg-blue-900/20 p-3 rounded-xl border border-blue-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-blue-500/20 active:scale-[0.98] transform cursor-default">
+                  <div className="flex-1 bg-blue-900/20 p-3 rounded-xl border border-blue-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-blue-500/20 active:scale-[0.96] active:shadow-xl active:shadow-blue-500/40 active:bg-blue-800/30 transform cursor-pointer lg:cursor-default">
                     <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                       <FileText className="w-16 h-16 text-blue-600" />
                     </div>
@@ -106,7 +106,7 @@ export function ReportModal({
                   </div>
 
                   {/* AUSENTES CARD (Amber/Yellow) */}
-                  <div className="flex-1 bg-amber-900/20 p-3 rounded-xl border border-amber-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-amber-500/20 active:scale-[0.98] transform cursor-default">
+                  <div className="flex-1 bg-amber-900/20 p-3 rounded-xl border border-amber-800 text-center relative overflow-hidden group flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-amber-500/20 active:scale-[0.96] active:shadow-xl active:shadow-amber-500/40 active:bg-amber-800/30 transform cursor-pointer lg:cursor-default">
                     <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                       <Hourglass className="w-16 h-16 text-amber-600" />
                     </div>
@@ -163,14 +163,20 @@ export function ReportModal({
 
               {/* Lista de Ausentes (Chips) */}
               {stats && stats.afastadosList && stats.afastadosList.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF9500]"></div>
-                    <span className="text-[12px] font-bold text-[#FF9500] uppercase tracking-wider">AFASTADOS</span>
+                <div className="flex flex-col items-center mt-2 w-full">
+                  <div className="flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-[#FF9500]/10 border border-[#FF9500]/25 shadow-sm shadow-[#FF9500]/5">
+                    <UserMinus className="w-3.5 h-3.5 text-[#FF9500]" />
+                    <span className="text-[11px] font-extrabold text-[#FF9500] uppercase tracking-widest">
+                      Colaboradores Afastados
+                    </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap justify-center gap-2 w-full max-w-[95%]">
                     {stats.afastadosList.map((nome: string, i: number) => (
-                      <div key={i} className="px-2.5 py-1.5 rounded-md border border-[#FF9500]/30 bg-[#FF9500]/10 text-[10px] font-bold text-[#FFD60A] uppercase tracking-wider">
+                      <div 
+                        key={i} 
+                        className="px-3 py-1.5 rounded-full border border-[#FFD60A]/20 bg-[#FFD60A]/5 text-[10px] font-bold text-[#FFD60A] uppercase tracking-wider transition-all duration-300 hover:bg-[#FFD60A]/10 hover:border-[#FFD60A]/40 hover:scale-[1.03] cursor-default flex items-center gap-1.5"
+                      >
+                        <div className="w-1 h-1 rounded-full bg-[#FFD60A]/70"></div>
                         {nome}
                       </div>
                     ))}

@@ -83,35 +83,35 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="p-6 md:px-8 md:pt-8 shrink-0 flex items-center gap-4">
+            <div className="p-4 md:p-6 md:px-8 md:pt-8 shrink-0 flex items-start md:items-center gap-3 md:gap-4">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className={`w-10 h-10 -ml-2 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`w-8 h-8 md:w-10 md:h-10 shrink-0 -ml-1 md:-ml-2 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
                     isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+                  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
                 </button>
               )}
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#4F46E5]/50 hover:scale-105">
-                <Clock className="w-6 h-6 text-white" strokeWidth={2.5} />
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#4F46E5]/50 hover:scale-105">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={2.5} />
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl md:text-2xl font-black uppercase tracking-wide">
-                  Histórico de Movimentações
+              <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
+                <h2 className="text-[16px] leading-[1.1] md:leading-normal md:text-2xl font-black uppercase tracking-wide">
+                  Histórico
                 </h2>
-                <p className={`text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-[11px] md:text-sm mt-1 font-medium leading-tight md:leading-normal ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   Registro agrupado por funcionário
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-colors ${
                   isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
                 }`}
               >
-                <X className="w-5 h-5" strokeWidth={2.5} />
+                <X className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
               </button>
             </div>
 
@@ -155,28 +155,28 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                             isDarkMode ? 'hover:bg-white/5' : 'hover:bg-gray-200/50'
                           }`}
                         >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                            <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${
                               isDarkMode ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'bg-[#4F46E5]/10 text-[#4F46E5]'
                             }`}>
                               <User className="w-5 h-5" />
                             </div>
-                            <div className="flex flex-col">
-                              <span className="font-bold text-base">{group.employeeName}</span>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-[15px] md:text-base truncate">{group.employeeName}</span>
+                              <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-0.5">
+                                <span className={`text-[10px] md:text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${
                                   isDarkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'
                                 }`}>
                                   {group.count} {group.count === 1 ? 'Movimentação' : 'Movimentações'}
                                 </span>
-                                <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <span className={`text-[11px] md:text-xs whitespace-nowrap ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                   Última às {lastDataFormatada}
                                 </span>
                               </div>
                             </div>
                           </div>
                           
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${
+                          <div className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-transform duration-300 ml-2 ${
                             isExpanded ? 'rotate-180' : ''
                           } ${isDarkMode ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-500'}`}>
                             <ChevronDown className="w-5 h-5" />
@@ -209,14 +209,21 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                                   return (
                                     <div 
                                       key={log.id} 
-                                      className={`p-3 rounded-[12px] flex flex-col md:flex-row md:items-center gap-3 ${
+                                      className={`p-3 rounded-[12px] flex flex-col md:flex-row md:items-center gap-2 md:gap-3 ${
                                         isDarkMode ? 'bg-white/5' : 'bg-white shadow-sm border border-gray-100'
                                       }`}
                                     >
-                                      {/* Hora da movimentação individual */}
-                                      <div className="flex items-center gap-2 shrink-0 md:min-w-[90px]">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#6366F1]' : 'bg-[#4F46E5]'}`}></div>
-                                        <span className="font-bold text-sm">{horaFormatada}</span>
+                                      {/* Hora e ADM Responsável (Mobile) */}
+                                      <div className="flex items-center justify-between w-full md:w-auto md:min-w-[90px]">
+                                        <div className="flex items-center gap-2 shrink-0">
+                                          <div className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#6366F1]' : 'bg-[#4F46E5]'}`}></div>
+                                          <span className="font-bold text-sm">{horaFormatada}</span>
+                                        </div>
+                                        {/* ADM Responsável Mobile Only */}
+                                        <div className="flex items-center gap-1 md:hidden">
+                                          <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>POR</span>
+                                          <span className="text-[11px] font-semibold">{log.adminName}</span>
+                                        </div>
                                       </div>
 
                                       {/* De -> Para e Info (Linha/Loco) */}
@@ -255,8 +262,8 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                                         </span>
                                       </div>
 
-                                      {/* ADM Responsável */}
-                                      <div className="shrink-0 flex items-center gap-2 md:justify-end">
+                                      {/* ADM Responsável (Desktop Only) */}
+                                      <div className="hidden md:flex shrink-0 items-center gap-2 justify-end">
                                         <div className="flex flex-col text-right">
                                           <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                                             POR
@@ -278,16 +285,6 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                   })}
                 </div>
               )}
-            </div>
-            
-            {/* Footer */}
-            <div className="p-4 md:px-8 md:pb-8 shrink-0 flex justify-end">
-              <button
-                onClick={onClose}
-                className="px-8 py-3 bg-gradient-to-r from-[#6366F1] to-[#4F46E5] hover:from-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-[#4F46E5]/20 hover:shadow-[#4F46E5]/40 hover:-translate-y-1 active:scale-[0.98] transform uppercase text-sm cursor-pointer"
-              >
-                FECHAR
-              </button>
             </div>
           </motion.div>
         </motion.div>

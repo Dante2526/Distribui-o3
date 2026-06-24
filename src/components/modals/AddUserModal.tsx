@@ -133,7 +133,7 @@ export function AddUserModal({
               }`}
               autoComplete="off"
             />
-            <span className="text-[11px] text-[#FFD60A] font-bold block px-1 mt-0.5">
+            <span className="text-[10px] md:text-[11px] whitespace-nowrap text-[#FFD60A] font-bold block px-1 mt-0.5">
               *Coloque apenas o primeiro nome e o último sobrenome
             </span>
           </div>

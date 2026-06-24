@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ExchangeIcon } from '../CustomIcons';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
-import { X, Search, Check, ArrowLeft } from 'lucide-react';
+import { X, Search, Check, ArrowLeft, Users } from 'lucide-react';
 import { Employee, Department } from '../../types';
 
 interface ImportEmployeeModalProps {
@@ -32,7 +32,8 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
   const mouseDownInsideCard = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const { isViewportBackdrop, viewportStyles } = useViewportStyles();
+  const viewportStyles = useViewportStyles(isOpen);
+  const isViewportBackdrop = !!viewportStyles.backdrop.position;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const turmaDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -114,7 +115,7 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`rounded-[32px] shadow-2xl w-full max-w-[390px] relative mx-4 flex flex-col py-6 transition-colors duration-300 ${
+            className={`rounded-[32px] shadow-2xl w-full max-w-[390px] min-h-[420px] relative mx-4 flex flex-col py-6 transition-colors duration-300 ${
               isDarkMode
                 ? 'bg-[#1E2029] border border-white/10 text-white'
                 : 'bg-white border border-gray-100 text-[#1F2937]'
@@ -172,8 +173,15 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
                     }`}
                     onClick={() => setIsTurmaDropdownOpen(!isTurmaDropdownOpen)}
                   >
-                    <span className={sourceTurma ? '' : (isDarkMode ? 'text-gray-500' : 'text-gray-400')}>
-                      {sourceTurma || 'Selecione a turma...'}
+                    <span className={`flex-1 flex justify-center ${sourceTurma ? '' : (isDarkMode ? 'text-gray-500' : 'text-gray-400')}`}>
+                      {sourceTurma ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Users className="w-4 h-4 opacity-70" />
+                          {sourceTurma}
+                        </div>
+                      ) : (
+                        'Selecione a turma...'
+                      )}
                     </span>
                     <motion.div animate={{ rotate: isTurmaDropdownOpen ? 180 : 0 }}>
                       <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -195,7 +203,7 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
                         {availableTurmas.map(turma => (
                           <div
                             key={turma}
-                            className={`p-3.5 cursor-pointer flex justify-between items-center transition-colors ${
+                            className={`relative p-3.5 cursor-pointer flex justify-center items-center transition-colors ${
                               sourceTurma === turma
                                 ? (isDarkMode ? 'bg-teal-500/20 text-teal-400' : 'bg-teal-50 text-teal-600')
                                 : (isDarkMode ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700')
@@ -208,8 +216,11 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
                               setSelectedEmployee(null);
                             }}
                           >
-                            <span className="font-medium">{turma}</span>
-                            {sourceTurma === turma && <Check className="w-4 h-4" />}
+                            <div className="flex items-center justify-center gap-2">
+                              <Users className={`w-4 h-4 ${sourceTurma === turma ? '' : 'opacity-60'}`} />
+                              <span className="font-medium">{turma}</span>
+                            </div>
+                            {sourceTurma === turma && <Check className="w-4 h-4 absolute right-3.5" />}
                           </div>
                         ))}
                       </motion.div>
@@ -240,7 +251,7 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
                       }}
                       onFocus={() => sourceTurma && setIsDropdownOpen(true)}
                       disabled={!sourceTurma}
-                      className={`w-full py-3.5 pl-10 pr-4 bg-transparent outline-none font-medium transition-colors ${
+                      className={`w-full py-3.5 pl-10 pr-4 bg-transparent outline-none text-[13px] sm:text-sm font-medium transition-colors ${
                         !sourceTurma ? (isDarkMode ? 'opacity-50 cursor-not-allowed' : 'opacity-60 cursor-not-allowed') : ''
                       } ${isDarkMode ? 'text-white placeholder-gray-600' : 'text-[#1F2937] placeholder-gray-400'}`}
                       placeholder={sourceTurma ? 'Pesquisar por nome ou matrícula...' : 'Selecione a turma primeiro'}

@@ -2080,7 +2080,7 @@ function AppContent() {
       const deptEdits: Record<string, ActiveEdit> = {};
       Object.entries(activeEdits).forEach(([empId, edit]) => {
         if (dept.data.some(e => e.id === empId)) {
-          deptEdits[empId] = edit;
+          deptEdits[empId] = edit as ActiveEdit;
         }
       });
       map[dept.id] = deptEdits;
@@ -2094,7 +2094,7 @@ function AppContent() {
       const groupEdits: Record<string, ActiveEdit> = {};
       Object.entries(activeEdits).forEach(([empId, edit]) => {
         if (group.some(e => e.id === empId)) {
-          groupEdits[empId] = edit;
+          groupEdits[empId] = edit as ActiveEdit;
         }
       });
       map[index] = groupEdits;

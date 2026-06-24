@@ -54,7 +54,7 @@ export const SupportCard = React.memo(({
     <div className="bg-[#1E2029] rounded-[24px] overflow-visible flex flex-col border border-white/[0.02] relative min-h-full">
       
       {/* Support Card Header */}
-      <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
+      <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E] rounded-t-[23px]">
         <div className="flex items-center gap-3.5">
           <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.text}`}>
             <Users className="w-5 h-5" />

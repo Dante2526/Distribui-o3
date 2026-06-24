@@ -400,11 +400,11 @@ export const EmployeeRow = React.memo(({
       {showTransferMenu && transferRect && (
         <PortalMenu>
           <div className="fixed inset-0 z-[999]" onClick={() => { setShowTransferMenu(false); setTransferRect(null); }} />
-          <div
+            <div
             style={{
               position: 'fixed',
               top: transferRect.bottom + 6,
-              left: transferRect.right - 180,
+              left: transferRect.right - 190,
               transformOrigin: 'top right',
               transform: 'scale(var(--app-scale, 1))',
               zIndex: 1000,
@@ -415,7 +415,7 @@ export const EmployeeRow = React.memo(({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -5 }}
               transition={{ duration: 0.15 }}
-              className="w-[180px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
+              className="w-[190px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
             >
               <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
             {otherDepts.map(d => {
