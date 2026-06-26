@@ -116,6 +116,30 @@ export const firestoreService = {
     }
   },
 
+  // ESCUTAR EDICOES ATIVAS
+  subscribeToActiveEdits(turma: TurmaType, callback: (edits: Record<string, any>) => void) {
+    if (!dbRegistros) return () => {};
+    const editsDocRef = doc(dbRegistros, `turma ${turma.toLowerCase()}`, 'estado_painel', 'metadata', 'edits');
+    return onSnapshot(editsDocRef, (snapshot) => {
+      if (snapshot.exists()) {
+        try {
+          const data = snapshot.data();
+          const edits = data.edits ? JSON.parse(data.edits) : {};
+          callback(edits);
+        } catch(e) { callback({}); }
+      } else {
+        callback({});
+      }
+    });
+  },
+
+  // SALVAR EDICOES ATIVAS
+  saveActiveEdits(turma: TurmaType, edits: Record<string, any>) {
+    if (!dbRegistros) return;
+    const editsDocRef = doc(dbRegistros, `turma ${turma.toLowerCase()}`, 'estado_painel', 'metadata', 'edits');
+    setDoc(editsDocRef, { edits: JSON.stringify(edits), updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+  },
+
   // GRAVAR HISTÓRICO DE MOVIMENTAÇÃO
   async saveMovementLog(turma: TurmaType, log: MovementLog) {
     if (!dbRegistros) return;

@@ -113,6 +113,15 @@ function AppContent() {
     const saved = localStorage.getItem('distribui-theme');
     return saved !== 'light';
   });
+
+  const sessionUser = React.useMemo(() => {
+    const stored = sessionStorage.getItem('distribui_session_user');
+    if (stored) return JSON.parse(stored);
+    const randIndex = Math.floor(Math.random() * (MOCK_USERS.length - 1));
+    const user = MOCK_USERS[randIndex];
+    sessionStorage.setItem('distribui_session_user', JSON.stringify(user));
+    return user;
+  }, []);
   
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => {
@@ -279,9 +288,23 @@ function AppContent() {
       }
     });
 
+    // Escuta edições ativas em tempo real
+    const unsubscribeEdits = firestoreService.subscribeToActiveEdits(selectedTurma, (edits) => {
+      const now = Date.now();
+      const cleanedEdits: Record<string, ActiveEdit> = {};
+      Object.keys(edits).forEach(key => {
+        // Ignora edições mais antigas que 15s que ficaram presas
+        if (now - edits[key].timestamp < 15000) {
+          cleanedEdits[key] = edits[key];
+        }
+      });
+      setActiveEdits(cleanedEdits);
+    });
+
     return () => {
       unsubscribe();
       unsubscribeLogs();
+      unsubscribeEdits();
     };
   }, [isDemoMode, selectedTurma]);
 
@@ -570,23 +593,26 @@ function AppContent() {
   const editTimersRef = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const handleStartEdit = useCallback((empId: string) => {
+    if (!selectedTurma) return;
     setActiveEdits((prev) => {
       const newEdits = { ...prev };
       Object.keys(newEdits).forEach(key => {
-        if (newEdits[key].userName === MOCK_USERS[6].name) {
+        if (newEdits[key].userName === sessionUser.name) {
           delete newEdits[key];
         }
       });
       newEdits[empId] = {
         empId,
-        userName: MOCK_USERS[6].name,
-        color: MOCK_USERS[6].color,
+        userName: sessionUser.name,
+        color: sessionUser.color,
         timestamp: Date.now()
       };
+      
+      // Sincroniza com Firebase para todos verem o contorno
+      firestoreService.saveActiveEdits(selectedTurma, newEdits);
       return newEdits;
     });
 
-    // Cancela timer anterior do mesmo funcionário, se existir
     if (editTimersRef.current[empId]) {
       clearTimeout(editTimersRef.current[empId]);
     }
@@ -597,14 +623,14 @@ function AppContent() {
         const newEdits = { ...prev };
         if (newEdits[empId] && Date.now() - newEdits[empId].timestamp >= 11500) {
           delete newEdits[empId];
+          if (selectedTurma) firestoreService.saveActiveEdits(selectedTurma, newEdits);
         }
         return newEdits;
       });
     }, 12000);
-  }, []);
+  }, [selectedTurma, sessionUser]);
 
   const handleStopEdit = useCallback((empId: string) => {
-    // Cancela o timer de auto-limpeza imediatamente
     if (editTimersRef.current[empId]) {
       clearTimeout(editTimersRef.current[empId]);
       delete editTimersRef.current[empId];
@@ -613,9 +639,10 @@ function AppContent() {
       if (!prev[empId]) return prev;
       const newEdits = { ...prev };
       delete newEdits[empId];
+      if (selectedTurma) firestoreService.saveActiveEdits(selectedTurma, newEdits);
       return newEdits;
     });
-  }, []);
+  }, [selectedTurma]);
 
   // Listener global: qualquer clique fora de um input/textarea limpa o contorno de edição
   useEffect(() => {
@@ -636,11 +663,16 @@ function AppContent() {
       // Fallback: se por algum motivo o onBlur não disparar, limpa todos os edits do usuário local
       setActiveEdits((prev) => {
         const newEdits = { ...prev };
+        let changed = false;
         Object.keys(newEdits).forEach(key => {
-          if (newEdits[key].userName === MOCK_USERS[6].name) {
+          if (newEdits[key].userName === sessionUser.name) {
             delete newEdits[key];
+            changed = true;
           }
         });
+        if (changed && selectedTurma) {
+          firestoreService.saveActiveEdits(selectedTurma, newEdits);
+        }
         return newEdits;
       });
     };
@@ -649,7 +681,7 @@ function AppContent() {
     return () => {
       document.removeEventListener('mousedown', handleDocMouseDown, true);
     };
-  }, []);
+  }, [selectedTurma, sessionUser]);
 
   // ===================== DND HANDLERS =====================
   const [activeId, setActiveId] = useState<string | null>(null);
