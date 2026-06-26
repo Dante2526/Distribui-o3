@@ -115,7 +115,9 @@ function AppContent() {
   });
   
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [activePage, setActivePage] = useState('home');
+  const [activePage, setActivePage] = useState(() => {
+    return localStorage.getItem('distribui-page') || 'home';
+  });
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -128,16 +130,32 @@ function AppContent() {
   // Inicializa o state do history se não existir
   useEffect(() => {
     if (!window.history.state || !window.history.state.page) {
-      window.history.replaceState({ page: 'home' }, '');
+      window.history.replaceState({ page: activePage }, '');
     }
-  }, []);
+  }, [activePage]);
 
   // Configurações e estados do painel
   const [is6HActive, setIs6HActive] = useState(true);
   const [isAutomationPaused, setIsAutomationPaused] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
-  const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(null);
+  
+  const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
+    const saved = localStorage.getItem('distribui-turma');
+    return saved ? (saved as TurmaType) : null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('distribui-page', activePage);
+  }, [activePage]);
+
+  useEffect(() => {
+    if (selectedTurma) {
+      localStorage.setItem('distribui-turma', selectedTurma);
+    } else {
+      localStorage.removeItem('distribui-turma');
+    }
+  }, [selectedTurma]);
 
   // Histórico de Movimentações
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
@@ -1304,6 +1322,7 @@ function AppContent() {
 
   const handleAdminLogin = useCallback(() => {
     setIsAdmin(true);
+    setIsAdminModalOpen(false); // Fecha o modal imediatamente
     setShowLoginToast(true);
     if (loginToastTimerRef.current) clearTimeout(loginToastTimerRef.current);
     loginToastTimerRef.current = setTimeout(() => setShowLoginToast(false), 3500);
@@ -2504,6 +2523,7 @@ function AppContent() {
             </div>
 
             <DndContext
+              key={isAdmin ? 'admin' : 'guest'}
               sensors={sensors}
               collisionDetection={pointerWithin}
               modifiers={[scaleCompensationModifier]}
