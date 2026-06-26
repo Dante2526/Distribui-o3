@@ -3,25 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Eraser, FileText, UserPlus, Repeat, Hourglass, Clock, CirclePause, CirclePlay, MousePointer, HelpCircle, Eye, EyeOff, X } from 'lucide-react';
 import { ExchangeIcon } from '../CustomIcons';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
-
-const DEFAULT_HASH = 'bb5a8c3679034435aacba22a202ba4af1866d5c67bb6aa227462eb9320b9aa55'; // adm2025
-const EXPECTED_HASH = import.meta.env.VITE_ADMIN_PASSWORD_HASH ?? DEFAULT_HASH;
-
-async function sha256(message: string) {
-  if (!crypto || !crypto.subtle) {
-    console.warn("crypto.subtle não disponível (ambiente não seguro).");
-    return null;
-  }
-  try {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  } catch (err) {
-    console.error("Erro ao gerar hash SHA-256", err);
-    return null;
-  }
-}
+import { firestoreService } from '../../services/firestoreService';
 
 export function AdminModal({
   isOpen,
@@ -68,43 +50,14 @@ export function AdminModal({
   onToggleDemoMode: () => void;
   isDarkMode: boolean;
 }) {
-  const [password, setPassword] = useState('');
-  const [visibleIndex, setVisibleIndex] = useState(-1);
-  const timerRef = useRef<any>(null);
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const maskScrollRef = useRef<HTMLDivElement>(null);
 
   const viewportStyles = useViewportStyles(isOpen);
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    
-    if (val.length > password.length) {
-      setVisibleIndex(val.length - 1);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        setVisibleIndex(-1);
-      }, 1000);
-    } else {
-      setVisibleIndex(-1);
-    }
-    
-    setPassword(val);
-  };
-
-  const toggleShowPassword = () => {
-    if (showPassword) {
-      setVisibleIndex(-1);
-    }
-    setShowPassword(!showPassword);
-  };
-
   const handleClose = () => {
-    setPassword('');
-    setVisibleIndex(-1);
+    setEmail('');
     setError('');
-    setShowPassword(false);
     onClose();
   };
 
@@ -113,27 +66,19 @@ export function AdminModal({
     setError('');
 
     try {
-      const enteredHash = await sha256(password);
-      const legacyPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+      // 1. Tenta validar no Firebase (coleção administrators no DSS apenas pelo e-mail corporativo)
+      const isFirebaseValid = await firestoreService.verifyAdminLogin(email);
 
-      // Fallback para quando o crypto.subtle não está disponível (ex: acesso via IP no celular)
-      const isFallbackValid = !enteredHash && password === 'adm2025';
-
-      if (
-        (enteredHash && enteredHash === EXPECTED_HASH) || 
-        (legacyPassword && password === legacyPassword) || 
-        isFallbackValid
-      ) {
-        setPassword('');
-        setVisibleIndex(-1);
+      if (isFirebaseValid) {
+        setEmail('');
         onLogin();
       } else {
-        setError('Senha incorreta! Digite tudo em minúsculo.');
+        setError('E-mail corporativo não encontrado.');
         onLoginError();
       }
     } catch (err) {
       console.error(err);
-      setError('Erro ao validar senha. Verifique a conexão.');
+      setError('Erro ao validar. Verifique a conexão.');
       onLoginError();
     }
   };
@@ -339,66 +284,26 @@ export function AdminModal({
               Acesso Administrativo
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="relative flex flex-col">
+              <div className="relative flex flex-col gap-4">
                 <div className="relative w-full">
                   <input
-                    type="text"
+                    type="email"
                     placeholder="E-mail do Administrador"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    className={`text-base w-full p-4 pr-10 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] font-mono transition-all relative z-10 ${
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`text-base w-full p-4 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 ${
                       isDarkMode 
-                        ? `bg-[#111217] border border-white/10 placeholder-white/30 ${showPassword ? 'text-white' : 'text-transparent'}` 
-                        : `bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 ${showPassword ? 'text-gray-900' : 'text-transparent'}`
+                        ? 'bg-[#111217] border border-white/10 placeholder-white/30 text-white' 
+                        : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
                     }`}
                     autoFocus
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
-                    onScroll={(e) => {
-                      if (maskScrollRef.current) {
-                        maskScrollRef.current.style.transform = `translateX(-${e.currentTarget.scrollLeft}px)`;
-                      }
-                    }}
                   />
-                  {!showPassword && password.length > 0 && (
-                    <div 
-                      className={`text-base absolute inset-y-0 left-4 right-10 flex items-center pointer-events-none z-20 overflow-hidden`}
-                    >
-                      <div
-                        ref={maskScrollRef}
-                        className={`font-mono whitespace-nowrap flex items-center h-full ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                        style={{ 
-                          lineHeight: '1',
-                          letterSpacing: 'normal'
-                        }}
-                      >
-                        {password.split('').map((char, index) => (
-                          <span key={index}>
-                            {index === visibleIndex ? char : '●'}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleShowPassword}
-                    className={`absolute right-4 top-1/2 -translate-y-1/2 focus:outline-none transition-colors z-30 ${
-                      isDarkMode ? 'text-[#a0aec0] hover:text-white' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
                 </div>
-                <span className="text-xs text-[#FFD60A] font-bold text-left mt-2 block px-1">
-                  * Digite tudo em minúsculo
-                </span>
+
                 {error && (
                   <span className="text-xs text-[#FF453A] font-bold text-left mt-2 block px-1 animate-pulse">
                     {error}

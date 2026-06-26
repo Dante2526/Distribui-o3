@@ -156,5 +156,29 @@ export const firestoreService = {
       // Retornar apenas os 500 mais recentes se tiver muitos
       callback(logs.slice(0, 500));
     });
+  },
+
+  // VERIFICAR LOGIN DE ADMIN (Apenas pelo E-mail Corporativo)
+  async verifyAdminLogin(email: string): Promise<boolean> {
+    if (!dbDSS) return false;
+
+    try {
+      const adminsRef = collection(dbDSS, 'administrators');
+      const snapshot = await getDocs(adminsRef);
+      
+      let isValid = false;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        // Verifica se existe algum administrador com esse email
+        if (data.email === email) {
+          isValid = true;
+        }
+      });
+      
+      return isValid;
+    } catch (error) {
+      console.error("Erro ao verificar login de administrador:", error);
+      return false;
+    }
   }
 };

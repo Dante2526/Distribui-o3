@@ -658,12 +658,12 @@ function AppContent() {
   }, [departmentsData, supportRolesData, specialShiftData, annotationsLeft, annotationsRight, isDarkMode]);
 
   const mouseSensor = useSensor(MouseSensor, React.useMemo(() => ({
-    activationConstraint: { distance: 5 },
-  }), []));
+    activationConstraint: { distance: isAdmin ? 5 : 999999 },
+  }), [isAdmin]));
 
   const touchSensor = useSensor(TouchSensor, React.useMemo(() => ({
-    activationConstraint: { delay: 250, tolerance: 5 },
-  }), []));
+    activationConstraint: { delay: isAdmin ? 250 : 999999, tolerance: isAdmin ? 5 : 0 },
+  }), [isAdmin]));
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
