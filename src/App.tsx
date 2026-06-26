@@ -43,6 +43,7 @@ import {
   initialAnnotationsLeft,
   initialAnnotationsRight,
 } from './constants/data';
+import { firestoreService } from './services/firestoreService';
 
 // Componentes
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -87,14 +88,24 @@ const SpecialShiftContainer = ({ children, is6HActive, isEmpty }: { children: Re
 };
 
 function AppContent() {
-  const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
-  const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
-  const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>(initialAnnotationsLeft);
-  const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>(initialAnnotationsRight);
-  const [specialShiftData, setSpecialShiftData] = useState<Employee[]>([
-    { id: 'emp-60', name: 'FABIANO SILVA', line: 'X4', machine: '222', tagType: 'MAQUINISTA' },
-    { id: 'emp-61', name: 'MAURICIO SOUZA', line: 'X6', machine: '280', tagType: 'MAQUINISTA' }
+  const [departmentsData, setDepartmentsData] = useState<Department[]>([
+    { id: 'recepcao', title: 'Recepção', count: 0, data: [] },
+    { id: 'classificacao', title: 'Classificação', count: 0, data: [] },
+    { id: 'formacao', title: 'Formação', count: 0, data: [] },
   ]);
+  const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>([[], [], []]);
+  const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>([
+    { title: 'FÉRIAS/TE/TREIN./REVEZA', items: [] },
+    { title: 'FÉRIAS', items: [] },
+    { title: 'ATM / FORA', items: [] }
+  ]);
+  const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>([
+    { title: 'MAQ/OFF - ESTÁGIO', items: [] },
+    { title: 'RESTRIÇÃO', items: [] },
+    { title: 'INSS', items: [] }
+  ]);
+  const [specialShiftData, setSpecialShiftData] = useState<Employee[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('distribui-theme');
     return saved !== 'light';
@@ -127,6 +138,82 @@ function AppContent() {
   // Histórico de Movimentações
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+
+  const isReceivingSnapshotRef = useRef(false);
+  const isDemoModeRef = useRef(isDemoMode);
+  
+  useEffect(() => {
+    isDemoModeRef.current = isDemoMode;
+  }, [isDemoMode]);
+
+  // Efeito principal de sincronização de dados (Firebase vs Mock)
+  useEffect(() => {
+    if (isDemoMode) {
+      // Modo Demo: carrega os mock data localmente
+      setDepartmentsData(initialDepartmentsData);
+      setSupportRolesData(initialSupportData);
+      setAnnotationsLeft(initialAnnotationsLeft);
+      setAnnotationsRight(initialAnnotationsRight);
+      setSpecialShiftData([
+        { id: 'emp-60', name: 'FABIANO SILVA', line: 'X4', machine: '222', tagType: 'MAQUINISTA' },
+        { id: 'emp-61', name: 'MAURICIO SOUZA', line: 'X6', machine: '280', tagType: 'MAQUINISTA' }
+      ]);
+      setIsLoadingData(false);
+      return;
+    }
+
+    // Modo Normal: escuta o Firebase
+    setIsLoadingData(true);
+    const unsubscribe = firestoreService.subscribeToBoardState((state) => {
+      isReceivingSnapshotRef.current = true;
+      // Se Firebase retornar dados válidos (não vazios no sentido de arrays populados)
+      if (state.departmentsData && state.departmentsData.length > 0) {
+        setDepartmentsData(state.departmentsData);
+      }
+      if (state.supportRolesData && state.supportRolesData.length > 0) {
+        setSupportRolesData(state.supportRolesData);
+      }
+      if (state.annotationsLeft && state.annotationsLeft.length > 0) {
+        setAnnotationsLeft(state.annotationsLeft);
+      }
+      if (state.annotationsRight && state.annotationsRight.length > 0) {
+        setAnnotationsRight(state.annotationsRight);
+      }
+      if (state.specialShiftData) {
+        setSpecialShiftData(state.specialShiftData);
+      }
+      setIsLoadingData(false);
+      setTimeout(() => { isReceivingSnapshotRef.current = false; }, 200);
+    });
+    
+    // Escuta logs
+    const unsubscribeLogs = firestoreService.subscribeToHistory((logs) => {
+      if (logs && logs.length > 0) {
+        setMovementLogs(logs);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeLogs();
+    };
+  }, [isDemoMode]);
+
+  // Efeito para salvar alterações locais no Firebase
+  useEffect(() => {
+    if (isDemoMode || isReceivingSnapshotRef.current || isLoadingData) return;
+    
+    // Evita sobrescrever o banco com dados vazios logo no início se isLoadingData falhar de alguma forma
+    if (departmentsData[0]?.id) {
+       firestoreService.saveBoardState({
+         departmentsData,
+         supportRolesData,
+         annotationsLeft,
+         annotationsRight,
+         specialShiftData
+       });
+    }
+  }, [departmentsData, supportRolesData, annotationsLeft, annotationsRight, specialShiftData, isDemoMode, isLoadingData]);
 
   const loginToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -171,6 +258,19 @@ function AppContent() {
       };
       return [newLog, ...prev].slice(0, 500);
     });
+    
+    if (!isDemoModeRef.current) {
+      firestoreService.saveMovementLog({
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
+        adminName: randomAdmin,
+        employeeName,
+        from,
+        to,
+        line,
+        machine,
+        timestamp: new Date()
+      });
+    }
   }, []);
 
 
