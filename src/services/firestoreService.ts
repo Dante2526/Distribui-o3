@@ -1,6 +1,6 @@
 import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs } from 'firebase/firestore';
 import { dbDSS, dbRegistros } from '../lib/firebase';
-import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog } from '../types';
+import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType } from '../types';
 
 export interface BoardState {
   departmentsData: Department[];
@@ -19,19 +19,14 @@ let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const firestoreService = {
   // LER DADOS DO BANCO ANTIGO (APENAS LEITURA)
-  async fetchEmployeesDSS() {
+  async fetchEmployeesDSS(turma: TurmaType) {
     if (!dbDSS) return [];
     try {
-      const collections = [
-        'turma a', 'turma b', 'turma c', 'turma d',
-        'turma c cg', 'turma b cg', 'estagio'
-      ];
-      
+      const collectionName = `turma ${turma.toLowerCase()}`;
       const allEmployees: Employee[] = [];
 
-      for (const colName of collections) {
-        const snapshot = await getDocs(collection(dbDSS, colName));
-        snapshot.docs.forEach(doc => {
+      const snapshot = await getDocs(collection(dbDSS, collectionName));
+      snapshot.docs.forEach(doc => {
           const data = doc.data();
           // Mapeia os dados do DSS para o nosso formato Employee
           allEmployees.push({
@@ -45,7 +40,7 @@ export const firestoreService = {
             role: data.role || ''
           });
         });
-      }
+      
       return allEmployees;
     } catch (error) {
       console.error("Erro ao buscar funcionários do DSS:", error);
@@ -54,13 +49,13 @@ export const firestoreService = {
   },
 
   // ESCUTAR O ESTADO DO PAINEL EM TEMPO REAL
-  subscribeToBoardState(callback: (state: BoardState) => void) {
+  subscribeToBoardState(turma: TurmaType, callback: (state: BoardState) => void) {
     if (!dbRegistros) {
       // Se não houver firebase, não faz nada
       return () => {};
     }
 
-    const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, BOARD_DOC_ID);
+    const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, `turma_${turma.toLowerCase()}`);
     
     return onSnapshot(boardDocRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
@@ -88,12 +83,12 @@ export const firestoreService = {
   },
 
   // SALVAR O ESTADO DO PAINEL (COM DEBOUNCE PARA NÃO SOBRECARREGAR)
-  saveBoardState(state: BoardState, immediate = false) {
+  saveBoardState(turma: TurmaType, state: BoardState, immediate = false) {
     if (!dbRegistros) return; // Local mode sem variáveis
 
     const executeSave = async () => {
       try {
-        const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, BOARD_DOC_ID);
+        const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, `turma_${turma.toLowerCase()}`);
         // Salvamos como JSON stringificados para evitar limites de profundidade/tipagem estrita do firestore
         // ou salvamos o array direto (o Firestore aceita arrays/objetos aninhados, mas stringify garante o estado exato)
         await setDoc(boardDocRef, {
@@ -119,11 +114,11 @@ export const firestoreService = {
   },
 
   // GRAVAR HISTÓRICO DE MOVIMENTAÇÃO
-  async saveMovementLog(log: MovementLog) {
+  async saveMovementLog(turma: TurmaType, log: MovementLog) {
     if (!dbRegistros) return;
 
     try {
-      const historyCol = collection(dbRegistros, HISTORY_COLLECTION);
+      const historyCol = collection(dbRegistros, `${HISTORY_COLLECTION}_turma_${turma.toLowerCase()}`);
       await addDoc(historyCol, {
         ...log,
         timestamp: log.timestamp.toISOString() // Firestore prefere datas em timestamp ou ISO string
@@ -134,10 +129,10 @@ export const firestoreService = {
   },
   
   // ESCUTAR HISTÓRICO (Para o modal de histórico)
-  subscribeToHistory(callback: (logs: MovementLog[]) => void) {
+  subscribeToHistory(turma: TurmaType, callback: (logs: MovementLog[]) => void) {
     if (!dbRegistros) return () => {};
 
-    const historyCol = collection(dbRegistros, HISTORY_COLLECTION);
+    const historyCol = collection(dbRegistros, `${HISTORY_COLLECTION}_turma_${turma.toLowerCase()}`);
     return onSnapshot(historyCol, (snapshot) => {
       const logs = snapshot.docs.map(doc => {
         const data = doc.data();

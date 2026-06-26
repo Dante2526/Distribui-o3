@@ -45,6 +45,8 @@ import {
 } from './constants/data';
 import { firestoreService } from './services/firestoreService';
 import { signInToFirebase } from './lib/firebase';
+import { TurmaSelectionScreen } from './components/TurmaSelectionScreen';
+import type { TurmaType } from './types';
 
 // Componentes
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -135,6 +137,7 @@ function AppContent() {
   const [isAutomationPaused, setIsAutomationPaused] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+  const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(null);
 
   // Histórico de Movimentações
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
@@ -168,9 +171,11 @@ function AppContent() {
       return;
     }
 
+    if (!selectedTurma) return;
+
     // Modo Normal: escuta o Firebase
     setIsLoadingData(true);
-    const unsubscribe = firestoreService.subscribeToBoardState((state) => {
+    const unsubscribe = firestoreService.subscribeToBoardState(selectedTurma, (state) => {
       isReceivingSnapshotRef.current = true;
       // Se Firebase retornar dados válidos (não vazios no sentido de arrays populados)
       if (state.departmentsData && state.departmentsData.length > 0) {
@@ -193,7 +198,7 @@ function AppContent() {
     });
     
     // Escuta logs
-    const unsubscribeLogs = firestoreService.subscribeToHistory((logs) => {
+    const unsubscribeLogs = firestoreService.subscribeToHistory(selectedTurma, (logs) => {
       if (logs && logs.length > 0) {
         setMovementLogs(logs);
       }
@@ -203,15 +208,15 @@ function AppContent() {
       unsubscribe();
       unsubscribeLogs();
     };
-  }, [isDemoMode]);
+  }, [isDemoMode, selectedTurma]);
 
   // Efeito para salvar alterações locais no Firebase
   useEffect(() => {
-    if (isDemoMode || isReceivingSnapshotRef.current || isLoadingData) return;
+    if (isDemoMode || isReceivingSnapshotRef.current || isLoadingData || !selectedTurma) return;
     
     // Evita sobrescrever o banco com dados vazios logo no início se isLoadingData falhar de alguma forma
     if (departmentsData[0]?.id) {
-       firestoreService.saveBoardState({
+       firestoreService.saveBoardState(selectedTurma, {
          departmentsData,
          supportRolesData,
          annotationsLeft,
@@ -219,7 +224,7 @@ function AppContent() {
          specialShiftData
        });
     }
-  }, [departmentsData, supportRolesData, annotationsLeft, annotationsRight, specialShiftData, isDemoMode, isLoadingData]);
+  }, [departmentsData, supportRolesData, annotationsLeft, annotationsRight, specialShiftData, isDemoMode, isLoadingData, selectedTurma]);
 
   const loginToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -265,8 +270,8 @@ function AppContent() {
       return [newLog, ...prev].slice(0, 500);
     });
     
-    if (!isDemoModeRef.current) {
-      firestoreService.saveMovementLog({
+    if (!isDemoModeRef.current && selectedTurma) {
+      firestoreService.saveMovementLog(selectedTurma, {
         id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
         adminName: randomAdmin,
         employeeName,
@@ -2266,6 +2271,10 @@ function AppContent() {
     [departmentsData]
   );
 
+  if (!selectedTurma) {
+    return <TurmaSelectionScreen onSelect={setSelectedTurma} />;
+  }
+
   return (
     <>
     <div 
@@ -2328,9 +2337,17 @@ function AppContent() {
                   isDarkMode={isDarkMode} 
                 />
                 <div className="flex flex-col gap-1">
-                  <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight uppercase">
-                    DISTRIBUIÇÃO - TURMA B
-                  </h1>
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight uppercase">
+                      DISTRIBUIÇÃO - TURMA {selectedTurma}
+                    </h1>
+                    <button 
+                      onClick={() => setSelectedTurma(null)}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full font-bold uppercase tracking-wider transition-colors"
+                    >
+                      Trocar Turma
+                    </button>
+                  </div>
                   <p className="text-lg md:text-xl font-medium text-[#a0aec0]">
                     Gestão de Equipes - Monitoramento em tempo real
                   </p>

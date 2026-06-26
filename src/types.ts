@@ -1,6 +1,9 @@
 import React from 'react';
 import { Palmtree, LogOut, Activity, ShieldAlert, FileText, UserCog, RefreshCw, User } from 'lucide-react';
 
+// --- Turma Type ---
+export type TurmaType = 'A' | 'B' | 'C' | 'D';
+
 // --- Status Types ---
 export type StatusType =
   | 'FÉRIAS'
