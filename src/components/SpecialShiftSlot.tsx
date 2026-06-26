@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { User, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useSortable } from '@dnd-kit/sortable';
@@ -68,7 +68,12 @@ export const SpecialShiftSlot = React.memo(({
     onStartEdit?.(emp.id);
   }, [onStartEdit, emp.id]);
 
-  React.useEffect(() => {
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     if (showOofMenu) {
       if (emp.id) onStartEdit?.(emp.id);
     } else {

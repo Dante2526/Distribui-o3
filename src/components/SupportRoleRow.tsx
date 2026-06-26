@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { User, Trash2, ArrowRightLeft, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useSortable } from '@dnd-kit/sortable';
@@ -124,7 +124,12 @@ export const SupportRoleRow = React.memo(({
     onDelete(groupIndex, index);
   }, [onDelete, groupIndex, index]);
 
-  React.useEffect(() => {
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     if (isOpen || isTransferOpen || showAbsentMenu || showAvatarMenu) {
       if (emp.id) onStartEdit?.(emp.id);
     } else {

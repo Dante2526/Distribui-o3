@@ -148,7 +148,12 @@ export const EmployeeRow = React.memo(({
     onStartEdit?.(emp.id);
   }, [onStartEdit, emp.id]);
 
+  const isMountedRef = useRef(false);
   useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     if (showAbsentMenu || showLineDropdown || showTransferMenu || showAvatarMenu) {
       if (emp.id) onStartEdit?.(emp.id);
     } else {
