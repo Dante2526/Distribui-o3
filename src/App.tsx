@@ -1805,6 +1805,12 @@ function AppContent() {
 
       if (target.closest('button, input, select, textarea, a, [role="button"], .employee-row-card')) return;
 
+      // Impede que o clique inicie seleção de texto ou arraste nativo de imagens
+      // Isso garante que o mousemove não seja cancelado pelo navegador
+      if (e.button === 0) {
+        e.preventDefault();
+      }
+
       dragScrollRef.current.isDragging = true;
       dragScrollRef.current.moved = false;
       dragScrollRef.current.startX = e.pageX - viewport.offsetLeft;
@@ -1823,8 +1829,8 @@ function AppContent() {
       e.preventDefault();
       const x = e.pageX - viewport.offsetLeft;
       const y = e.pageY - viewport.offsetTop;
-      const walkX = (x - dragScrollRef.current.startX);
-      const walkY = (y - dragScrollRef.current.startY);
+      const walkX = (x - dragScrollRef.current.startX) * 1.5;
+      const walkY = (y - dragScrollRef.current.startY) * 1.5;
 
       if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
         dragScrollRef.current.moved = true;
@@ -2397,12 +2403,6 @@ function AppContent() {
                     <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight uppercase">
                       DISTRIBUIÇÃO - TURMA {selectedTurma}
                     </h1>
-                    <button 
-                      onClick={() => setSelectedTurma(null)}
-                      className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full font-bold uppercase tracking-wider transition-colors"
-                    >
-                      Trocar Turma
-                    </button>
                   </div>
                   <p className="text-lg md:text-xl font-medium text-[#a0aec0]">
                     Gestão de Equipes - Monitoramento em tempo real
@@ -2418,7 +2418,7 @@ function AppContent() {
 
                   <button
                     id="change-turma-btn"
-                    onClick={() => {}}
+                    onClick={() => setSelectedTurma(null)}
                     className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-300 cursor-pointer"
                   >
                     <ExchangeIcon className="w-7 h-7" />
