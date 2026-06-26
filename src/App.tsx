@@ -248,8 +248,9 @@ function AppContent() {
               emptyDepts[0].data.push({
                 id: empId,
                 name: emp.name,
+                matricula: emp.matricula,
                 line: '',
-                machine: emp.matricula,
+                machine: '',
                 error: false,
                 tagType: 'MAQUINISTA'
               });
@@ -2522,8 +2523,17 @@ function AppContent() {
               </div>
             </div>
 
-            <DndContext
-              key={isAdmin ? 'admin' : 'guest'}
+            {isLoadingData ? (
+              <div className="w-full text-center py-32 text-[#a0aec0] text-xl font-medium flex flex-col items-center justify-center">
+                  <div className="flex flex-col items-center gap-6">
+                      <div className="w-16 h-16 border-[5px] border-slate-700 border-t-[#30D158] rounded-full animate-spin shadow-lg"></div>
+                      <span className="animate-pulse tracking-widest text-[#30D158] font-bold">CARREGANDO COLABORADORES...</span>
+                  </div>
+              </div>
+            ) : (
+              <>
+                <DndContext
+                  key={isAdmin ? 'admin' : 'guest'}
               sensors={sensors}
               collisionDetection={pointerWithin}
               modifiers={[scaleCompensationModifier]}
@@ -2684,6 +2694,8 @@ function AppContent() {
             </DndContext>
 
             <Footer />
+            </>
+            )}
           </div>
         </div>
       </div>
