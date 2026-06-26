@@ -44,6 +44,7 @@ import {
   initialAnnotationsRight,
 } from './constants/data';
 import { firestoreService } from './services/firestoreService';
+import { signInToFirebase } from './lib/firebase';
 
 // Componentes
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -138,6 +139,11 @@ function AppContent() {
   // Histórico de Movimentações
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+
+  // Faz o login anônimo ao montar o app (se as vars existirem)
+  useEffect(() => {
+    signInToFirebase();
+  }, []);
 
   const isReceivingSnapshotRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);

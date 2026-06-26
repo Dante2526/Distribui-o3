@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // Função auxiliar para inicializar um app apenas se a API key estiver presente
 function safeInitializeApp(config: any, appName: string) {
@@ -39,3 +40,18 @@ const appRegistros = safeInitializeApp(regConfig, 'registros');
 
 export const dbDSS = appDSS ? getFirestore(appDSS) : null;
 export const dbRegistros = appRegistros ? getFirestore(appRegistros) : null;
+
+export const authDSS = appDSS ? getAuth(appDSS) : null;
+export const authRegistros = appRegistros ? getAuth(appRegistros) : null;
+
+// Função para logar anonimamente nos bancos que estiverem ativos
+export const signInToFirebase = async () => {
+  const promises = [];
+  if (authDSS) {
+    promises.push(signInAnonymously(authDSS).catch(e => console.error('Erro Auth DSS:', e)));
+  }
+  if (authRegistros) {
+    promises.push(signInAnonymously(authRegistros).catch(e => console.error('Erro Auth Registros:', e)));
+  }
+  await Promise.all(promises);
+};
