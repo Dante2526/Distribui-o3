@@ -41,9 +41,10 @@ export const firestoreService = {
           });
         });
       
+      console.log(`[DEBUG] fetchEmployeesDSS: Encontrou ${allEmployees.length} funcionários na coleção '${collectionName}'`);
       return allEmployees;
     } catch (error) {
-      console.error("Erro ao buscar funcionários do DSS:", error);
+      console.error("[DEBUG] Erro ao buscar funcionários do DSS:", error);
       return [];
     }
   },

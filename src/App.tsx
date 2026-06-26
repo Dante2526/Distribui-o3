@@ -177,8 +177,17 @@ function AppContent() {
     setIsLoadingData(true);
     const unsubscribe = firestoreService.subscribeToBoardState(selectedTurma, (state) => {
       isReceivingSnapshotRef.current = true;
-      // Se Firebase retornar dados válidos (não vazios no sentido de arrays populados)
-      if (state.departmentsData && state.departmentsData.length > 0) {
+      
+      const hasEmployeesInDepartments = state.departmentsData?.some(d => d.data && d.data.length > 0) || false;
+      const hasEmployeesInSupport = state.supportRolesData?.some(g => g && g.length > 0) || false;
+      const hasEmployeesInSpecial = state.specialShiftData?.length > 0 || false;
+      const hasAnyEmployee = hasEmployeesInDepartments || hasEmployeesInSupport || hasEmployeesInSpecial;
+
+      console.log(`[DEBUG] Recebeu estado do Firestore (Registros). Tem algum funcionário salvo? ${hasAnyEmployee}`);
+
+      // Se Firebase retornar dados válidos E tiver pelo menos 1 funcionário salvo
+      if (state.departmentsData && state.departmentsData.length > 0 && hasAnyEmployee) {
+        console.log("[DEBUG] Carregando dados salvos do Firebase de Registros");
         setDepartmentsData(state.departmentsData);
         if (state.supportRolesData && state.supportRolesData.length > 0) {
           setSupportRolesData(state.supportRolesData);
