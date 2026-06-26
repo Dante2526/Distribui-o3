@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ExchangeIcon } from '../CustomIcons';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 import { X, Search, Check, ArrowLeft, Users } from 'lucide-react';
-import { Employee, Department } from '../../types';
+import { Employee, Department, TurmaType } from '../../types';
+import { firestoreService } from '../../services/firestoreService';
 
 interface ImportEmployeeModalProps {
   isOpen: boolean;
@@ -37,18 +38,19 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const turmaDropdownRef = useRef<HTMLDivElement>(null);
 
-  const mockEmployees = useMemo(() => [
-    { name: 'MARCOS AURELIO', matricula: '00001110' },
-    { name: 'PAULO SERGIO', matricula: '00001112' },
-    { name: 'ANA VITORIA', matricula: '00001113' },
-    { name: 'CARLOS MAGNO', matricula: '00001114' },
-    { name: 'BRUNO GOMES', matricula: '00001115' },
-    { name: 'JULIANA SILVA', matricula: '00001116' },
-    { name: 'ROBERTO CARLOS', matricula: '00001117' },
-    { name: 'FERNANDA LIMA', matricula: '00001118' },
-    { name: 'DIEGO ALVES', matricula: '00001119' },
-    { name: 'CAMILA PITANGA', matricula: '00001120' },
-  ], []);
+  const [dssEmployees, setDssEmployees] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    if (sourceTurma) {
+      // Mapeia 'Turma A' -> 'A'
+      const turmaType = sourceTurma.replace('Turma ', '') as TurmaType;
+      firestoreService.fetchEmployeesDSS(turmaType).then(emps => {
+        setDssEmployees(emps);
+      });
+    } else {
+      setDssEmployees([]);
+    }
+  }, [sourceTurma]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,11 +88,11 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
 
   const filteredEmployees = useMemo(() => {
     if (!sourceTurma) return [];
-    return mockEmployees.filter(emp =>
+    return dssEmployees.filter(emp =>
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.matricula.includes(searchQuery)
     );
-  }, [searchQuery, sourceTurma, mockEmployees]);
+  }, [searchQuery, sourceTurma, dssEmployees]);
 
   return (
     <AnimatePresence>

@@ -180,21 +180,48 @@ function AppContent() {
       // Se Firebase retornar dados válidos (não vazios no sentido de arrays populados)
       if (state.departmentsData && state.departmentsData.length > 0) {
         setDepartmentsData(state.departmentsData);
+        if (state.supportRolesData && state.supportRolesData.length > 0) {
+          setSupportRolesData(state.supportRolesData);
+        }
+        if (state.annotationsLeft && state.annotationsLeft.length > 0) {
+          setAnnotationsLeft(state.annotationsLeft);
+        }
+        if (state.annotationsRight && state.annotationsRight.length > 0) {
+          setAnnotationsRight(state.annotationsRight);
+        }
+        if (state.specialShiftData) {
+          setSpecialShiftData(state.specialShiftData);
+        }
+        setIsLoadingData(false);
+        setTimeout(() => { isReceivingSnapshotRef.current = false; }, 200);
+      } else {
+        // Inicialização Automática! O documento não existe ou está vazio.
+        // Puxamos os nomes direto do DSS para a turma selecionada.
+        firestoreService.fetchEmployeesDSS(selectedTurma).then(dssEmployees => {
+          // Cria estrutura de departamentos zerada
+          const emptyDepts = initialDepartmentsData.map(d => ({ ...d, data: [] }));
+          
+          // Coloca todos os funcionários puxados do DSS na lista de Apoio (OOF) para serem distribuídos
+          const newSupportGroup = dssEmployees.map(emp => ({
+            id: emp.id || `dss-${Math.random().toString(36).substr(2, 9)}`,
+            name: emp.name,
+            matricula: emp.matricula,
+            role: '' 
+          }));
+
+          setDepartmentsData(emptyDepts);
+          // O layout original tem 3 grupos de apoio. Vamos colocar todos no primeiro grupo
+          setSupportRolesData([newSupportGroup, [], []]);
+          
+          // Zera anotações e turnos especiais
+          setAnnotationsLeft(initialAnnotationsLeft.map(a => ({ ...a, items: [] })));
+          setAnnotationsRight(initialAnnotationsRight.map(a => ({ ...a, items: [] })));
+          setSpecialShiftData([]);
+
+          setIsLoadingData(false);
+          setTimeout(() => { isReceivingSnapshotRef.current = false; }, 200);
+        });
       }
-      if (state.supportRolesData && state.supportRolesData.length > 0) {
-        setSupportRolesData(state.supportRolesData);
-      }
-      if (state.annotationsLeft && state.annotationsLeft.length > 0) {
-        setAnnotationsLeft(state.annotationsLeft);
-      }
-      if (state.annotationsRight && state.annotationsRight.length > 0) {
-        setAnnotationsRight(state.annotationsRight);
-      }
-      if (state.specialShiftData) {
-        setSpecialShiftData(state.specialShiftData);
-      }
-      setIsLoadingData(false);
-      setTimeout(() => { isReceivingSnapshotRef.current = false; }, 200);
     });
     
     // Escuta logs
