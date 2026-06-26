@@ -722,6 +722,7 @@ function AppContent() {
     const activeIdVal = event.active.id;
     setActiveId(activeIdVal);
     setOverId(null);
+    handleStartEdit(activeIdVal as string);
     clonedDepartmentsRef.current = departmentsDataRef.current;
     clonedSupportRef.current = supportRolesDataRef.current;
     clonedSpecialShiftRef.current = specialShiftDataRef.current;
@@ -771,6 +772,7 @@ function AppContent() {
   }, []);
 
   const handleDragCancel = useCallback(() => {
+    if (activeId) handleStopEdit(activeId);
     setActiveId(null);
     setActiveSupportId(null);
     setOverId(null);
@@ -1161,6 +1163,7 @@ function AppContent() {
   const handleDragEnd = useCallback((event: any) => {
     const { active, over } = event;
     const activeIdVal = active?.id;
+    if (activeIdVal) handleStopEdit(activeIdVal);
 
     if (over && activeIdVal) {
       let initialTitle = '';
