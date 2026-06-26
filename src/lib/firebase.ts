@@ -4,6 +4,7 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // Função auxiliar para inicializar um app apenas se a API key estiver presente
 function safeInitializeApp(config: any, appName: string) {
+  console.log(`[DEBUG] Tentando inicializar Firebase: ${appName}`, config.apiKey ? 'API KEY ENCONTRADA' : 'API KEY FALTANDO!');
   if (!config.apiKey) {
     console.warn(`Firebase: Credenciais não encontradas para o banco '${appName}'. Operando em modo offline/demo.`);
     return null;
