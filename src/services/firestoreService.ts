@@ -76,7 +76,7 @@ export const firestoreService = {
         }
       } else {
         // Doc não existe ainda (primeira vez no projeto vazio)
-        // O App.tsx lidará com isso inicializando os dados iniciais vazios
+        callback(null);
       }
     }, (error) => {
       console.error("Erro no onSnapshot do Board:", error);
@@ -112,7 +112,7 @@ export const firestoreService = {
       executeSave();
     } else {
       if (saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(executeSave, 500); // Debounce de 500ms
+      saveTimeout = setTimeout(executeSave, 200); // Debounce de 200ms
     }
   },
 
