@@ -199,19 +199,39 @@ function AppContent() {
         // Puxamos os nomes direto do DSS para a turma selecionada.
         firestoreService.fetchEmployeesDSS(selectedTurma).then(dssEmployees => {
           // Cria estrutura de departamentos zerada
-          const emptyDepts = initialDepartmentsData.map(d => ({ ...d, data: [] }));
-          
-          // Coloca todos os funcionários puxados do DSS na lista de Apoio (OOF) para serem distribuídos
-          const newSupportGroup = dssEmployees.map(emp => ({
-            id: emp.id || `dss-${Math.random().toString(36).substr(2, 9)}`,
-            name: emp.name,
-            matricula: emp.matricula,
-            role: '' 
-          }));
+          const emptyDepts = initialDepartmentsData.map(d => ({ ...d, data: [] as Employee[] }));
+          const supportGroup: SupportRole[] = [];
+
+          dssEmployees.forEach(emp => {
+            const roleStr = (emp.role || '').toLowerCase().trim();
+            const isOof = roleStr === 'oof' || roleStr === 'apoio';
+            const isMaquinista = roleStr === 'maquinista';
+            
+            const empId = emp.id || `dss-${Math.random().toString(36).substr(2, 9)}`;
+
+            if (isOof) {
+              supportGroup.push({
+                id: empId,
+                name: emp.name,
+                matricula: emp.matricula,
+                role: 'VIRADOR' // Default role no painel de apoio
+              });
+            } else {
+              // Se for maquinista (ou vazio/outro), coloca na Recepção por padrão para o supervisor distribuir depois
+              emptyDepts[0].data.push({
+                id: empId,
+                name: emp.name,
+                line: '',
+                machine: emp.matricula,
+                error: false,
+                tagType: 'MAQUINISTA'
+              });
+            }
+          });
 
           setDepartmentsData(emptyDepts);
-          // O layout original tem 3 grupos de apoio. Vamos colocar todos no primeiro grupo
-          setSupportRolesData([newSupportGroup, [], []]);
+          // O layout original tem 3 grupos de apoio. Vamos colocar os OOF no primeiro grupo
+          setSupportRolesData([supportGroup, [], []]);
           
           // Zera anotações e turnos especiais
           setAnnotationsLeft(initialAnnotationsLeft.map(a => ({ ...a, items: [] })));

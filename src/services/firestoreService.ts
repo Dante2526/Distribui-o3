@@ -37,7 +37,7 @@ export const firestoreService = {
             // Adicione outras propriedades relevantes se o DSS tiver (linha, maquina, etc)
             line: data.line || '',
             machine: data.machine || '',
-            role: data.role || ''
+            role: data['função'] || data.funcao || data.role || ''
           });
         });
       
