@@ -11,8 +11,7 @@ export interface BoardState {
 }
 
 const BOARD_DOC_ID = 'current';
-const BOARD_COLLECTION = 'board';
-const HISTORY_COLLECTION = 'historico';
+// Não precisamos mais de BOARD_COLLECTION global pois será dinâmico: turma a, turma b...
 
 // Debounce timer for saves
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -56,7 +55,8 @@ export const firestoreService = {
       return () => {};
     }
 
-    const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, `turma_${turma.toLowerCase()}`);
+    const collectionName = `turma ${turma.toLowerCase()}`;
+    const boardDocRef = doc(dbRegistros, collectionName, 'estado_painel');
     
     return onSnapshot(boardDocRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
@@ -89,7 +89,9 @@ export const firestoreService = {
 
     const executeSave = async () => {
       try {
-        const boardDocRef = doc(dbRegistros, BOARD_COLLECTION, `turma_${turma.toLowerCase()}`);
+        const collectionName = `turma ${turma.toLowerCase()}`;
+        const boardDocRef = doc(dbRegistros, collectionName, 'estado_painel');
+        
         // Salvamos como JSON stringificados para evitar limites de profundidade/tipagem estrita do firestore
         // ou salvamos o array direto (o Firestore aceita arrays/objetos aninhados, mas stringify garante o estado exato)
         await setDoc(boardDocRef, {
@@ -119,7 +121,9 @@ export const firestoreService = {
     if (!dbRegistros) return;
 
     try {
-      const historyCol = collection(dbRegistros, `${HISTORY_COLLECTION}_turma_${turma.toLowerCase()}`);
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const historyCol = collection(dbRegistros, collectionName, 'estado_painel', 'historico');
+      
       await addDoc(historyCol, {
         ...log,
         timestamp: log.timestamp.toISOString() // Firestore prefere datas em timestamp ou ISO string
@@ -133,7 +137,9 @@ export const firestoreService = {
   subscribeToHistory(turma: TurmaType, callback: (logs: MovementLog[]) => void) {
     if (!dbRegistros) return () => {};
 
-    const historyCol = collection(dbRegistros, `${HISTORY_COLLECTION}_turma_${turma.toLowerCase()}`);
+    const collectionName = `turma ${turma.toLowerCase()}`;
+    const historyCol = collection(dbRegistros, collectionName, 'estado_painel', 'historico');
+    
     return onSnapshot(historyCol, (snapshot) => {
       const logs = snapshot.docs.map(doc => {
         const data = doc.data();
