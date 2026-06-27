@@ -1742,6 +1742,12 @@ function AppContent() {
     initializeScale();
     const initTimer = setTimeout(initializeScale, 50);
 
+    const resizeObserver = new ResizeObserver(() => {
+      // Quando o conteúdo carregar e o contêiner crescer, reajusta a largura do wrapper
+      setScale(scaleStateRef.current.currentScale);
+    });
+    resizeObserver.observe(scalableContainer);
+
     let initialDistance = 0;
     let initialScaleValue = 1;
     let scrollStart = { x: 0, y: 0 };
@@ -1967,6 +1973,7 @@ function AppContent() {
         viewport.removeEventListener('touchstart', handleTouchStart as EventListener);
         viewport.removeEventListener('touchmove', handleTouchMove as EventListener);
       }
+      resizeObserver.disconnect();
     };
   }, [initializeScale, setScale, activePage]);
 
