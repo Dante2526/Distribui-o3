@@ -15,8 +15,8 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 
-// Tipos
-import type { 
+import { 
+  BoardState, 
   Employee, 
   Department, 
   SupportRole, 
@@ -26,7 +26,6 @@ import type {
   StatusType,
   MovementLog
 } from './types';
-import { MOCK_USERS } from './types';
 
 // Função auxiliar para hash SHA-256 (Security)
 async function sha256(message: string) {
@@ -114,22 +113,14 @@ function AppContent() {
     return saved !== 'light';
   });
 
-  const sessionUser = React.useMemo(() => {
-    const stored = sessionStorage.getItem('distribui_session_user');
-    if (stored) return JSON.parse(stored);
-    const randIndex = Math.floor(Math.random() * (MOCK_USERS.length - 1));
-    const user = MOCK_USERS[randIndex];
-    sessionStorage.setItem('distribui_session_user', JSON.stringify(user));
-    return user;
-  }, []);
-  
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminUser, setAdminUser] = useState<{name: string, email: string, color?: string} | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => {
     return localStorage.getItem('distribui-page') || 'home';
   });
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState('');
@@ -605,18 +596,18 @@ function AppContent() {
   const editTimersRef = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const handleStartEdit = useCallback((empId: string) => {
-    if (!selectedTurma) return;
+    if (!selectedTurma || !isAdmin || !adminUser) return;
     setActiveEdits((prev) => {
       const newEdits = { ...prev };
       Object.keys(newEdits).forEach(key => {
-        if (newEdits[key].userName === sessionUser.name) {
+        if (newEdits[key].userName === adminUser.name) {
           delete newEdits[key];
         }
       });
       newEdits[empId] = {
         empId,
-        userName: sessionUser.name,
-        color: sessionUser.color,
+        userName: adminUser.name,
+        color: adminUser.color || '#3b82f6',
         timestamp: Date.now()
       };
       
@@ -640,7 +631,7 @@ function AppContent() {
         return newEdits;
       });
     }, 12000);
-  }, [selectedTurma, sessionUser]);
+  }, [selectedTurma, isAdmin, adminUser]);
 
   const handleStopEdit = useCallback((empId: string) => {
     if (editTimersRef.current[empId]) {
@@ -673,27 +664,29 @@ function AppContent() {
       activeEl.blur();
 
       // Fallback: se por algum motivo o onBlur não disparar, limpa todos os edits do usuário local
-      setActiveEdits((prev) => {
-        const newEdits = { ...prev };
-        let changed = false;
-        Object.keys(newEdits).forEach(key => {
-          if (newEdits[key].userName === sessionUser.name) {
-            delete newEdits[key];
-            changed = true;
+      if (adminUser) {
+        setActiveEdits((prev) => {
+          const newEdits = { ...prev };
+          let changed = false;
+          Object.keys(newEdits).forEach(key => {
+            if (newEdits[key].userName === adminUser.name) {
+              delete newEdits[key];
+              changed = true;
+            }
+          });
+          if (changed && selectedTurma) {
+            firestoreService.saveActiveEdits(selectedTurma, newEdits);
           }
+          return newEdits;
         });
-        if (changed && selectedTurma) {
-          firestoreService.saveActiveEdits(selectedTurma, newEdits);
-        }
-        return newEdits;
-      });
+      }
     };
 
     document.addEventListener('mousedown', handleDocMouseDown, true); // capture=true garante prioridade máxima
     return () => {
       document.removeEventListener('mousedown', handleDocMouseDown, true);
     };
-  }, [selectedTurma, sessionUser]);
+  }, [selectedTurma, adminUser]);
 
   // ===================== DND HANDLERS =====================
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -1286,8 +1279,9 @@ function AppContent() {
   }, [activeId, departmentsData, supportRolesData, specialShiftData]);
 
 
-  const handleAdminLogin = useCallback(() => {
+  const handleAdminLogin = useCallback((adminData: { name: string; email: string; color?: string }) => {
     setIsAdmin(true);
+    setAdminUser(adminData);
     setIsAdminModalOpen(false); // Fecha o modal imediatamente
     setShowLoginToast(true);
     if (loginToastTimerRef.current) clearTimeout(loginToastTimerRef.current);
@@ -1296,6 +1290,7 @@ function AppContent() {
 
   const handleAdminLogout = useCallback(() => {
     setIsAdmin(false);
+    setAdminUser(null);
     setIsAdminModalOpen(false);
   }, []);
 

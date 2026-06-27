@@ -31,7 +31,7 @@ export function AdminModal({
   isOpen: boolean;
   onClose: () => void;
   isAdmin: boolean;
-  onLogin: () => void;
+  onLogin: (adminData: { name: string; email: string; color?: string }) => void;
   onLogout: () => void;
   onLoginError: () => void;
   onClearAll: () => void;
@@ -67,11 +67,11 @@ export function AdminModal({
 
     try {
       // 1. Tenta validar no Firebase (coleção administrators no DSS apenas pelo e-mail corporativo)
-      const isFirebaseValid = await firestoreService.verifyAdminLogin(email);
+      const adminData = await firestoreService.verifyAdminLogin(email);
 
-      if (isFirebaseValid) {
+      if (adminData) {
         setEmail('');
-        onLogin();
+        onLogin(adminData);
       } else {
         setError('E-mail corporativo não encontrado.');
         onLoginError();

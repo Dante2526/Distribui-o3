@@ -214,26 +214,30 @@ export const firestoreService = {
   },
 
   // VERIFICAR LOGIN DE ADMIN (Apenas pelo E-mail Corporativo)
-  async verifyAdminLogin(email: string): Promise<boolean> {
-    if (!dbDSS) return false;
+  async verifyAdminLogin(email: string): Promise<{ name: string; email: string; color?: string } | null> {
+    if (!dbDSS) return null;
 
     try {
       const adminsRef = collection(dbDSS, 'administrators');
       const snapshot = await getDocs(adminsRef);
       
-      let isValid = false;
+      let adminData: { name: string; email: string; color?: string } | null = null;
       snapshot.forEach(doc => {
         const data = doc.data();
         // Verifica se existe algum administrador com esse email
         if (data.email === email) {
-          isValid = true;
+          adminData = {
+            name: data.name || email.split('@')[0],
+            email: data.email,
+            color: data.color
+          };
         }
       });
       
-      return isValid;
+      return adminData;
     } catch (error) {
       console.error("Erro ao verificar login de administrador:", error);
-      return false;
+      return null;
     }
   }
 };
