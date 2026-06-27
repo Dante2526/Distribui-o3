@@ -56,11 +56,22 @@ export const firestoreService = {
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
-      await updateDoc(docRef, {
-        role: newRole,
-        funcao: newRole,
-        'função': newRole
-      });
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return;
+      
+      const data = docSnap.data();
+      const updates: Record<string, string> = {};
+      
+      if (data['função'] !== undefined) updates['função'] = newRole;
+      if (data.funcao !== undefined) updates.funcao = newRole;
+      if (data.role !== undefined) updates.role = newRole;
+      
+      // Fallback: se nenhum existir, cria o padrão 'função'
+      if (Object.keys(updates).length === 0) {
+        updates['função'] = newRole;
+      }
+
+      await updateDoc(docRef, updates);
       console.log(`[DEBUG] Função do colaborador ${employeeId} atualizada para ${newRole} no DSS.`);
     } catch (error) {
       console.error("[DEBUG] Erro ao atualizar função do colaborador no DSS:", error);
