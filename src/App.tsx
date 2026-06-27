@@ -1863,14 +1863,6 @@ function AppContent() {
           }
           wheelRafId = null;
         });
-      } else {
-        // Panning via trackpad ou mouse wheel
-        // Só fazemos panning se não estivermos em cima de uma área de scroll nativa (como as listas)
-        const target = e.target as HTMLElement;
-        if (!target.closest('.overflow-y-auto') && !target.closest('.overflow-x-auto')) {
-          viewport.scrollLeft += e.deltaX;
-          viewport.scrollTop += e.deltaY;
-        }
       }
     };
 
