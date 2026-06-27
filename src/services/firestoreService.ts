@@ -28,16 +28,17 @@ export const firestoreService = {
       snapshot.docs.forEach(doc => {
           const data = doc.data();
           // Mapeia os dados do DSS para o nosso formato Employee
-          allEmployees.push({
-            id: doc.id, // ou gerar um novo se precisar
+          // 'role' não existe no tipo Employee; guardamos em _role para uso do App no mapeamento inicial
+          const emp: Employee & { _role?: string } = {
+            id: doc.id,
             name: data.name || '',
             matricula: data.matricula || '',
             tagType: data.tagType || 'N/A',
-            // Adicione outras propriedades relevantes se o DSS tiver (linha, maquina, etc)
             line: data.line || '',
             machine: data.machine || '',
-            role: data['função'] || data.funcao || data.role || ''
-          });
+          };
+          emp._role = data['função'] || data.funcao || data.role || '';
+          allEmployees.push(emp);
         });
       
       console.log(`[DEBUG] fetchEmployeesDSS: Encontrou ${allEmployees.length} funcionários na coleção '${collectionName}'`);
@@ -79,7 +80,7 @@ export const firestoreService = {
   },
 
   // ESCUTAR O ESTADO DO PAINEL EM TEMPO REAL
-  subscribeToBoardState(turma: TurmaType, callback: (state: BoardState) => void) {
+  subscribeToBoardState(turma: TurmaType, callback: (state: BoardState | null) => void) {
     if (!dbRegistros) {
       // Se não houver firebase, não faz nada
       return () => {};

@@ -177,10 +177,16 @@ function AppContent() {
 
   const isReceivingSnapshotRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);
+  // Ref para evitar stale closure em callbacks com dependências vazias (logMovement, handleDragEnd, etc.)
+  const selectedTurmaRef = useRef(selectedTurma);
   
   useEffect(() => {
     isDemoModeRef.current = isDemoMode;
   }, [isDemoMode]);
+
+  useEffect(() => {
+    selectedTurmaRef.current = selectedTurma;
+  }, [selectedTurma]);
 
   // Efeito principal de sincronização de dados (Firebase vs Mock)
   useEffect(() => {
@@ -215,7 +221,8 @@ function AppContent() {
       // Se Firebase retornar dados válidos E tiver pelo menos 1 funcionário salvo
       if (state && state.departmentsData && state.departmentsData.length > 0 && hasAnyEmployee) {
         console.log("[DEBUG] Carregando dados salvos do Firebase de Registros");
-        setDepartmentsData(state.departmentsData);
+        // Bug 8: normaliza o count para garantir coerência com data.length
+        setDepartmentsData(state.departmentsData.map(d => ({ ...d, count: d.data.length })));
         if (state.supportRolesData && state.supportRolesData.length > 0) {
           setSupportRolesData(state.supportRolesData);
         }
@@ -239,9 +246,9 @@ function AppContent() {
           const supportGroup: SupportRole[] = [];
 
           dssEmployees.forEach(emp => {
-            const roleStr = (emp.role || '').toLowerCase().trim();
+            // Bug 9: _role é o campo extra não tipado armazenado pelo fetchEmployeesDSS
+            const roleStr = ((emp as any)._role || '').toLowerCase().trim();
             const isOof = roleStr === 'oof' || roleStr === 'apoio';
-            const isMaquinista = roleStr === 'maquinista';
             
             const empId = emp.id || `dss-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -368,8 +375,9 @@ function AppContent() {
       return [newLog, ...prev].slice(0, 500);
     });
     
-    if (!isDemoModeRef.current && selectedTurma) {
-      firestoreService.saveMovementLog(selectedTurma, {
+    // Bug 3/17: usa selectedTurmaRef para evitar stale closure
+    if (!isDemoModeRef.current && selectedTurmaRef.current) {
+      firestoreService.saveMovementLog(selectedTurmaRef.current, {
         id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
         adminName: randomAdmin,
         employeeName,
@@ -540,7 +548,10 @@ function AppContent() {
     showToastMessage("Equipes reorganizadas dinamicamente!", "success");
   }, [showToastMessage]);
 
-  const handlePerformImport = useCallback((name: string, matricula: string, sourceTurma: string) => {
+  // Bug 6: assinatura ajustada para receber Employee completo (alinhado com ImportEmployeeModal)
+  const handlePerformImport = useCallback((employee: Employee, sourceTurma: string, _destTurma: string) => {
+    const name = employee.name || '';
+    const matricula = employee.matricula || '';
     setDepartmentsData(prev => prev.map((dept, i) => {
       if (i === 0) { // Adicionando à recepção por padrão
         const newData = [...dept.data];
@@ -686,6 +697,8 @@ function AppContent() {
 
   // ===================== DND HANDLERS =====================
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Bug 1: ref para manter o activeId atual acessível em callbacks com dependências vazias
+  const activeIdRef = useRef<string | null>(null);
   const clonedDepartmentsRef = useRef<Department[] | null>(null);
   const clonedSupportRef = useRef<SupportRole[][] | null>(null);
   const clonedSpecialShiftRef = useRef<Employee[] | null>(null);
@@ -722,6 +735,7 @@ function AppContent() {
   const handleDragStart = useCallback((event: any) => {
     const activeIdVal = event.active.id;
     setActiveId(activeIdVal);
+    activeIdRef.current = activeIdVal; // Bug 1: mantém ref atualizada
     setOverId(null);
     handleStartEdit(activeIdVal as string);
     clonedDepartmentsRef.current = departmentsDataRef.current;
@@ -773,8 +787,11 @@ function AppContent() {
   }, []);
 
   const handleDragCancel = useCallback(() => {
-    if (activeId) handleStopEdit(activeId);
+    // Bug 1: usa ref para evitar stale closure com activeId
+    const currentActiveId = activeIdRef.current;
+    if (currentActiveId) handleStopEdit(currentActiveId);
     setActiveId(null);
+    activeIdRef.current = null;
     setActiveSupportId(null);
     setOverId(null);
     dragSourceRef.current = null;
@@ -994,7 +1011,8 @@ function AppContent() {
           id: activeItem.id,
           name: activeItem.name,
           role: 'VIRADOR',
-          matricula: activeItem.machine || ''
+          // Bug 10: usa matricula (não machine que é o número da locomotiva)
+          matricula: activeItem.matricula || ''
         };
 
         setDepartmentsData(prev => prev.map(d => {
@@ -1081,7 +1099,8 @@ function AppContent() {
           id: activeItem.id,
           name: activeItem.name,
           role: activeItem.originalSupportRole || 'VIRADOR',
-          matricula: activeItem.machine || ''
+          // Bug 11: usa matricula (não machine)
+          matricula: activeItem.matricula || ''
         };
 
         setSpecialShiftData(prev => prev.filter(e => e.id !== activeId));
@@ -1237,122 +1256,17 @@ function AppContent() {
           newRole = 'OOF';
         }
 
-        if (newRole) {
-          firestoreService.updateEmployeeRoleDSS(selectedTurma, activeIdVal, newRole);
+        if (newRole && selectedTurmaRef.current) {
+          // Bug 17: Usar selectedTurmaRef.current ao invés de selectedTurma (closure stale)
+          firestoreService.updateEmployeeRoleDSS(selectedTurmaRef.current, activeIdVal, newRole);
         }
       }
     }
 
     setActiveId(null);
+    activeIdRef.current = null;
     setActiveSupportId(null);
     setOverId(null);
-
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    let activeContainer: string | null = null;
-    let activeType: 'maquinista' | 'apoio' | null = null;
-
-    for (const dept of departmentsDataRef.current) {
-      if (dept.data.some(e => e.id === activeId)) {
-        activeContainer = dept.id;
-        activeType = 'maquinista';
-        break;
-      }
-    }
-
-    if (!activeType) {
-      for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-        if (supportRolesDataRef.current[idx].some(e => e.id === activeId)) {
-          activeContainer = `support-group-${idx}`;
-          activeType = 'apoio';
-          break;
-        }
-      }
-    }
-
-    if (!activeContainer || !activeType) return;
-
-    let overContainer: string | null = null;
-    let overType: 'maquinista' | 'apoio' | null = null;
-    let overIdx = -1;
-
-    if (overId === 'recepcao' || overId === 'classificacao' || overId === 'formacao') {
-      overContainer = overId;
-      overType = 'maquinista';
-    } else if (overId.startsWith?.('support-group-')) {
-      overContainer = overId;
-      overType = 'apoio';
-    } else {
-      const dept = departmentsDataRef.current.find(d => d.id === overId);
-      if (dept) {
-        overContainer = dept.id;
-        overType = 'maquinista';
-      } else {
-        for (const d of departmentsDataRef.current) {
-          const idx = d.data.findIndex(e => e.id === overId);
-          if (idx !== -1) {
-            overContainer = d.id;
-            overType = 'maquinista';
-            overIdx = idx;
-            break;
-          }
-        }
-      }
-
-      if (!overContainer) {
-        const groupIdx = parseInt(overId.toString().replace('support-group-', ''), 10);
-        if (!isNaN(groupIdx) && groupIdx >= 0 && groupIdx < supportRolesDataRef.current.length) {
-          overContainer = `support-group-${groupIdx}`;
-          overType = 'apoio';
-        } else {
-          for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-            const supportIdx = supportRolesDataRef.current[idx].findIndex(e => e.id === overId);
-            if (supportIdx !== -1) {
-              overContainer = `support-group-${idx}`;
-              overType = 'apoio';
-              overIdx = supportIdx;
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    if (!overContainer || !overType) return;
-
-    if (activeContainer === overContainer) {
-      if (activeType === 'maquinista') {
-        const dept = departmentsDataRef.current.find(d => d.id === activeContainer);
-        if (dept) {
-          const activeIndex = dept.data.findIndex(e => e.id === activeId);
-          const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
-          if (activeIndex !== overIndex && activeIndex !== -1) {
-            setDepartmentsData(prev => prev.map(d => {
-              if (d.id === activeContainer) {
-                return { ...d, data: arrayMove(d.data, activeIndex, overIndex) };
-              }
-              return d;
-            }));
-          }
-        }
-      } else if (activeType === 'apoio') {
-        const groupIdx = parseInt(activeContainer.replace('support-group-', ''), 10);
-        if (!isNaN(groupIdx)) {
-          const group = supportRolesDataRef.current[groupIdx];
-          const activeIndex = group.findIndex(e => e.id === activeId);
-          const overIndex = overIdx >= 0 ? overIdx : group.length - 1;
-          if (activeIndex !== overIndex && activeIndex !== -1) {
-            setSupportRolesData(prev => prev.map((g, idx) => {
-              if (idx === groupIdx) return arrayMove(g, activeIndex, overIndex);
-              return g;
-            }));
-          }
-        }
-      }
-    }
     dragSourceRef.current = null;
   }, []);
 
@@ -1599,7 +1513,9 @@ function AppContent() {
       }
     ]);
 
-    firestoreService.updateEmployeeRoleDSS(selectedTurma, movedRole.id, 'MAQUINISTA');
+    if (selectedTurmaRef.current) {
+      firestoreService.updateEmployeeRoleDSS(selectedTurmaRef.current, movedRole.id, 'MAQUINISTA');
+    }
   }, []);
 
   const handleTransferFromSpecialShift = useCallback((empIndex: number, targetDeptId: string) => {
@@ -1621,7 +1537,8 @@ function AppContent() {
           id: movedEmployee.id || ('emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)),
           name: movedEmployee.name,
           role: roleStr,
-          matricula: movedEmployee.machine || ''
+          // Bug 12: usa matricula (não machine)
+          matricula: movedEmployee.matricula || ''
         });
         return newSupport;
       });
@@ -1997,6 +1914,7 @@ function AppContent() {
     });
   }, []);
 
+  // Bug 14: debounce igual ao handleUpdateEmployeeField para não inundar o histórico
   const handleUpdateSupportMatricula = useCallback((groupIndex: number, empIndex: number, newMatricula: string) => {
     setSupportRolesData(prev => {
       const newGroups = [...prev];
@@ -2009,11 +1927,26 @@ function AppContent() {
       newGroups[groupIndex] = newGroup;
 
       if (empName && oldValue !== newMatricula) {
-        const fromStr = `Loco: ${oldValue || '(vazio)'}`;
-        const toStr = `Loco: ${newMatricula || '(vazio)'}`;
-        setTimeout(() => {
-          logMovement(empName, fromStr, toStr, undefined, newMatricula);
-        }, 0);
+        const logKey = `support-${groupIndex}-${empIndex}-matricula`;
+
+        if (!pendingFieldLogsRef.current[logKey]) {
+          pendingFieldLogsRef.current[logKey] = { oldValue: oldValue || '', timeoutId: null };
+        }
+
+        const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
+
+        if (pendingFieldLogsRef.current[logKey].timeoutId) {
+          clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
+        }
+
+        pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
+          const fromStr = `Loco: ${originalOldValue || '(vazio)'}`;
+          const toStr = `Loco: ${newMatricula || '(vazio)'}`;
+          if (originalOldValue !== newMatricula) {
+            logMovement(empName, fromStr, toStr, undefined, newMatricula);
+          }
+          delete pendingFieldLogsRef.current[logKey];
+        }, 1500);
       }
 
       return newGroups;
@@ -2586,15 +2519,16 @@ function AppContent() {
               </div>
             </div>
 
-            {isLoadingData ? (
-              <div className="w-full text-center py-32 text-[#a0aec0] text-xl font-medium flex flex-col items-center justify-center">
-                  <div className="flex flex-col items-center gap-6">
-                      <div className="w-16 h-16 border-[5px] border-slate-700 border-t-[#30D158] rounded-full animate-spin shadow-lg"></div>
-                      <span className="animate-pulse tracking-widest text-[#30D158] font-bold">CARREGANDO COLABORADORES...</span>
+            <div className="relative w-full min-h-[60vh]">
+              {isLoadingData && (
+                <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#111217]/50 backdrop-blur-[2px] rounded-3xl">
+                  <div className="flex flex-col items-center gap-6 p-8 bg-[#1E2029] rounded-2xl shadow-2xl border border-white/10">
+                    <div className="w-16 h-16 border-[5px] border-slate-700 border-t-[#30D158] rounded-full animate-spin shadow-lg"></div>
+                    <span className="animate-pulse tracking-widest text-[#30D158] font-bold">CARREGANDO COLABORADORES...</span>
                   </div>
-              </div>
-            ) : (
-              <>
+                </div>
+              )}
+              
                 <DndContext
                   key={isAdmin ? 'admin' : 'guest'}
               sensors={sensors}
@@ -2757,8 +2691,7 @@ function AppContent() {
             </DndContext>
 
             <Footer />
-            </>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -2886,7 +2819,7 @@ function AppContent() {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 80, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="fixed top-6 right-6 z-[99999] bg-[#30D158] text-white font-bold px-7 py-4 rounded-[16px] shadow-2xl flex items-center justify-center text-center text-sm md:text-base max-w-[280px] select-none border border-white/10"
+          className="fixed top-24 right-6 z-[99999] bg-[#30D158] text-white font-bold px-7 py-4 rounded-[16px] shadow-2xl flex items-center justify-center text-center text-sm md:text-base max-w-[280px] select-none border border-white/10"
           style={{ boxShadow: '0 16px 36px rgba(48, 209, 88, 0.35)' }}
         >
           Login de administrador bem-sucedido!
@@ -2901,7 +2834,7 @@ function AppContent() {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 80, scale: 0.9 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="fixed top-6 right-6 z-[99999] bg-[#FF453A] text-white font-bold px-7 py-4 rounded-[16px] shadow-2xl flex items-center justify-center text-center text-sm md:text-base max-w-[280px] select-none border border-white/10"
+          className="fixed top-44 right-6 z-[99999] bg-[#FF453A] text-white font-bold px-7 py-4 rounded-[16px] shadow-2xl flex items-center justify-center text-center text-sm md:text-base max-w-[280px] select-none border border-white/10"
           style={{ boxShadow: '0 16px 36px rgba(255, 69, 58, 0.35)' }}
         >
           Credenciais de administrador inválidas.

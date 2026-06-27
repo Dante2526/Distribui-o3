@@ -280,10 +280,10 @@ export const ImportEmployeeModal: React.FC<ImportEmployeeModalProps> = ({
                                   setSelectedEmployee({
                                     id: Math.random().toString(36).substr(2, 9),
                                     name: emp.name,
-                                    role: 'Operador',
-                                    department: '',
-                                    matricula: emp.matricula,
-                                    turma: sourceTurma
+                                    matricula: emp.matricula || '',
+                                    line: '',
+                                    machine: '',
+                                    error: false,
                                   });
                                   setIsDropdownOpen(false);
                                 }}
