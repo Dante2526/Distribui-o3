@@ -1863,6 +1863,10 @@ function AppContent() {
           }
           wheelRafId = null;
         });
+      } else {
+        // Panning via trackpad ou mouse wheel
+        viewport.scrollLeft += e.deltaX;
+        viewport.scrollTop += e.deltaY;
       }
     };
 
