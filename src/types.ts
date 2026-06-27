@@ -84,6 +84,7 @@ export const STATUS_METADATA: Record<StatusType, {
 export type Employee = {
   id: string;
   name: string;
+  matricula?: string;
   line: string;
   machine: string;
   error?: boolean;

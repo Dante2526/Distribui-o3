@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import { dbDSS, dbRegistros } from '../lib/firebase';
 import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType } from '../types';
 
@@ -45,6 +45,25 @@ export const firestoreService = {
     } catch (error) {
       console.error("[DEBUG] Erro ao buscar funcionários do DSS:", error);
       return [];
+    }
+  },
+
+  async updateEmployeeRoleDSS(turma: TurmaType, employeeId: string, newRole: string) {
+    if (!dbDSS) return;
+    // Evita tentar atualizar colaboradores recém-criados que não vieram do DSS e não tem ID real
+    if (employeeId.startsWith('emp-dept') || employeeId.startsWith('emp-supp') || employeeId.startsWith('emp-imp')) return;
+    
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const docRef = doc(dbDSS, collectionName, employeeId);
+      await updateDoc(docRef, {
+        role: newRole,
+        funcao: newRole,
+        'função': newRole
+      });
+      console.log(`[DEBUG] Função do colaborador ${employeeId} atualizada para ${newRole} no DSS.`);
+    } catch (error) {
+      console.error("[DEBUG] Erro ao atualizar função do colaborador no DSS:", error);
     }
   },
 

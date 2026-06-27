@@ -257,7 +257,7 @@ function AppContent() {
               emptyDepts[0].data.push({
                 id: empId,
                 name: emp.name,
-                matricula: emp.matricula,
+                matricula: emp.matricula || '',
                 line: '',
                 machine: '',
                 error: false,
@@ -519,8 +519,9 @@ function AppContent() {
           targetData.push({
             id: 'emp-dept-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
             name: formattedName,
+            matricula: formattedMatricula,
             line: '',
-            machine: formattedMatricula,
+            machine: '',
             error: false
           });
           return { ...dept, data: targetData, count: targetData.length };
@@ -543,7 +544,7 @@ function AppContent() {
     setDepartmentsData(prev => prev.map((dept, i) => {
       if (i === 0) { // Adicionando à recepção por padrão
         const newData = [...dept.data];
-        newData.push({ id: 'emp-imp-' + Date.now(), name, line: `TURMA ${sourceTurma}`, machine: matricula, error: false });
+        newData.push({ id: 'emp-imp-' + Date.now(), name, matricula, line: `TURMA ${sourceTurma}`, machine: '', error: false });
         return { ...dept, data: newData, count: newData.length };
       }
       return dept;
@@ -1024,8 +1025,9 @@ function AppContent() {
         const adaptedEmployee: Employee = {
           id: activeItem.id,
           name: activeItem.name,
+          matricula: activeItem.matricula || '',
           line: '',
-          machine: activeItem.matricula || '',
+          machine: '',
           error: false
         };
 
@@ -1103,8 +1105,9 @@ function AppContent() {
       const adaptedSpecial: Employee = {
         id: activeItem.id,
         name: activeItem.name,
+        matricula: activeItem.matricula || '',
         line: activeItem.line || '',
-        machine: activeItem.machine || activeItem.matricula || '',
+        machine: activeItem.machine || '',
         tagType: isOriginallyApoio ? 'OOF' : 'MAQUINISTA',
         originalDeptId: isOriginallyApoio ? undefined : (dragSourceRef.current?.originalContainer || activeContainer),
         originalSupportGroupIndex: isOriginallyApoio ? parseInt(dragSourceRef.current?.originalContainer.replace('support-group-', '') || '0', 10) : undefined,
@@ -1137,8 +1140,9 @@ function AppContent() {
         const adaptedSpecial: Employee = {
           id: activeItem.id,
           name: activeItem.name,
+          matricula: activeItem.matricula || '',
           line: '',
-          machine: activeItem.matricula || '',
+          machine: activeItem.machine || '',
           tagType: 'OOF',
           originalSupportGroupIndex: activeGroupIdx,
           originalSupportRole: activeItem.role
@@ -1224,6 +1228,18 @@ function AppContent() {
 
       if (initialTitle && finalTitle && initialTitle !== finalTitle && employeeName) {
         logMovement(employeeName, initialTitle, finalTitle, employeeLine, employeeMachine);
+        
+        // Atualiza a função no DSS baseado no destino final
+        let newRole = '';
+        if (finalTitle === "Turno 6H" || departmentsDataRef.current.some(d => d.title === finalTitle)) {
+          newRole = 'MAQUINISTA';
+        } else if (finalTitle.startsWith('Apoio -')) {
+          newRole = 'OOF';
+        }
+
+        if (newRole) {
+          firestoreService.updateEmployeeRoleDSS(selectedTurma, activeIdVal, newRole);
+        }
       }
     }
 
@@ -1574,13 +1590,16 @@ function AppContent() {
       {
         id: movedRole.id,
         name: movedRole.name,
+        matricula: movedRole.matricula || '',
         line: '',
-        machine: movedRole.matricula || '',
+        machine: '',
         originalSupportGroupIndex: sourceGroupIndex,
         originalSupportRole: movedRole.role,
         tagType: 'OOF'
       }
     ]);
+
+    firestoreService.updateEmployeeRoleDSS(selectedTurma, movedRole.id, 'MAQUINISTA');
   }, []);
 
   const handleTransferFromSpecialShift = useCallback((empIndex: number, targetDeptId: string) => {
@@ -1615,6 +1634,7 @@ function AppContent() {
         const cleanedEmp: Employee = {
           id: movedEmployee.id,
           name: movedEmployee.name,
+          matricula: movedEmployee.matricula || '',
           line: movedEmployee.line,
           machine: movedEmployee.machine,
           error: movedEmployee.error
@@ -2263,8 +2283,9 @@ function AppContent() {
         const cleanedEmp: Employee = {
           id: item.id || ('emp-' + Math.floor(Math.random() * 100000)),
           name: item.name,
+          matricula: item.matricula || '',
           line: '',
-          machine: item.matricula || '',
+          machine: item.machine || '',
           error: false
         };
 

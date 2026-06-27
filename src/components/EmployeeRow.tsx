@@ -246,7 +246,7 @@ export const EmployeeRow = React.memo(({
               >
                 {emp.name}
               </span>
-              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matrícula: {emp.machine || 'N/A'}</span>
+              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matrícula: {emp.matricula || 'N/A'}</span>
             </div>
           </div>
           
