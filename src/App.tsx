@@ -836,6 +836,14 @@ function AppContent() {
   const [activeId, setActiveId] = useState<string | null>(null);
   // Bug 1: ref para manter o activeId atual acessível em callbacks com dependências vazias
   const activeIdRef = useRef<string | null>(null);
+  
+  const handleStartEditRef = useRef(handleStartEdit);
+  const handleStopEditRef = useRef(handleStopEdit);
+  useEffect(() => {
+    handleStartEditRef.current = handleStartEdit;
+    handleStopEditRef.current = handleStopEdit;
+  }, [handleStartEdit, handleStopEdit]);
+
   const clonedDepartmentsRef = useRef<Department[] | null>(null);
   const clonedSupportRef = useRef<SupportRole[][] | null>(null);
   const clonedSpecialShiftRef = useRef<Employee[] | null>(null);
@@ -871,7 +879,7 @@ function AppContent() {
     setActiveId(activeIdVal);
     activeIdRef.current = activeIdVal; // Bug 1: mantém ref atualizada
     setOverId(null);
-    handleStartEdit(activeIdVal as string);
+    handleStartEditRef.current(activeIdVal as string);
     clonedDepartmentsRef.current = departmentsDataRef.current;
     clonedSupportRef.current = supportRolesDataRef.current;
     clonedSpecialShiftRef.current = specialShiftDataRef.current;
@@ -923,7 +931,7 @@ function AppContent() {
   const handleDragCancel = useCallback(() => {
     // Bug 1: usa ref para evitar stale closure com activeId
     const currentActiveId = activeIdRef.current;
-    if (currentActiveId) handleStopEdit(currentActiveId);
+    if (currentActiveId) handleStopEditRef.current(currentActiveId);
     setActiveId(null);
     activeIdRef.current = null;
     setActiveSupportId(null);
@@ -1321,7 +1329,7 @@ function AppContent() {
   const handleDragEnd = useCallback((event: any) => {
     const { active, over } = event;
     const activeIdVal = active?.id;
-    if (activeIdVal) handleStopEdit(activeIdVal);
+    if (activeIdVal) handleStopEditRef.current(activeIdVal);
 
     if (over && activeIdVal) {
       let initialTitle = '';
