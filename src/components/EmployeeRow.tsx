@@ -70,20 +70,11 @@ export const EmployeeRow = React.memo(({
     disabled: isDragOverlay,
   });
 
-  const currentActiveEdit: ActiveEdit | undefined = isDragging
-    ? {
-        empId: emp.id,
-        userName: 'Naylan (Você)',
-        color: '#BF5AF2',
-        timestamp: Date.now()
-      }
-    : activeEdit;
-
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
     touchAction: 'none',
-    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {}),
+    ...(activeEdit ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: '1.5px' } : {}),
     ...(isDragging ? { zIndex: 50, position: 'relative' } : {})
   };
 
