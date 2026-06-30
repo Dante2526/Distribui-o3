@@ -159,7 +159,9 @@ export const firestoreService = {
         try {
           const state: BoardState = {
             departmentsData: typeof data.departmentsData === 'string' ? JSON.parse(data.departmentsData) : (data.departmentsData || []),
-            supportRolesData: typeof data.supportRolesData === 'string' ? JSON.parse(data.supportRolesData) : (data.supportRolesData || []),
+            supportRolesData: typeof data.supportRolesData === 'string' 
+                ? JSON.parse(data.supportRolesData) 
+                : (data.supportRolesData || []).map((g: any) => g.items ? g.items : (Array.isArray(g) ? g : [])),
             annotationsLeft: typeof data.annotationsLeft === 'string' ? JSON.parse(data.annotationsLeft) : (data.annotationsLeft || []),
             annotationsRight: typeof data.annotationsRight === 'string' ? JSON.parse(data.annotationsRight) : (data.annotationsRight || []),
             specialShiftData: typeof data.specialShiftData === 'string' ? JSON.parse(data.specialShiftData) : (data.specialShiftData || []),
@@ -186,11 +188,11 @@ export const firestoreService = {
         const collectionName = `turma ${turma.toLowerCase()}`;
         const boardDocRef = doc(dbRegistros, collectionName, 'estado_painel');
         
-        // Salvamos como Array/Objetos Nativos do Firestore. 
         // O truque JSON.parse(JSON.stringify()) remove qualquer undefined oculto que faria o Firestore estourar erro.
+        // E mapeamos supportRolesData para objetos {items: []} porque o Firestore PROÍBE Arrays dentro de Arrays.
         await setDoc(boardDocRef, {
           departmentsData: JSON.parse(JSON.stringify(state.departmentsData)),
-          supportRolesData: JSON.parse(JSON.stringify(state.supportRolesData)),
+          supportRolesData: JSON.parse(JSON.stringify(state.supportRolesData.map(group => ({ items: group })))),
           annotationsLeft: JSON.parse(JSON.stringify(state.annotationsLeft)),
           annotationsRight: JSON.parse(JSON.stringify(state.annotationsRight)),
           specialShiftData: JSON.parse(JSON.stringify(state.specialShiftData)),
