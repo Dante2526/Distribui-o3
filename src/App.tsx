@@ -1087,6 +1087,7 @@ function AppContent() {
       const adaptedEmployee: Employee = {
         id: activeItem.id,
         name: activeItem.name,
+        matricula: activeItem.matricula || '',
         line: activeItem.line || '',
         machine: activeItem.machine || '',
         error: activeItem.error || false
