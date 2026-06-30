@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // Função auxiliar para inicializar um app apenas se a API key estiver presente
@@ -39,8 +39,9 @@ const regConfig = {
 const appDSS = safeInitializeApp(dssConfig, 'dss');
 const appRegistros = safeInitializeApp(regConfig, 'registros');
 
-export const dbDSS = appDSS ? getFirestore(appDSS) : null;
-export const dbRegistros = appRegistros ? getFirestore(appRegistros) : null;
+// Ativando o cache persistente (IndexedDB) para não gastar leituras extras em F5
+export const dbDSS = appDSS ? initializeFirestore(appDSS, { localCache: persistentLocalCache() }) : null;
+export const dbRegistros = appRegistros ? initializeFirestore(appRegistros, { localCache: persistentLocalCache() }) : null;
 
 export const authDSS = appDSS ? getAuth(appDSS) : null;
 export const authRegistros = appRegistros ? getAuth(appRegistros) : null;

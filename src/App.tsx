@@ -161,6 +161,17 @@ function AppContent() {
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
+  // Visibilidade da aba (Page Visibility API)
+  const [isTabVisible, setIsTabVisible] = useState(true);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   // Faz o login anônimo ao montar o app (se as vars existirem)
   useEffect(() => {
     signInToFirebase();
@@ -195,10 +206,12 @@ function AppContent() {
       return;
     }
 
-    if (!selectedTurma) return;
+    if (!selectedTurma || !isTabVisible) return;
 
     // Modo Normal: escuta o Firebase
-    setIsLoadingData(true);
+    // Só mostramos o loading global se for a primeira carga
+    setIsLoadingData(prev => prev ? true : false);
+    
     const unsubscribe = firestoreService.subscribeToBoardState(selectedTurma, (state) => {
       isReceivingSnapshotRef.current = true;
       
@@ -279,12 +292,7 @@ function AppContent() {
       }
     });
     
-    // Escuta logs
-    const unsubscribeLogs = firestoreService.subscribeToHistory(selectedTurma, (logs) => {
-      if (logs && logs.length > 0) {
-        setMovementLogs(logs);
-      }
-    });
+
 
     // Escuta edições ativas em tempo real
     const unsubscribeEdits = firestoreService.subscribeToActiveEdits(selectedTurma, (edits) => {
@@ -301,10 +309,24 @@ function AppContent() {
 
     return () => {
       unsubscribe();
-      unsubscribeLogs();
       unsubscribeEdits();
     };
-  }, [isDemoMode, selectedTurma]);
+  }, [isDemoMode, selectedTurma, isTabVisible]);
+
+  // Efeito para carregar o histórico de logs apenas quando o modal for aberto
+  useEffect(() => {
+    if (isDemoMode || !selectedTurma || !isHistoryModalOpen || !isTabVisible) return;
+    
+    const unsubscribeLogs = firestoreService.subscribeToHistory(selectedTurma, (logs) => {
+      if (logs && logs.length > 0) {
+        setMovementLogs(logs);
+      }
+    });
+
+    return () => {
+      unsubscribeLogs();
+    };
+  }, [isDemoMode, selectedTurma, isHistoryModalOpen, isTabVisible]);
 
   // Efeito para salvar alterações locais no Firebase
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { dbDSS, dbRegistros } from '../lib/firebase';
 import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType } from '../types';
 
@@ -194,8 +194,9 @@ export const firestoreService = {
 
     const collectionName = `turma ${turma.toLowerCase()}`;
     const historyCol = collection(dbRegistros, collectionName, 'estado_painel', 'historico');
+    const historyQuery = query(historyCol, orderBy('timestamp', 'desc'), limit(100));
     
-    return onSnapshot(historyCol, (snapshot) => {
+    return onSnapshot(historyQuery, (snapshot) => {
       const logs = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -205,11 +206,7 @@ export const firestoreService = {
         } as MovementLog;
       });
       
-      // Ordenar do mais recente para o mais antigo (local sorting para simplificar sem índices compostos)
-      logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      
-      // Retornar apenas os 500 mais recentes se tiver muitos
-      callback(logs.slice(0, 500));
+      callback(logs);
     });
   },
 
@@ -219,22 +216,19 @@ export const firestoreService = {
 
     try {
       const adminsRef = collection(dbDSS, 'administrators');
-      const snapshot = await getDocs(adminsRef);
+      const q = query(adminsRef, where('email', '==', email));
+      const snapshot = await getDocs(q);
       
-      let adminData: { name: string; email: string; color?: string } | null = null;
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        // Verifica se existe algum administrador com esse email
-        if (data.email === email) {
-          adminData = {
-            name: data.name || email.split('@')[0],
-            email: data.email,
-            color: data.color
-          };
-        }
-      });
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        return {
+          name: data.name || email.split('@')[0],
+          email: data.email,
+          color: data.color
+        };
+      }
       
-      return adminData;
+      return null;
     } catch (error) {
       console.error("Erro ao verificar login de administrador:", error);
       return null;
