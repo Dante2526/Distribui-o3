@@ -225,8 +225,20 @@ function AppContent() {
       // Se Firebase retornar dados válidos E tiver pelo menos 1 funcionário salvo
       if (state && state.departmentsData && state.departmentsData.length > 0 && hasAnyEmployee) {
         console.log("[DEBUG] Carregando dados salvos do Firebase de Registros");
+        
+        const healEmployee = (emp: Employee) => {
+          if (!emp.matricula && emp.machine && emp.machine.length >= 7 && /^\d+$/.test(emp.machine)) {
+            return { ...emp, matricula: emp.machine, machine: '' };
+          }
+          return emp;
+        };
+
         // Bug 8: normaliza o count para garantir coerência com data.length
-        setDepartmentsData(state.departmentsData.map(d => ({ ...d, count: d.data.length })));
+        setDepartmentsData(state.departmentsData.map(d => ({ 
+          ...d, 
+          data: (d.data || []).map(healEmployee),
+          count: d.data.length 
+        })));
         if (state.supportRolesData && state.supportRolesData.length > 0) {
           setSupportRolesData(state.supportRolesData);
         }
@@ -237,7 +249,7 @@ function AppContent() {
           setAnnotationsRight(state.annotationsRight);
         }
         if (state.specialShiftData) {
-          setSpecialShiftData(state.specialShiftData);
+          setSpecialShiftData(state.specialShiftData.map(healEmployee));
         }
         setIsLoadingData(false);
         setTimeout(() => { isReceivingSnapshotRef.current = false; }, 200);
