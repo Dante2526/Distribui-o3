@@ -21,7 +21,8 @@ export const DepartmentCard = React.memo(({
   activeEdits,
   onStartEdit,
   onStopEdit,
-  isDragActive
+  isDragActive,
+  isAdmin
 }: { 
   department: Department;
   departmentOptions: DepartmentOption[];
@@ -37,6 +38,7 @@ export const DepartmentCard = React.memo(({
   onStartEdit: (empId: string) => void;
   onStopEdit: (empId: string) => void;
   isDragActive?: boolean;
+  isAdmin?: boolean;
 }) => {
   const theme = getDeptTheme(department.id);
   const { setNodeRef } = useDroppable({
@@ -94,6 +96,7 @@ export const DepartmentCard = React.memo(({
               onStartEdit={onStartEdit}
               onStopEdit={onStopEdit}
               isDragActive={isDragActive}
+              isAdmin={isAdmin}
             />
           ))}
 

@@ -26,7 +26,8 @@ export const EmployeeRow = React.memo(({
   onStartEdit,
   onStopEdit,
   isGhost,
-  isDragActive
+  isDragActive,
+  isAdmin
 }: {
   emp: Employee;
   index: number;
@@ -45,6 +46,7 @@ export const EmployeeRow = React.memo(({
   onStopEdit?: (empId: string) => void;
   isGhost?: boolean;
   isDragActive?: boolean;
+  isAdmin?: boolean;
 }) => {
   const [showLineDropdown, setShowLineDropdown] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
@@ -245,6 +247,7 @@ export const EmployeeRow = React.memo(({
           <div className="relative flex items-center gap-2">
             <button
               onClick={(e) => {
+                if (!isAdmin) return;
                 e.stopPropagation();
                 const open = !showAbsentMenu;
                 setShowAbsentMenu(open);
@@ -262,14 +265,19 @@ export const EmployeeRow = React.memo(({
             </button>
             {is6HActive && (
               <button
-                onClick={(e) => { e.stopPropagation(); handleTransferToSpecialLocal(); }}
-                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1"
+                onClick={(e) => { 
+                  if (!isAdmin) return;
+                  e.stopPropagation(); 
+                  handleTransferToSpecialLocal(); 
+                }}
+                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer"
               >
                 TURNO 6H
               </button>
             )}
             <button 
               onClick={(e) => {
+                if (!isAdmin) return;
                 e.stopPropagation();
                 const open = !showTransferMenu;
                 setShowTransferMenu(open);
@@ -281,7 +289,7 @@ export const EmployeeRow = React.memo(({
                   setTransferRect(null);
                 }
               }}
-              className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap ${
+              className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap cursor-pointer ${
                 emp.error 
                   ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' 
                   : `bg-white/5 text-[#a0aec0] hover:bg-white/10 ${getSwapHoverClass(department.id)}`

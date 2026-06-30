@@ -25,6 +25,7 @@ export const SpecialShiftSlot = React.memo(({
   activeEdit?: ActiveEdit;
   onStartEdit?: (empId: string) => void;
   onStopEdit?: (empId: string) => void;
+  isAdmin?: boolean;
 }) => {
 
   const {
@@ -135,10 +136,11 @@ export const SpecialShiftSlot = React.memo(({
             {emp.tagType && (
               <span 
                 onClick={(e) => {
+                  if (!isAdmin) return;
                   e.stopPropagation();
                   handleUpdateLocal('tagType', emp.tagType === 'MAQUINISTA' ? 'OOF' : 'MAQUINISTA');
                 }}
-                className={`text-[8px] font-extrabold uppercase px-1 py-0.5 rounded w-max mt-0.5 tracking-wider cursor-pointer transition-all hover:scale-105 active:scale-95 select-none ${
+                className={`text-[8px] font-extrabold uppercase px-1 py-0.5 rounded w-max mt-0.5 tracking-wider transition-all select-none cursor-pointer hover:scale-105 active:scale-95 ${
                   emp.tagType === 'MAQUINISTA' 
                     ? 'bg-[#0A84FF]/10 text-[#0A84FF] border border-[#0A84FF]/20 hover:bg-[#0A84FF]/20' 
                     : 'bg-[#BF5AF2]/10 text-[#BF5AF2] border border-[#BF5AF2]/20 hover:bg-[#BF5AF2]/20'
@@ -151,8 +153,12 @@ export const SpecialShiftSlot = React.memo(({
         </div>
         <div className="flex items-center gap-1.5">
           <button
-            onClick={(e) => { e.stopPropagation(); handleTransferLocal(emp.originalDeptId || 'recepcao'); }}
-            className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#0052B3] to-[#003D8A] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
+            onClick={(e) => { 
+              if (!isAdmin) return;
+              e.stopPropagation(); 
+              handleTransferLocal(emp.originalDeptId || 'recepcao'); 
+            }}
+            className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#0052B3] to-[#003D8A] rounded shadow-sm transition-all duration-300 text-[9px] whitespace-nowrap hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
           >
             TURNO 7H
           </button>
@@ -164,8 +170,12 @@ export const SpecialShiftSlot = React.memo(({
           <div className="flex flex-col items-center">
             <button
               ref={oofButtonRef}
-              onClick={(e) => { e.stopPropagation(); setShowOofMenu(true); }}
-              className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-colors"
+              onClick={(e) => { 
+                if (!isAdmin) return;
+                e.stopPropagation(); 
+                setShowOofMenu(true); 
+              }}
+              className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-[#FF6B00] text-white shadow-sm border-none transition-colors hover:bg-[#E66000] cursor-pointer"
             >
               <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
               <ChevronDown className="w-3 h-3 shrink-0" />
@@ -181,6 +191,7 @@ export const SpecialShiftSlot = React.memo(({
                 onBlur={() => onStopEdit?.(emp.id)}
                 onChange={(e) => handleUpdateLocal('line', e.target.value.toUpperCase())}
                 placeholder="LINHA"
+                readOnly={!isAdmin}
                 className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
               />
             </div>
@@ -192,6 +203,7 @@ export const SpecialShiftSlot = React.memo(({
                 onBlur={() => onStopEdit?.(emp.id)}
                 onChange={(e) => handleUpdateLocal('machine', e.target.value.toUpperCase())}
                 placeholder="LOCO"
+                readOnly={!isAdmin}
                 className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
               />
             </div>

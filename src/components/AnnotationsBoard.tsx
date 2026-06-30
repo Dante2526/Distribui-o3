@@ -44,9 +44,12 @@ const AnnotationItemRow = React.memo(({
 
       {item.name.trim() && (item.originalDeptId || (item as any).originalSupportGroupIndex !== undefined) ? (
         <button
-          onClick={() => onReturn(side, groupIdx, itemIdx)}
+          onClick={() => {
+            if (!isAdmin) return;
+            onReturn(side, groupIdx, itemIdx);
+          }}
           title={item.originalDeptId ? `Retornar para ${item.originalDeptId === 'recepcao' ? 'Recepção' : item.originalDeptId === 'classificacao' ? 'Classificação' : 'Formação'}` : `Retornar para Apoio ${['Recepção', 'Classificação', 'Formação'][(item as any).originalSupportGroupIndex] || 'Apoio'}`}
-          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] md:hover:bg-[#FF9F0A]/20 transition-all cursor-pointer border-none shrink-0 relative z-10"
+          className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] transition-all border-none shrink-0 relative z-10 md:hover:bg-[#FF9F0A]/20 cursor-pointer"
         >
           <RotateCcw className={`w-3.5 h-3.5 ${isAnimating ? 'animate-spin' : ''}`} />
         </button>
@@ -136,6 +139,7 @@ export const AnnotationsBoard = React.memo(({
                       isAnimating={!!animatingItems[animKey]}
                       onUpdate={onUpdateLeft}
                       onReturn={handleReturn}
+                      isAdmin={isAdmin}
                     />
                   );
                 })}
@@ -164,6 +168,7 @@ export const AnnotationsBoard = React.memo(({
                       isAnimating={!!animatingItems[animKey]}
                       onUpdate={onUpdateRight}
                       onReturn={handleReturn}
+                      isAdmin={isAdmin}
                     />
                   );
                 })}

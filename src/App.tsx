@@ -2246,9 +2246,9 @@ function AppContent() {
         const items = [...group.items];
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
-          items[emptyIdx] = { name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
+          items[emptyIdx] = { id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
         } else {
-          items.push({ name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
+          items.push({ id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
         }
         newGroups[targetLeftGroupIndex] = { ...group, items };
         return newGroups;
@@ -2260,9 +2260,9 @@ function AppContent() {
         const items = [...group.items];
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
-          items[emptyIdx] = { name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
+          items[emptyIdx] = { id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
         } else {
-          items.push({ name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
+          items.push({ id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId });
         }
         newGroups[targetRightGroupIndex] = { ...group, items };
         return newGroups;
@@ -2314,7 +2314,7 @@ function AppContent() {
         const items = [...g.items];
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         const newItem = { 
-          name: empName, status: absenceType, matricula: empMatricula, 
+          id: emp.id, name: empName, status: absenceType, matricula: empMatricula, 
           originalDeptId: undefined, originalSupportGroupIndex, originalSupportRole
         };
         if (emptyIdx !== -1) items[emptyIdx] = newItem;
@@ -2329,7 +2329,7 @@ function AppContent() {
         const items = [...g.items];
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         const newItem = { 
-          name: empName, status: absenceType, matricula: empMatricula, 
+          id: emp.id, name: empName, status: absenceType, matricula: empMatricula, 
           originalDeptId: undefined, originalSupportGroupIndex, originalSupportRole
         };
         if (emptyIdx !== -1) items[emptyIdx] = newItem;
@@ -2727,6 +2727,7 @@ function AppContent() {
                           activeEdit={activeEdits[emp.id]}
                           onStartEdit={handleStartEdit}
                           onStopEdit={handleStopEdit}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>
@@ -2752,6 +2753,7 @@ function AppContent() {
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
                         isDragActive={isDragActive}
+                        isAdmin={isAdmin}
                       />
                     </div>
                   ))}
@@ -2764,6 +2766,7 @@ function AppContent() {
                       onUpdateRight={handleUpdateAnnotationRight}
                       onReturnLeft={handleReturnFromAnnotationLeft}
                       onReturnRight={handleReturnFromAnnotationRight}
+                      isAdmin={isAdmin}
                     />
                   </div>
                 </div>
@@ -2792,6 +2795,7 @@ function AppContent() {
                         activeEdits={editsByGroup[index] || {}}
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
+                        isAdmin={isAdmin}
                       />
                     </div>
                   ))}
@@ -2814,6 +2818,7 @@ function AppContent() {
                       isDarkMode={isDarkMode}
                       is6HActive={is6HActive}
                       isDragOverlay={true}
+                      isAdmin={isAdmin}
                     />
                   ) : activeId && activeSupportItem ? (
                     <SupportRoleRow
@@ -2830,6 +2835,7 @@ function AppContent() {
                       onMoveToSpecial={() => {}}
                       onMarkAbsent={() => {}}
                       onDelete={() => {}}
+                      isAdmin={isAdmin}
                     />
                   ) : activeId && activeSpecialEmployee ? (
                     <SpecialShiftSlot
@@ -2838,6 +2844,7 @@ function AppContent() {
                       departmentOptions={departmentOptions}
                       onUpdate={() => {}}
                       onTransfer={() => {}}
+                      isAdmin={isAdmin}
                     />
                   ) : null}
                 </div>

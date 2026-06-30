@@ -23,6 +23,7 @@ export const SupportRoleRow = React.memo(({
   onMoveToSpecial,
   onMarkAbsent,
   onDelete,
+  isAdmin,
   isGhost,
   isDragActive,
   activeEdit,
@@ -42,6 +43,7 @@ export const SupportRoleRow = React.memo(({
   onMoveToSpecial?: (groupIndex: number, empIndex: number) => void;
   onMarkAbsent: (groupIndex: number, empIndex: number, absenceType: StatusType) => void;
   onDelete: (groupIndex: number, empIndex: number) => void;
+  isAdmin?: boolean;
   isGhost?: boolean;
   isDragActive?: boolean;
   activeEdit?: ActiveEdit;
@@ -210,6 +212,7 @@ export const SupportRoleRow = React.memo(({
       <div className="flex items-center gap-2.5 ml-auto shrink-0 relative">
         <button
           onClick={(e) => {
+            if (!isAdmin) return;
             e.stopPropagation();
             const open = !showAbsentMenu;
             setShowAbsentMenu(open);
@@ -227,8 +230,12 @@ export const SupportRoleRow = React.memo(({
         </button>
         {is6HActive && (
           <button
-            onClick={(e) => { e.stopPropagation(); handleMoveToSpecialLocal(); }}
-            className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 shrink-0"
+            onClick={(e) => { 
+              if (!isAdmin) return;
+              e.stopPropagation(); 
+              handleMoveToSpecialLocal(); 
+            }}
+            className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 shrink-0 cursor-pointer"
           >
             TURNO 6H
           </button>
@@ -238,6 +245,7 @@ export const SupportRoleRow = React.memo(({
         <div className="relative">
           <button
             onClick={(e) => {
+              if (!isAdmin) return;
               const open = !isTransferOpen;
               setIsTransferOpen(open);
               setIsOpen(false);
@@ -248,7 +256,7 @@ export const SupportRoleRow = React.memo(({
                 setTransferRect(null);
               }
             }}
-            className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
+            className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white cursor-pointer"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
           </button>
@@ -258,6 +266,7 @@ export const SupportRoleRow = React.memo(({
         <div className="relative w-[130px] shrink-0">
           <button
             onClick={(e) => {
+              if (!isAdmin) return;
               const open = !isOpen;
               setIsOpen(open);
               setIsTransferOpen(false);
@@ -268,7 +277,7 @@ export const SupportRoleRow = React.memo(({
                 setRoleRect(null);
               }
             }}
-            className="relative flex items-center justify-center text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 h-[34px] rounded-lg transition-colors outline-none shadow-sm w-full min-w-[130px] shrink-0"
+            className="relative flex items-center justify-center text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 h-[34px] rounded-lg transition-colors outline-none shadow-sm w-full min-w-[130px] shrink-0 cursor-pointer"
           >
             <span className="truncate pr-4 leading-none">{emp.role || '\u00A0'}</span>
             <ChevronDown className="absolute right-3 w-3.5 h-3.5 shrink-0" />

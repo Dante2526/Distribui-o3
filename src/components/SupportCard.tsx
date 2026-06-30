@@ -20,7 +20,8 @@ export const SupportCard = React.memo(({
   isDragActive,
   activeEdits,
   onStartEdit,
-  onStopEdit
+  onStopEdit,
+  isAdmin
 }: { 
   roles: SupportRole[]; 
   groupIndex: number; 
@@ -37,6 +38,7 @@ export const SupportCard = React.memo(({
   activeEdits?: Record<string, ActiveEdit>;
   onStartEdit?: (empId: string) => void;
   onStopEdit?: (empId: string) => void;
+  isAdmin?: boolean;
 }) => {
   const themes = [
     { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
@@ -91,6 +93,7 @@ export const SupportCard = React.memo(({
             activeEdit={activeEdits?.[emp.id || '']}
             onStartEdit={onStartEdit}
             onStopEdit={onStopEdit}
+            isAdmin={isAdmin}
           />
         ))}
 
