@@ -70,20 +70,11 @@ export const SupportRoleRow = React.memo(({
     disabled: isDragOverlay,
   });
 
-  const currentActiveEdit: ActiveEdit | undefined = isDragging
-    ? {
-        empId: emp.id,
-        userName: 'Naylan (Você)',
-        color: '#BF5AF2',
-        timestamp: Date.now()
-      }
-    : activeEdit;
-
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
     touchAction: 'none',
-    ...(currentActiveEdit ? { outline: `2.5px solid ${currentActiveEdit.color}`, outlineOffset: '1.5px' } : {}),
+    ...(activeEdit ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: '1.5px' } : {}),
     ...(isDragging ? { zIndex: 50, position: 'relative' } : {})
   };
 
@@ -160,11 +151,11 @@ export const SupportRoleRow = React.memo(({
       }`}
     >
       {/* Active Edit Badge */}
-      {currentActiveEdit && !isDragOverlay && (
+      {activeEdit && !isDragOverlay && (
         <div className="absolute -top-3 right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: currentActiveEdit.color }} />
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeEdit.color }} />
           <span className="text-[10px] text-white font-bold whitespace-nowrap">
-            {currentActiveEdit.userName} editando...
+            {activeEdit.userName} editando...
           </span>
         </div>
       )}
