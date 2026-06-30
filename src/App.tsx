@@ -181,6 +181,8 @@ function AppContent() {
   const isDemoModeRef = useRef(isDemoMode);
   // Ref para evitar stale closure em callbacks com dependências vazias (logMovement, handleDragEnd, etc.)
   const selectedTurmaRef = useRef(selectedTurma);
+  const annotationsLeftRef = useRef(annotationsLeft);
+  const annotationsRightRef = useRef(annotationsRight);
   
   useEffect(() => {
     isDemoModeRef.current = isDemoMode;
@@ -189,6 +191,11 @@ function AppContent() {
   useEffect(() => {
     selectedTurmaRef.current = selectedTurma;
   }, [selectedTurma]);
+
+  useEffect(() => {
+    annotationsLeftRef.current = annotationsLeft;
+    annotationsRightRef.current = annotationsRight;
+  }, [annotationsLeft, annotationsRight]);
 
   // Efeito principal de sincronização de dados (Firebase vs Mock)
   useEffect(() => {
@@ -339,6 +346,132 @@ function AppContent() {
       unsubscribeLogs();
     };
   }, [isDemoMode, selectedTurma, isHistoryModalOpen, isTabVisible]);
+
+  // Efeito de Sincronização Contínua e Inteligente com o DSS (Dupla-Mão)
+  useEffect(() => {
+    if (isDemoMode || !selectedTurma || !isTabVisible || departmentsData.length === 0) return;
+
+    const unsubscribeDSS = firestoreService.subscribeToDSS(selectedTurma, (dssEmployees) => {
+      // Lê o estado atual via Refs para não re-assinar a cada drag
+      const currentDepts = departmentsDataRef.current;
+      const currentSupport = supportRolesDataRef.current;
+      const currentSpecial = specialShiftDataRef.current;
+      const currentLeft = annotationsLeftRef.current;
+      const currentRight = annotationsRightRef.current;
+
+      const boardIds = new Set<string>();
+      currentDepts.forEach(d => d.data.forEach(e => boardIds.add(e.id)));
+      currentSupport.forEach(g => g.forEach(e => boardIds.add(e.id)));
+      currentSpecial.forEach(e => boardIds.add(e.id));
+      currentLeft.forEach(g => g.items.forEach(e => boardIds.add(e.id)));
+      currentRight.forEach(g => g.items.forEach(e => boardIds.add(e.id)));
+
+      // 1. Atualizar Existentes
+      const updateDataArray = (dataArray: any[]) => {
+        let modified = false;
+        const next = dataArray.map(emp => {
+          const dssEmp = dssEmployees.find(e => e.id === emp.id);
+          if (dssEmp && (dssEmp.name !== emp.name || dssEmp.matricula !== emp.matricula)) {
+            modified = true;
+            return { ...emp, name: dssEmp.name, matricula: dssEmp.matricula };
+          }
+          return emp;
+        });
+        return { modified, next };
+      };
+
+      setDepartmentsData(prev => {
+        let anyModified = false;
+        const nextDepts = prev.map(d => {
+          const { modified, next } = updateDataArray(d.data);
+          if (modified) anyModified = true;
+          return modified ? { ...d, data: next } : d;
+        });
+        return anyModified ? nextDepts : prev;
+      });
+
+      setSupportRolesData(prev => {
+        let anyModified = false;
+        const nextGroups = prev.map(g => {
+          const { modified, next } = updateDataArray(g);
+          if (modified) anyModified = true;
+          return modified ? next : g;
+        });
+        return anyModified ? nextGroups : prev;
+      });
+
+      setSpecialShiftData(prev => {
+        const { modified, next } = updateDataArray(prev);
+        return modified ? next : prev;
+      });
+
+      const updateAnnotations = (setter: any) => {
+        setter((prev: any[]) => {
+          let anyModified = false;
+          const nextGroups = prev.map(g => {
+            const { modified, next } = updateDataArray(g.items);
+            if (modified) anyModified = true;
+            return modified ? { ...g, items: next } : g;
+          });
+          return anyModified ? nextGroups : prev;
+        });
+      };
+      updateAnnotations(setAnnotationsLeft);
+      updateAnnotations(setAnnotationsRight);
+
+      // 2. Adicionar Novos do DSS
+      const newFromDSS = dssEmployees.filter(emp => !boardIds.has(emp.id));
+      if (newFromDSS.length > 0) {
+        console.log(`[DEBUG] Adicionando ${newFromDSS.length} novos funcionários vindos do DSS.`);
+        
+        const deptsToAdd: any[] = [];
+        const supportToAdd: any[] = [];
+        const rightAnnotationsToAdd: any[] = [];
+
+        newFromDSS.forEach(newEmp => {
+          const role = (newEmp._role || '').toUpperCase();
+          if (role.includes('OOF') || role.includes('APOIO')) {
+            supportToAdd.push({ id: newEmp.id, name: newEmp.name, matricula: newEmp.matricula, role: 'VIRADOR' });
+          } else if (role.includes('ESTÁGIO') || role.includes('ESTAGIO')) {
+            rightAnnotationsToAdd.push({ id: newEmp.id, name: newEmp.name, matricula: newEmp.matricula, status: 'ESTÁGIO' });
+          } else {
+            deptsToAdd.push({ id: newEmp.id, name: newEmp.name, matricula: newEmp.matricula, line: '', machine: '', error: false, tagType: 'MAQUINISTA' });
+          }
+        });
+
+        if (deptsToAdd.length > 0) {
+          setDepartmentsData(prev => {
+            const next = [...prev];
+            if (next[0]) {
+              next[0].data = [...next[0].data, ...deptsToAdd];
+              next[0].count = next[0].data.length;
+            }
+            return next;
+          });
+        }
+
+        if (supportToAdd.length > 0) {
+          setSupportRolesData(prev => {
+            const next = [...prev];
+            if (next[0]) next[0] = [...next[0], ...supportToAdd];
+            return next;
+          });
+        }
+
+        if (rightAnnotationsToAdd.length > 0) {
+          setAnnotationsRight(prev => {
+            const next = [...prev];
+            if (next.length > 0) next[0].items = [...next[0].items, ...rightAnnotationsToAdd];
+            return next;
+          });
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeDSS();
+    };
+  }, [selectedTurma, isDemoMode, isTabVisible]);
 
   // Efeito para salvar alterações locais no Firebase
   useEffect(() => {
@@ -525,45 +658,22 @@ function AppContent() {
     setIsAdminModalOpen(false); // Fecha o painel de adm para focar no relatório
   }, [departmentsData, supportRolesData, specialShiftData, annotationsLeft, annotationsRight]);
 
-  const handleAddNewUser = useCallback((name: string, matricula: string, sectorId: string) => {
+  const handleAddNewUser = useCallback(async (name: string, matricula: string, sectorId: string) => {
     if (!name.trim()) return;
     
     const formattedName = name.toUpperCase();
     const formattedMatricula = matricula.trim();
 
-    if (sectorId.startsWith('support-group-') || sectorId === 'off') {
-      const groupIdx = sectorId === 'off' ? 0 : parseInt(sectorId.replace('support-group-', ''), 10);
-      setSupportRolesData(prev => prev.map((g, idx) => {
-        if (idx === groupIdx) {
-          return [...g, {
-            id: 'emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
-            name: formattedName,
-            role: 'VIRADOR',
-            matricula: formattedMatricula
-          }];
-        }
-        return g;
-      }));
-    } else {
-      const targetSectorId = sectorId === 'maquinista' ? 'recepcao' : sectorId;
-      setDepartmentsData(prev => prev.map(dept => {
-        if (dept.id === targetSectorId) {
-          const targetData = [...dept.data];
-          targetData.push({
-            id: 'emp-dept-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
-            name: formattedName,
-            matricula: formattedMatricula,
-            line: '',
-            machine: '',
-            error: false
-          });
-          return { ...dept, data: targetData, count: targetData.length };
-        }
-        return dept;
-      }));
-    }
+    let dssRole = 'MAQUINISTA';
+    if (sectorId === 'off' || sectorId.startsWith('support-group-')) dssRole = 'OOF';
+    else if (sectorId === 'estagio') dssRole = 'ESTÁGIO';
+
+    // Salva diretamente no DSS. O listener (subscribeToDSS) vai detectar a mudança em tempo real,
+    // e puxar a pessoa para a Recepção, Apoio ou Estágio automaticamente!
+    await firestoreService.addEmployeeDSS(selectedTurma, formattedName, formattedMatricula, dssRole);
+
     showToastMessage(`Colaborador ${formattedName} adicionado com sucesso!`, "success");
-  }, [showToastMessage]);
+  }, [showToastMessage, selectedTurma]);
 
   const handleReorganize = useCallback(() => {
     setDepartmentsData(prev => prev.map(dept => {
@@ -1984,12 +2094,16 @@ function AppContent() {
   }, [logMovement]);
 
   const handleDeleteSupport = useCallback((groupIndex: number, empIndex: number) => {
+    const empId = supportRolesDataRef.current[groupIndex]?.[empIndex]?.id;
+    if (empId) {
+      firestoreService.deleteEmployeeDSS(selectedTurma, empId).catch(console.error);
+    }
     setSupportRolesData(prev => {
       const newSupport = prev.map(g => [...g]);
       newSupport[groupIndex].splice(empIndex, 1);
       return newSupport;
     });
-  }, []);
+  }, [selectedTurma]);
 
   const handleMoveSupport = useCallback((sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
     setSupportRolesData(prev => {
@@ -2068,15 +2182,21 @@ function AppContent() {
   }, [logMovement]);
 
   const handleDelete = useCallback((deptId: string, empIndex: number) => {
+    const dept = departmentsDataRef.current.find(d => d.id === deptId);
+    if (dept && dept.data[empIndex]) {
+      const empId = dept.data[empIndex].id;
+      firestoreService.deleteEmployeeDSS(selectedTurma, empId).catch(console.error);
+    }
     setDepartmentsData(prev => {
       const newDepts = [...prev];
       const deptIndex = newDepts.findIndex(d => d.id === deptId);
+      if (deptIndex === -1) return prev;
       const newData = [...newDepts[deptIndex].data];
       newData.splice(empIndex, 1);
       newDepts[deptIndex] = { ...newDepts[deptIndex], data: newData, count: newData.length };
       return newDepts;
     });
-  }, []);
+  }, [selectedTurma]);
 
   const handleMarkEmployeeAbsent = useCallback((
     deptId: string,
@@ -2813,6 +2933,10 @@ function AppContent() {
       reportText={reportContent}
       stats={reportStats}
       isDarkMode={isDarkMode}
+      onBack={() => {
+        setIsReportModalOpen(false);
+        setIsAdminModalOpen(true);
+      }}
     />
 
     <AnimatePresence>

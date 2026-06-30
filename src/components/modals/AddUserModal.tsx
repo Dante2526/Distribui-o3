@@ -192,6 +192,19 @@ export function AddUserModal({
               >
                 OFF
               </button>
+              <button
+                type="button"
+                onClick={() => setSectorId('estagio')}
+                className={`flex-1 py-3.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all duration-200 cursor-pointer ${
+                  sectorId === 'estagio'
+                    ? 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white shadow-md shadow-[#16A34A]/20 scale-[1.02]'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                ESTÁGIO
+              </button>
             </div>
           </div>
 

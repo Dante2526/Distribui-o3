@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { dbDSS, dbRegistros } from '../lib/firebase';
 import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType } from '../types';
 
@@ -17,7 +17,70 @@ const BOARD_DOC_ID = 'current';
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const firestoreService = {
-  // LER DADOS DO BANCO ANTIGO (APENAS LEITURA)
+  // LER DADOS DO BANCO ANTIGO EM TEMPO REAL (CACHE ENABLED)
+  subscribeToDSS(turma: TurmaType, callback: (employees: (Employee & { _role?: string })[]) => void) {
+    if (!dbDSS) return () => {};
+    
+    const collectionName = `turma ${turma.toLowerCase()}`;
+    const q = collection(dbDSS, collectionName);
+    
+    return onSnapshot(q, (snapshot) => {
+      const allEmployees: (Employee & { _role?: string })[] = [];
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        const emp: Employee & { _role?: string } = {
+          id: doc.id,
+          name: data.name || '',
+          matricula: data.matricula || '',
+          tagType: data.tagType || 'N/A',
+          line: data.line || '',
+          machine: data.machine || '',
+        };
+        emp._role = data['função'] || data.funcao || data.role || '';
+        allEmployees.push(emp);
+      });
+      callback(allEmployees);
+    }, (error) => {
+      console.error("[DEBUG] Erro ao escutar DSS:", error);
+    });
+  },
+
+  async addEmployeeDSS(turma: TurmaType, name: string, matricula: string, role: string) {
+    if (!dbDSS) return null;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      // Maintain exact schema from DSS Panel
+      const docRef = await addDoc(collection(dbDSS, collectionName), {
+        name: name,
+        matricula: matricula,
+        assDss: false,
+        bem: false,
+        mal: false,
+        ausente: false,
+        time: null,
+        turno: '7H',
+        senha: matricula,
+        função: role
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error("[DEBUG] Erro ao adicionar funcionário no DSS:", error);
+      return null;
+    }
+  },
+
+  async deleteEmployeeDSS(turma: TurmaType, employeeId: string) {
+    if (!dbDSS) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      await deleteDoc(doc(dbDSS, collectionName, employeeId));
+      console.log(`[DEBUG] Funcionário ${employeeId} deletado do DSS.`);
+    } catch (error) {
+      console.error("[DEBUG] Erro ao deletar funcionário no DSS:", error);
+    }
+  },
+
+  // LER DADOS DO BANCO ANTIGO (APENAS LEITURA ÚNICA - FALLBACK)
   async fetchEmployeesDSS(turma: TurmaType) {
     if (!dbDSS) return [];
     try {
@@ -95,11 +158,11 @@ export const firestoreService = {
         // Fazer parser de JSON string (caso seja guardado como string) ou dados diretos
         try {
           const state: BoardState = {
-            departmentsData: typeof data.departmentsData === 'string' ? JSON.parse(data.departmentsData) : data.departmentsData || [],
-            supportRolesData: typeof data.supportRolesData === 'string' ? JSON.parse(data.supportRolesData) : data.supportRolesData || [],
-            annotationsLeft: typeof data.annotationsLeft === 'string' ? JSON.parse(data.annotationsLeft) : data.annotationsLeft || [],
-            annotationsRight: typeof data.annotationsRight === 'string' ? JSON.parse(data.annotationsRight) : data.annotationsRight || [],
-            specialShiftData: typeof data.specialShiftData === 'string' ? JSON.parse(data.specialShiftData) : data.specialShiftData || [],
+            departmentsData: typeof data.departmentsData === 'string' ? JSON.parse(data.departmentsData) : (data.departmentsData || []),
+            supportRolesData: typeof data.supportRolesData === 'string' ? JSON.parse(data.supportRolesData) : (data.supportRolesData || []),
+            annotationsLeft: typeof data.annotationsLeft === 'string' ? JSON.parse(data.annotationsLeft) : (data.annotationsLeft || []),
+            annotationsRight: typeof data.annotationsRight === 'string' ? JSON.parse(data.annotationsRight) : (data.annotationsRight || []),
+            specialShiftData: typeof data.specialShiftData === 'string' ? JSON.parse(data.specialShiftData) : (data.specialShiftData || []),
           };
           callback(state);
         } catch (e) {
@@ -123,14 +186,14 @@ export const firestoreService = {
         const collectionName = `turma ${turma.toLowerCase()}`;
         const boardDocRef = doc(dbRegistros, collectionName, 'estado_painel');
         
-        // Salvamos como JSON stringificados para evitar limites de profundidade/tipagem estrita do firestore
-        // ou salvamos o array direto (o Firestore aceita arrays/objetos aninhados, mas stringify garante o estado exato)
+        // Salvamos como Array/Objetos Nativos do Firestore. 
+        // O truque JSON.parse(JSON.stringify()) remove qualquer undefined oculto que faria o Firestore estourar erro.
         await setDoc(boardDocRef, {
-          departmentsData: JSON.stringify(state.departmentsData),
-          supportRolesData: JSON.stringify(state.supportRolesData),
-          annotationsLeft: JSON.stringify(state.annotationsLeft),
-          annotationsRight: JSON.stringify(state.annotationsRight),
-          specialShiftData: JSON.stringify(state.specialShiftData),
+          departmentsData: JSON.parse(JSON.stringify(state.departmentsData)),
+          supportRolesData: JSON.parse(JSON.stringify(state.supportRolesData)),
+          annotationsLeft: JSON.parse(JSON.stringify(state.annotationsLeft)),
+          annotationsRight: JSON.parse(JSON.stringify(state.annotationsRight)),
+          specialShiftData: JSON.parse(JSON.stringify(state.specialShiftData)),
           updatedAt: new Date().toISOString()
         }, { merge: true });
       } catch (error) {

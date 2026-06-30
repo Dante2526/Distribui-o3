@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Copy, CheckCircle2, Download, FileText, Hourglass, UserMinus } from 'lucide-react';
+import { X, Copy, CheckCircle2, Download, FileText, Hourglass, UserMinus, ArrowLeft } from 'lucide-react';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 import { StatCard } from '../StatCard';
 
@@ -16,6 +16,7 @@ export function ReportModal({
   reportText: string;
   stats?: any;
   isDarkMode: boolean;
+  onBack?: () => void;
 }) {
   const viewportStyles = useViewportStyles(isOpen);
   const [copied, setCopied] = React.useState(false);
@@ -69,6 +70,15 @@ export function ReportModal({
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+              </button>
+            )}
+            
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
