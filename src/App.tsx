@@ -847,17 +847,14 @@ function AppContent() {
   const departmentsDataRef = useRef(departmentsData);
   const supportRolesDataRef = useRef(supportRolesData);
   const specialShiftDataRef = useRef(specialShiftData);
-  const annotationsLeftRef = useRef(annotationsLeft);
-  const annotationsRightRef = useRef(annotationsRight);
   const isDarkModeRef = useRef(isDarkMode);
+  
   useEffect(() => {
     departmentsDataRef.current = departmentsData;
     supportRolesDataRef.current = supportRolesData;
     specialShiftDataRef.current = specialShiftData;
-    annotationsLeftRef.current = annotationsLeft;
-    annotationsRightRef.current = annotationsRight;
     isDarkModeRef.current = isDarkMode;
-  }, [departmentsData, supportRolesData, specialShiftData, annotationsLeft, annotationsRight, isDarkMode]);
+  }, [departmentsData, supportRolesData, specialShiftData, isDarkMode]);
 
   const mouseSensor = useSensor(MouseSensor, React.useMemo(() => ({
     activationConstraint: { distance: isAdmin ? 5 : 999999 },
