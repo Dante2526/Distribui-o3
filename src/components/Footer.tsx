@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="w-fit mx-auto bg-[#1E2029] border border-white/5 rounded-full px-4 py-2 mt-4 md:mt-8 shadow-lg text-center text-xs text-[#a0aec0] transition-colors">
+    <footer className="w-fit mx-auto bg-[#1E2029] border border-white/5 rounded-full px-6 py-2.5 mt-[150px] mb-4 shadow-lg text-center text-[10px] text-[#a0aec0] transition-colors">
       <div className="flex items-center justify-center gap-4">
         <span className="font-bold opacity-70 tracking-wider">DESENVOLVIDO POR NEAR</span>
       </div>

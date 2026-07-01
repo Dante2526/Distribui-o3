@@ -2676,12 +2676,7 @@ function AppContent() {
 
             <div className="relative w-full min-h-[60vh]">
               {isLoadingData && (
-                <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#111217]/50 backdrop-blur-[2px] rounded-3xl">
-                  <div className="flex flex-col items-center gap-6 p-8 bg-[#1E2029] rounded-2xl shadow-2xl border border-white/10">
-                    <div className="w-16 h-16 border-[5px] border-slate-700 border-t-[#30D158] rounded-full animate-spin shadow-lg"></div>
-                    <span className="animate-pulse tracking-widest text-[#30D158] font-bold">CARREGANDO COLABORADORES...</span>
-                  </div>
-                </div>
+                <div className="absolute inset-0 z-[100] bg-[#111217]/50 backdrop-blur-[2px] rounded-3xl transition-opacity duration-300" />
               )}
               
                 <DndContext
