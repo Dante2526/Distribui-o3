@@ -194,14 +194,20 @@ export const SupportRoleRow = React.memo(({
               type="text" 
               value={emp.matricula || ''} 
               onFocus={() => {
+                if (!isAdmin) return;
                 if (emp.id) onStartEdit?.(emp.id);
               }}
               onBlur={() => {
+                if (!isAdmin) return;
                 if (emp.id) onStopEdit?.(emp.id);
               }}
-              onChange={(e) => handleUpdateMatriculaLocal(e.target.value)}
+              onChange={(e) => {
+                if (!isAdmin) return;
+                handleUpdateMatriculaLocal(e.target.value);
+              }}
               placeholder="N/A"
               maxLength={8}
+              readOnly={!isAdmin}
               className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val" 
             />
           </div>

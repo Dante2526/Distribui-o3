@@ -138,8 +138,9 @@ export const EmployeeRow = React.memo(({
   }, [onMarkAbsent, index]);
 
   const handleStartEditLocal = useCallback(() => {
+    if (!isAdmin) return;
     onStartEdit?.(emp.id);
-  }, [onStartEdit, emp.id]);
+  }, [onStartEdit, emp.id, isAdmin]);
 
   const isMountedRef = useRef(false);
   useEffect(() => {
@@ -307,11 +308,13 @@ export const EmployeeRow = React.memo(({
               type="text"
               value={localLine}
               onFocus={(e) => {
+                if (!isAdmin) return;
                 setShowLineDropdown(true);
                 setLineRect(e.currentTarget.getBoundingClientRect());
                 handleStartEditLocal();
               }}
               onBlur={() => {
+                if (!isAdmin) return;
                 if (localLine !== (emp.line || '')) {
                   handleUpdateEmployeeFieldLocal('line', localLine);
                 }
@@ -323,6 +326,7 @@ export const EmployeeRow = React.memo(({
                 }, 150);
               }}
               onChange={(e) => {
+                if (!isAdmin) return;
                 setLocalLine(e.target.value);
                 setShowLineDropdown(true);
                 setLineRect(e.currentTarget.getBoundingClientRect());
@@ -332,6 +336,7 @@ export const EmployeeRow = React.memo(({
                   e.currentTarget.blur();
                 }
               }}
+              readOnly={!isAdmin}
               className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Linha</span>
@@ -340,19 +345,27 @@ export const EmployeeRow = React.memo(({
             <input
               type="text"
               value={localMachine}
-              onFocus={handleStartEditLocal}
+              onFocus={(e) => {
+                if (!isAdmin) return;
+                handleStartEditLocal();
+              }}
               onBlur={() => {
+                if (!isAdmin) return;
                 if (localMachine !== (emp.machine || '')) {
                   handleUpdateEmployeeFieldLocal('machine', localMachine);
                 }
                 onStopEdit?.(emp.id);
               }}
-              onChange={(e) => setLocalMachine(e.target.value)}
+              onChange={(e) => {
+                if (!isAdmin) return;
+                setLocalMachine(e.target.value);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.currentTarget.blur();
                 }
               }}
+              readOnly={!isAdmin}
               className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
             />
             <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">Loco</span>

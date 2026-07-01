@@ -59,16 +59,19 @@ export const SpecialShiftSlot = React.memo(({
   const oofRect = useAnchoredRect(oofButtonRef, showOofMenu);
 
   const handleUpdateLocal = useCallback((field: keyof Employee, value: string) => {
+    if (!isAdmin) return;
     onUpdate(index, field, value);
-  }, [onUpdate, index]);
+  }, [onUpdate, index, isAdmin]);
 
   const handleTransferLocal = useCallback((targetDeptId: string) => {
+    if (!isAdmin) return;
     onTransfer(index, targetDeptId);
-  }, [onTransfer, index]);
+  }, [onTransfer, index, isAdmin]);
 
   const handleStartEditLocal = useCallback(() => {
+    if (!isAdmin) return;
     onStartEdit?.(emp.id);
-  }, [onStartEdit, emp.id]);
+  }, [onStartEdit, emp.id, isAdmin]);
 
   const isMountedRef = useRef(false);
   useEffect(() => {
