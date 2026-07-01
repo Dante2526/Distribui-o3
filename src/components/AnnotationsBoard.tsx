@@ -19,6 +19,7 @@ const AnnotationItemRow = React.memo(({
   isAnimating: boolean;
   onUpdate: (groupIdx: number, itemIdx: number, field: keyof AnnotationItem, value: string) => void;
   onReturn: (side: 'left' | 'right', groupIdx: number, itemIdx: number) => void;
+  isAdmin?: boolean;
 }) => {
   return (
     <div className={`annotation-item-row flex items-center justify-between px-2.5 py-2 bg-[#111217] rounded-[8px] border border-white/[0.03] gap-2 transition-all duration-300 md:hover:-translate-y-1 md:hover:bg-[#252836] md:hover:border-[#FF9F0A]/30 md:hover:shadow-md group ${isAnimating ? 'animate-border-spin' : ''}`}>

@@ -15,7 +15,8 @@ export const SpecialShiftSlot = React.memo(({
   onTransfer,
   activeEdit,
   onStartEdit,
-  onStopEdit
+  onStopEdit,
+  isAdmin
 }: { 
   emp: Employee; 
   index: number; 
