@@ -2737,7 +2737,7 @@ function AppContent() {
               <div className="space-y-8">
                 <div className="flex gap-6 w-max">
                   {departmentsData.map((dept) => (
-                    <div key={dept.id} className="w-[500px] shrink-0">
+                    <div key={dept.id} className="w-[540px] shrink-0">
                       <DepartmentCard 
                         department={dept} 
                         departmentOptions={departmentOptions}
