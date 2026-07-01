@@ -9,7 +9,8 @@ const AnnotationItemRow = React.memo(({
   side,
   isAnimating,
   onUpdate,
-  onReturn
+  onReturn,
+  isAdmin
 }: {
   item: AnnotationItem;
   groupIdx: number;
@@ -82,7 +83,8 @@ export const AnnotationsBoard = React.memo(({
   onUpdateLeft,
   onUpdateRight,
   onReturnLeft,
-  onReturnRight
+  onReturnRight,
+  isAdmin
 }: { 
   leftGroups: AnnotationGroup[];
   rightGroups: AnnotationGroup[];
@@ -90,6 +92,7 @@ export const AnnotationsBoard = React.memo(({
   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
   onReturnLeft?: (groupIndex: number, itemIndex: number) => void;
   onReturnRight?: (groupIndex: number, itemIndex: number) => void;
+  isAdmin?: boolean;
 }) => {
   const [animatingItems, setAnimatingItems] = useState<Record<string, boolean>>({});
 
