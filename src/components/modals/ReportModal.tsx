@@ -9,7 +9,8 @@ export function ReportModal({
   onClose,
   reportText,
   stats,
-  isDarkMode
+  isDarkMode,
+  onBack
 }: {
   isOpen: boolean;
   onClose: () => void;

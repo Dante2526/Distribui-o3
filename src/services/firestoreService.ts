@@ -1,14 +1,6 @@
 import { doc, onSnapshot, setDoc, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { dbDSS, dbRegistros } from '../lib/firebase';
-import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType } from '../types';
-
-export interface BoardState {
-  departmentsData: Department[];
-  supportRolesData: SupportRole[][];
-  annotationsLeft: AnnotationGroup[];
-  annotationsRight: AnnotationGroup[];
-  specialShiftData: Employee[];
-}
+import type { Department, SupportRole, AnnotationGroup, Employee, MovementLog, TurmaType, BoardState } from '../types';
 
 const BOARD_DOC_ID = 'current';
 // Não precisamos mais de BOARD_COLLECTION global pois será dinâmico: turma a, turma b...
@@ -275,19 +267,42 @@ export const firestoreService = {
     });
   },
 
-  // VERIFICAR LOGIN DE ADMIN (Apenas pelo E-mail Corporativo)
-  async verifyAdminLogin(email: string): Promise<{ name: string; email: string; color?: string } | null> {
+  // VERIFICAR LOGIN DE ADMIN (E-mail ou Senha)
+  async verifyAdminLogin(inputStr: string, isBiometric: boolean = false): Promise<{ name: string; email: string; color?: string } | null> {
     if (!dbDSS) return null;
 
     try {
       const adminsRef = collection(dbDSS, 'administrators');
-      const q = query(adminsRef, where('email', '==', email));
-      const snapshot = await getDocs(q);
       
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
+      // 1. Tenta buscar pela senha exata (se não for biometria)
+      if (!isBiometric) {
+        const qSenha = query(adminsRef, where('senha', '==', inputStr));
+        const snapshotSenha = await getDocs(qSenha);
+        
+        if (!snapshotSenha.empty) {
+          const data = snapshotSenha.docs[0].data();
+          return {
+            name: data.name || data.email.split('@')[0],
+            email: data.email,
+            color: data.color
+          };
+        }
+      }
+
+      // 2. Tenta buscar pelo e-mail
+      const qEmail = query(adminsRef, where('email', '==', inputStr.toLowerCase()));
+      const snapshotEmail = await getDocs(qEmail);
+      
+      if (!snapshotEmail.empty) {
+        const data = snapshotEmail.docs[0].data();
+        
+        // Se o admin JÁ TIVER uma senha cadastrada E o login NÃO for por biometria, recusa
+        if (data.senha && !isBiometric) {
+          throw new Error('Credenciais inválidas. Use sua senha.');
+        }
+
         return {
-          name: data.name || email.split('@')[0],
+          name: data.name || data.email.split('@')[0],
           email: data.email,
           color: data.color
         };
@@ -296,7 +311,23 @@ export const firestoreService = {
       return null;
     } catch (error) {
       console.error("Erro ao verificar login de administrador:", error);
-      return null;
+      throw error; // Repassa o erro para poder mostrar mensagens específicas (ex: "Use sua senha")
+    }
+  },
+
+  // ATUALIZAR SENHA DO ADMINISTRADOR
+  async updateAdminPassword(email: string, newPassword: string): Promise<void> {
+    if (!dbDSS) throw new Error("Banco de dados indisponível.");
+    
+    const adminsRef = collection(dbDSS, 'administrators');
+    const q = query(adminsRef, where('email', '==', email.toLowerCase()));
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      const adminDoc = snapshot.docs[0];
+      await updateDoc(adminDoc.ref, { senha: newPassword });
+    } else {
+      throw new Error("Administrador não encontrado.");
     }
   }
 };

@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Eraser, FileText, UserPlus, Repeat, Hourglass, Clock, CirclePause, CirclePlay, MousePointer, HelpCircle, Eye, EyeOff, X } from 'lucide-react';
+import { Eraser, FileText, UserPlus, Repeat, Hourglass, Clock, CirclePause, CirclePlay, MousePointer, HelpCircle, Eye, EyeOff, X, Fingerprint } from 'lucide-react';
 import { ExchangeIcon } from '../CustomIcons';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 import { firestoreService } from '../../services/firestoreService';
+import { isMobileCellularWithBiometrics, hasRegisteredBiometrics, authenticateBiometricAdmin, clearBiometricData } from '../../services/biometricService';
 
 export function AdminModal({
   isOpen,
@@ -26,7 +27,8 @@ export function AdminModal({
   onShowTutorial,
   isDemoMode,
   onToggleDemoMode,
-  isDarkMode
+  isDarkMode,
+  onChangeAdminPassword
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -49,15 +51,49 @@ export function AdminModal({
   isDemoMode: boolean;
   onToggleDemoMode: () => void;
   isDarkMode: boolean;
+  onChangeAdminPassword: () => void;
 }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [isBioAvailable, setIsBioAvailable] = useState(false);
+  const [hasRegisteredBio, setHasRegisteredBio] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+        const checkBiometrics = async () => {
+            const isCell = await isMobileCellularWithBiometrics();
+            const hasBio = hasRegisteredBiometrics();
+            setIsBioAvailable(isCell && hasBio);
+            setHasRegisteredBio(hasBio);
+        };
+        checkBiometrics();
+    }
+  }, [isOpen]);
+
+  const handleBiometricClick = async () => {
+      try {
+          const authenticatedEmail = await authenticateBiometricAdmin();
+          if (authenticatedEmail) {
+              const adminData = await firestoreService.verifyAdminLogin(authenticatedEmail, true);
+              if (adminData) {
+                  onLogin(adminData);
+              } else {
+                  setError('E-mail não encontrado no sistema.');
+              }
+          }
+      } catch (err: any) {
+          console.error("Erro na autenticação biométrica:", err);
+          setError('Falha ao ler impressão digital. Use o e-mail.');
+      }
+  };
 
   const viewportStyles = useViewportStyles(isOpen);
 
   const handleClose = () => {
     setEmail('');
     setError('');
+    setShowEmail(false);
     onClose();
   };
 
@@ -66,19 +102,19 @@ export function AdminModal({
     setError('');
 
     try {
-      // 1. Tenta validar no Firebase (coleção administrators no DSS apenas pelo e-mail corporativo)
-      const adminData = await firestoreService.verifyAdminLogin(email);
+      // 1. Tenta validar no Firebase (pelo E-mail ou Senha)
+      const adminData = await firestoreService.verifyAdminLogin(email, false);
 
       if (adminData) {
         setEmail('');
         onLogin(adminData);
       } else {
-        setError('E-mail corporativo não encontrado.');
+        setError('Credenciais corporativas inválidas.');
         onLoginError();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Erro ao validar. Verifique a conexão.');
+      setError(err.message || 'Erro ao validar. Verifique a conexão.');
       onLoginError();
     }
   };
@@ -243,9 +279,19 @@ export function AdminModal({
                   </span>
                 </button>
 
-                {/* MODO DEMONSTRAÇÃO */}
-                <button
-                  onClick={onToggleDemoMode}
+                  <button
+                    onClick={onChangeAdminPassword}
+                    className="flex flex-col items-center justify-center gap-4 bg-gray-700 hover:bg-gray-800 p-6 rounded-2xl transition-colors w-full h-full text-white"
+                  >
+                    <div className="bg-gray-800 p-4 rounded-full">
+                      <HelpCircle className="w-8 h-8 opacity-0 absolute" /> {/* Espaçador para manter alinhamento */}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    </div>
+                    <span className="font-semibold text-sm sm:text-base">MINHA SENHA</span>
+                  </button>
+
+                  <button
+                    onClick={onToggleDemoMode}
                   className="flex flex-col items-center justify-center p-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
                 >
                   <div className="scale-[0.85] md:scale-90 origin-bottom">
@@ -253,6 +299,23 @@ export function AdminModal({
                   </div>
                   <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">MODO DEMO</span>
                 </button>
+
+                {/* DESATIVAR DIGITAL */}
+                {hasRegisteredBio && (
+                  <button
+                    onClick={() => {
+                      clearBiometricData();
+                      setIsBioAvailable(false);
+                      setHasRegisteredBio(false);
+                    }}
+                    className="flex flex-col items-center justify-center p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                  >
+                    <div className="scale-[0.85] md:scale-90 origin-bottom">
+                      <Fingerprint className="w-7 h-7 text-white" strokeWidth={2} />
+                    </div>
+                    <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">DESATIVAR DIGITAL</span>
+                  </button>
+                )}
               </div>
 
               {/* Linha Divisória Fina */}
@@ -283,25 +346,53 @@ export function AdminModal({
             }`}>
               Acesso Administrativo
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+
+            {isBioAvailable && (
+              <div className="flex flex-col gap-3 mb-4 w-full">
+                <button
+                  type="button"
+                  onClick={handleBiometricClick}
+                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-cyan-700 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transform transition-all duration-300 py-3.5 text-sm"
+                >
+                  <Fingerprint className="w-5 h-5 animate-pulse" />
+                  ENTRAR COM DIGITAL
+                </button>
+                <div className="flex items-center justify-center gap-2 opacity-60 my-1 w-full">
+                  <span className="h-px bg-gray-300 dark:bg-gray-600 flex-1"></span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
+                  <span className="h-px bg-gray-300 dark:bg-gray-600 flex-1"></span>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4 w-full">
               <div className="relative flex flex-col gap-4">
                 <div className="relative w-full">
                   <input
-                    type="email"
-                    placeholder="E-mail do Administrador"
+                    type={showEmail ? "text" : "password"}
+                    placeholder="E-mail ou Senha"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`text-base w-full p-4 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 ${
+                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 ${
                       isDarkMode 
                         ? 'bg-[#111217] border border-white/10 placeholder-white/30 text-white' 
                         : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
                     }`}
+                    style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
                     autoFocus
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowEmail(!showEmail)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20 focus:outline-none"
+                    title={showEmail ? "Ocultar Email" : "Exibir Email"}
+                  >
+                    {showEmail ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
 
                 {error && (

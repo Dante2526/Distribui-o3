@@ -36,6 +36,9 @@ async function sha256(message: string) {
 }
 
 // Constantes e Dados Iniciais
+const EMPTY_OBJECT = Object.freeze({});
+const NOOP = () => {};
+
 import {
   initialDepartmentsData,
   initialSupportData,
@@ -43,6 +46,7 @@ import {
   initialAnnotationsRight,
 } from './constants/data';
 import { firestoreService } from './services/firestoreService';
+import { isMobileCellularWithBiometrics, hasRegisteredBiometrics, clearBiometricData } from './services/biometricService';
 import { signInToFirebase } from './lib/firebase';
 import { TurmaSelectionScreen } from './components/TurmaSelectionScreen';
 import type { TurmaType } from './types';
@@ -60,6 +64,8 @@ import { AddUserModal } from './components/modals/AddUserModal';
 import { ImportEmployeeModal } from './components/modals/ImportEmployeeModal';
 import { HistoryModal } from './components/modals/HistoryModal';
 import { ReportModal } from './components/modals/ReportModal';
+import { ConfirmBiometricModal } from './components/modals/ConfirmBiometricModal';
+import { AdminPasswordModal } from './components/modals/AdminPasswordModal';
 import { Sidebar } from './components/Sidebar';
 import { RadialMenu } from './components/RadialMenu';
 import Footer from './components/Footer';
@@ -121,8 +127,10 @@ function AppContent() {
   });
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isAdminPasswordModalOpen, setIsAdminPasswordModalOpen] = useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isConfirmBiometricModalOpen, setIsConfirmBiometricModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState('');
   const [reportStats, setReportStats] = useState<any>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
@@ -1428,14 +1436,36 @@ function AppContent() {
     };
   }, [activeId, departmentsData, supportRolesData, specialShiftData]);
 
+  const handleChangeAdminPassword = async (newPassword: string) => {
+    if (!adminUser?.email) return;
+    try {
+      await firestoreService.updateAdminPassword(adminUser.email, newPassword);
+      setToast({ message: 'Senha alterada com sucesso!', type: 'success' });
+      setIsAdminPasswordModalOpen(false);
+      setIsAdminModalOpen(true);
+      
+      // Regra: Desativa a biometria se houver para forçar um novo cadastro com a senha correta
+      clearBiometricData();
+    } catch (error: any) {
+      console.error(error);
+      setToast({ message: error.message || 'Erro ao alterar senha', type: 'error' });
+    }
+  };
 
-  const handleAdminLogin = useCallback((adminData: { name: string; email: string; color?: string }) => {
+  const handleAdminLogin = useCallback(async (adminData: { name: string; email: string; color?: string }) => {
     setIsAdmin(true);
     setAdminUser(adminData);
     setIsAdminModalOpen(false); // Fecha o modal imediatamente
     setShowLoginToast(true);
     if (loginToastTimerRef.current) clearTimeout(loginToastTimerRef.current);
     loginToastTimerRef.current = setTimeout(() => setShowLoginToast(false), 3500);
+
+    // Verifica suporte a biometria
+    const isCell = await isMobileCellularWithBiometrics();
+    const hasBio = hasRegisteredBiometrics();
+    if (isCell && !hasBio) {
+      setIsConfirmBiometricModalOpen(true);
+    }
   }, []);
 
   const handleAdminLogout = useCallback(() => {
@@ -1443,6 +1473,23 @@ function AppContent() {
     setAdminUser(null);
     setIsAdminModalOpen(false);
   }, []);
+
+  const handleCloseBiometricModal = useCallback(() => {
+    setIsConfirmBiometricModalOpen(false);
+  }, []);
+
+  const handleActivateBiometrics = useCallback(async () => {
+    try {
+      if (!adminUser?.email) throw new Error("Email não encontrado");
+      const { registerBiometrics } = await import('./services/biometricService');
+      await registerBiometrics(adminUser.email);
+      setToast({ message: 'Biometria cadastrada com sucesso!', type: 'success' });
+      setIsConfirmBiometricModalOpen(false);
+    } catch (err: any) {
+      console.error("Erro ao registrar:", err);
+      setToast({ message: 'Falha ao registrar biometria. ' + (err.message || ''), type: 'error' });
+    }
+  }, [adminUser]);
 
   const handleAdminLoginError = useCallback(() => {
     setShowErrorToast(true);
@@ -2744,7 +2791,7 @@ function AppContent() {
                         onMarkAbsent={handleMarkEmployeeAbsent}
                         isDarkMode={isDarkMode}
                         is6HActive={is6HActive}
-                        activeEdits={editsByDept[dept.id] || {}}
+                        activeEdits={editsByDept[dept.id] || EMPTY_OBJECT}
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
                         isDragActive={isDragActive}
@@ -2787,7 +2834,7 @@ function AppContent() {
                         onMarkAbsent={handleMarkSupportAbsent}
                         onDeleteSupport={handleDeleteSupport}
                         isDragActive={isDragActive}
-                        activeEdits={editsByGroup[index] || {}}
+                        activeEdits={editsByGroup[index] || EMPTY_OBJECT}
                         onStartEdit={handleStartEdit}
                         onStopEdit={handleStopEdit}
                         isAdmin={isAdmin}
@@ -2805,11 +2852,11 @@ function AppContent() {
                       index={-1}
                       department={activeDepartment}
                       departmentOptions={departmentOptions}
-                      onMove={() => {}}
-                      onUpdateEmployee={() => {}}
-                      onDelete={() => {}}
-                      onTransferToSpecial={() => {}}
-                      onMarkAbsent={() => {}}
+                      onMove={NOOP}
+                      onUpdateEmployee={NOOP}
+                      onDelete={NOOP}
+                      onTransferToSpecial={NOOP}
+                      onMarkAbsent={NOOP}
                       isDarkMode={isDarkMode}
                       is6HActive={is6HActive}
                       isDragOverlay={true}
@@ -2823,13 +2870,13 @@ function AppContent() {
                       isDarkMode={isDarkMode}
                       is6HActive={is6HActive}
                       isDragOverlay={true}
-                      onUpdateRole={() => {}}
-                      onUpdateName={() => {}}
-                      onUpdateMatricula={() => {}}
-                      onMove={() => {}}
-                      onMoveToSpecial={() => {}}
-                      onMarkAbsent={() => {}}
-                      onDelete={() => {}}
+                      onUpdateRole={NOOP}
+                      onUpdateName={NOOP}
+                      onUpdateMatricula={NOOP}
+                      onMove={NOOP}
+                      onMoveToSpecial={NOOP}
+                      onMarkAbsent={NOOP}
+                      onDelete={NOOP}
                       isAdmin={isAdmin}
                     />
                   ) : activeId && activeSpecialEmployee ? (
@@ -2837,8 +2884,8 @@ function AppContent() {
                       emp={activeSpecialEmployee}
                       index={-1}
                       departmentOptions={departmentOptions}
-                      onUpdate={() => {}}
-                      onTransfer={() => {}}
+                      onUpdate={NOOP}
+                      onTransfer={NOOP}
                       isAdmin={isAdmin}
                     />
                   ) : null}
@@ -2871,6 +2918,18 @@ function AppContent() {
       )}
     </div>
 
+    <Suspense fallback={null}>
+      <AdminPasswordModal
+        isOpen={isAdminPasswordModalOpen}
+        onClose={() => {
+          setIsAdminPasswordModalOpen(false);
+          setIsAdminModalOpen(true);
+        }}
+        onConfirm={handleChangeAdminPassword}
+        scale={1}
+      />
+    </Suspense>
+
     <AdminModal
       isOpen={isAdminModalOpen}
       onClose={() => setIsAdminModalOpen(false)}
@@ -2899,8 +2958,20 @@ function AppContent() {
       isDemoMode={isDemoMode}
       onToggleDemoMode={handleToggleDemoMode}
       isDarkMode={isDarkMode}
+      onChangeAdminPassword={() => {
+        setIsAdminModalOpen(false);
+        setIsAdminPasswordModalOpen(true);
+      }}
+      hasBiometrics={hasRegisteredBiometrics()}
+      onClearBiometrics={clearBiometricData}
     />
 
+    <ConfirmBiometricModal
+      isOpen={isConfirmBiometricModalOpen}
+      onClose={handleCloseBiometricModal}
+      onActivate={handleActivateBiometrics}
+      scale={1}
+    />
     <AddUserModal
       isOpen={isAddUserModalOpen}
       onClose={() => setIsAddUserModalOpen(false)}

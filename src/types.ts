@@ -133,6 +133,14 @@ export interface ActiveEdit {
   timestamp: number;
 }
 
+export interface BoardState {
+  departmentsData: Department[];
+  supportRolesData: SupportRole[][];
+  annotationsLeft: AnnotationGroup[];
+  annotationsRight: AnnotationGroup[];
+  specialShiftData: Employee[];
+}
+
 export const MOCK_USERS = [
   { name: 'Ana (Simulado)', color: '#0A84FF' },
   { name: 'Carlos (Simulado)', color: '#30D158' },
