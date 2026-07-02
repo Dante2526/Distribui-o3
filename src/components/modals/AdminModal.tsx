@@ -28,7 +28,9 @@ export function AdminModal({
   isDemoMode,
   onToggleDemoMode,
   isDarkMode,
-  onChangeAdminPassword
+  onChangeAdminPassword,
+  hasBiometrics,
+  onClearBiometrics
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -52,6 +54,8 @@ export function AdminModal({
   onToggleDemoMode: () => void;
   isDarkMode: boolean;
   onChangeAdminPassword: () => void;
+  hasBiometrics?: boolean;
+  onClearBiometrics?: () => void;
 }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { flushSync } from 'react-dom';
 import { Shield, Users, Clock, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -73,6 +73,8 @@ import Footer from './components/Footer';
 // Components extraídos que são usados no DragOverlay
 import { EmployeeRow } from './components/EmployeeRow';
 import { SupportRoleRow } from './components/SupportRoleRow';
+import { ModalsContainer } from './components/modals/ModalsContainer';
+import { useDashboardData } from './hooks/useDashboardData';
 
 // Componente Wrapper Droppable para o Turno 6H
 const SpecialShiftContainer = ({ children, is6HActive, isEmpty }: { children: React.ReactNode; is6HActive: boolean; isEmpty: boolean }) => {
@@ -96,28 +98,24 @@ const SpecialShiftContainer = ({ children, is6HActive, isEmpty }: { children: Re
 };
 
 function AppContent() {
-  const [departmentsData, setDepartmentsData] = useState<Department[]>([
-    { id: 'recepcao', title: 'Recepção', count: 0, data: [] },
-    { id: 'classificacao', title: 'Classificação', count: 0, data: [] },
-    { id: 'formacao', title: 'Formação', count: 0, data: [] },
-  ]);
-  const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>([[], [], []]);
-  const [annotationsLeft, setAnnotationsLeft] = useState<AnnotationGroup[]>([
-    { title: 'FÉRIAS/TE/TREIN./REVEZA', items: [] },
-    { title: 'FÉRIAS', items: [] },
-    { title: 'ATM / FORA', items: [] }
-  ]);
-  const [annotationsRight, setAnnotationsRight] = useState<AnnotationGroup[]>([
-    { title: 'MAQ/OFF - ESTÁGIO', items: [] },
-    { title: 'RESTRIÇÃO', items: [] },
-    { title: 'INSS', items: [] }
-  ]);
-  const [specialShiftData, setSpecialShiftData] = useState<Employee[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('distribui-theme');
-    return saved !== 'light';
-  });
+  const {
+    departmentsData, setDepartmentsData,
+    supportRolesData, setSupportRolesData,
+    annotationsLeft, setAnnotationsLeft,
+    annotationsRight, setAnnotationsRight,
+    specialShiftData, setSpecialShiftData,
+    isLoadingData, setIsLoadingData,
+    isDarkMode, setIsDarkMode,
+    is6HActive, setIs6HActive,
+    isAutomationPaused, setIsAutomationPaused,
+    isDemoMode, setIsDemoMode,
+    toast, setToast,
+    selectedTurma, setSelectedTurma,
+    movementLogs, setMovementLogs,
+    isTabVisible, setIsTabVisible,
+    activeEdits, setActiveEdits,
+    healEmployee
+  } = useDashboardData();
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState<{name: string, email: string, color?: string} | null>(null);
@@ -143,42 +141,17 @@ function AppContent() {
   }, [activePage]);
 
   // Configurações e estados do painel
-  const [is6HActive, setIs6HActive] = useState(true);
-  const [isAutomationPaused, setIsAutomationPaused] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
-  
-  const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
-    const saved = localStorage.getItem('distribui-turma');
-    return saved ? (saved as TurmaType) : null;
-  });
 
   useEffect(() => {
     localStorage.setItem('distribui-page', activePage);
   }, [activePage]);
 
-  useEffect(() => {
-    if (selectedTurma) {
-      localStorage.setItem('distribui-turma', selectedTurma);
-    } else {
-      localStorage.removeItem('distribui-turma');
-    }
-  }, [selectedTurma]);
+
 
   // Histórico de Movimentações
-  const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Visibilidade da aba (Page Visibility API)
-  const [isTabVisible, setIsTabVisible] = useState(true);
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsTabVisible(!document.hidden);
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
 
   // Faz o login anônimo ao montar o app (se as vars existirem)
   useEffect(() => {
@@ -743,7 +716,7 @@ function AppContent() {
     });
   }, [showToastMessage]);
 
-  const [activeEdits, setActiveEdits] = useState<Record<string, ActiveEdit>>({});
+
 
   const editTimersRef = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -1481,8 +1454,8 @@ function AppContent() {
   const handleActivateBiometrics = useCallback(async () => {
     try {
       if (!adminUser?.email) throw new Error("Email não encontrado");
-      const { registerBiometrics } = await import('./services/biometricService');
-      await registerBiometrics(adminUser.email);
+      const { registerBiometricAdmin } = await import('./services/biometricService');
+      await registerBiometricAdmin(adminUser.email);
       setToast({ message: 'Biometria cadastrada com sucesso!', type: 'success' });
       setIsConfirmBiometricModalOpen(false);
     } catch (err: any) {
@@ -2919,103 +2892,59 @@ function AppContent() {
     </div>
 
     <Suspense fallback={null}>
-      <AdminPasswordModal
-        isOpen={isAdminPasswordModalOpen}
-        onClose={() => {
-          setIsAdminPasswordModalOpen(false);
-          setIsAdminModalOpen(true);
-        }}
-        onConfirm={handleChangeAdminPassword}
-        scale={1}
-      />
-    </Suspense>
+    <ModalsContainer 
+      isChangePasswordModalOpen={isAdminPasswordModalOpen}
+      closeChangePasswordModal={() => { setIsAdminPasswordModalOpen(false); setIsAdminModalOpen(true); }}
+      handleChangeAdminPassword={handleChangeAdminPassword}
+      
+      isAdminModalOpen={isAdminModalOpen}
+      closeAdminModal={() => setIsAdminModalOpen(false)}
+      adminModalProps={{
+        isAdmin, onLogin: handleAdminLogin, onLogout: handleAdminLogout,
+        onLoginError: handleAdminLoginError, onClearAll: handleClearAll,
+        onGenerateReport: handleGenerateReport, 
+        onAddUser: () => { setIsAddUserModalOpen(true); setIsAdminModalOpen(false); },
+        onReorganize: handleReorganize,
+        onImportCollaborator: () => { setIsImportModalOpen(true); setIsAdminModalOpen(false); },
+        is6HActive, onToggle6H: handleToggle6H,
+        onToggleAutomation: handleToggleAutomation, isAutomationPaused,
+        onShowHistory: handleShowHistory, onShowHelp: handleShowHelp, onShowTutorial: handleShowTutorial,
+        isDemoMode, onToggleDemoMode: handleToggleDemoMode, isDarkMode,
+        onChangeAdminPassword: () => { setIsAdminModalOpen(false); setIsAdminPasswordModalOpen(true); },
+        hasBiometrics: hasRegisteredBiometrics(), onClearBiometrics: clearBiometricData
+      }}
 
-    <AdminModal
-      isOpen={isAdminModalOpen}
-      onClose={() => setIsAdminModalOpen(false)}
-      isAdmin={isAdmin}
-      onLogin={handleAdminLogin}
-      onLogout={handleAdminLogout}
-      onLoginError={handleAdminLoginError}
-      onClearAll={handleClearAll}
-      onGenerateReport={handleGenerateReport}
-      onAddUser={() => {
-        setIsAddUserModalOpen(true);
-        setIsAdminModalOpen(false);
-      }}
-      onReorganize={handleReorganize}
-      onImportCollaborator={() => {
-        setIsImportModalOpen(true);
-        setIsAdminModalOpen(false);
-      }}
-      is6HActive={is6HActive}
-      onToggle6H={handleToggle6H}
-      onToggleAutomation={handleToggleAutomation}
-      isAutomationPaused={isAutomationPaused}
-      onShowHistory={handleShowHistory}
-      onShowHelp={handleShowHelp}
-      onShowTutorial={handleShowTutorial}
-      isDemoMode={isDemoMode}
-      onToggleDemoMode={handleToggleDemoMode}
-      isDarkMode={isDarkMode}
-      onChangeAdminPassword={() => {
-        setIsAdminModalOpen(false);
-        setIsAdminPasswordModalOpen(true);
-      }}
-      hasBiometrics={hasRegisteredBiometrics()}
-      onClearBiometrics={clearBiometricData}
-    />
+      isConfirmBiometricModalOpen={isConfirmBiometricModalOpen}
+      closeConfirmBiometricModal={handleCloseBiometricModal}
+      handleActivateBiometrics={handleActivateBiometrics}
 
-    <ConfirmBiometricModal
-      isOpen={isConfirmBiometricModalOpen}
-      onClose={handleCloseBiometricModal}
-      onActivate={handleActivateBiometrics}
-      scale={1}
-    />
-    <AddUserModal
-      isOpen={isAddUserModalOpen}
-      onClose={() => setIsAddUserModalOpen(false)}
-      onAddUser={handleAddNewUser}
-      isDarkMode={isDarkMode}
-      onBack={() => {
-        setIsAddUserModalOpen(false);
-        setIsAdminModalOpen(true);
-      }}
-    />
+      isAddUserModalOpen={isAddUserModalOpen}
+      closeAddUserModal={() => setIsAddUserModalOpen(false)}
+      handleAddUser={handleAddNewUser}
+      onAddUserBack={() => { setIsAddUserModalOpen(false); setIsAdminModalOpen(true); }}
 
-    <ImportEmployeeModal
-      isOpen={isImportModalOpen}
-      onClose={() => setIsImportModalOpen(false)}
-      onImport={handlePerformImport}
-      isDarkMode={isDarkMode}
-      onBack={() => {
-        setIsImportModalOpen(false);
-        setIsAdminModalOpen(true);
-      }}
-    />
-
-    <HistoryModal
-      isOpen={isHistoryModalOpen}
-      onClose={() => setIsHistoryModalOpen(false)}
+      isImportModalOpen={isImportModalOpen}
+      closeImportModal={() => setIsImportModalOpen(false)}
+      handleImportSelected={handlePerformImport}
+      onImportBack={() => { setIsImportModalOpen(false); setIsAdminModalOpen(true); }}
+      
+      isHistoryModalOpen={isHistoryModalOpen}
+      closeHistoryModal={() => setIsHistoryModalOpen(false)}
       logs={movementLogs}
-      isDarkMode={isDarkMode}
-      onBack={() => {
-        setIsHistoryModalOpen(false);
-        setIsAdminModalOpen(true);
-      }}
-    />
+      onHistoryBack={() => { setIsHistoryModalOpen(false); setIsAdminModalOpen(true); }}
 
-    <ReportModal
-      isOpen={isReportModalOpen}
-      onClose={() => setIsReportModalOpen(false)}
+      isReportModalOpen={isReportModalOpen}
+      closeReportModal={() => setIsReportModalOpen(false)}
       reportText={reportContent}
       stats={reportStats}
+      onReportBack={() => { setIsReportModalOpen(false); setIsAdminModalOpen(true); }}
+      
+      departmentsData={departmentsData}
+      supportRolesData={supportRolesData}
+      annotationsLeft={annotationsLeft}
       isDarkMode={isDarkMode}
-      onBack={() => {
-        setIsReportModalOpen(false);
-        setIsAdminModalOpen(true);
-      }}
     />
+    </Suspense>
 
     <AnimatePresence>
       {toast && (
