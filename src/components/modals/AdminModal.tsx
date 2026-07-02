@@ -384,7 +384,9 @@ export function AdminModal({
                     }`}
                     style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
                     autoFocus
-                    autoComplete="new-password"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-form-type="other"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}

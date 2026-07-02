@@ -68,7 +68,8 @@ export const AdminPasswordModal: React.FC<{
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className={inputClassName}
-                        autoComplete="new-password"
+                        autoComplete="off"
+                        data-lpignore="true"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 handleSubmit(e as any);
@@ -84,7 +85,8 @@ export const AdminPasswordModal: React.FC<{
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className={inputClassName}
-                        autoComplete="new-password"
+                        autoComplete="off"
+                        data-lpignore="true"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 handleSubmit(e as any);
