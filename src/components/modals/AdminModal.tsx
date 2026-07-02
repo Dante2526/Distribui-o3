@@ -369,7 +369,7 @@ export function AdminModal({
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 w-full">
+            <div className="space-y-4 w-full">
               <div className="relative flex flex-col gap-4">
                 <div className="relative w-full">
                   <input
@@ -384,10 +384,16 @@ export function AdminModal({
                     }`}
                     style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
                     autoFocus
-                    autoComplete="off"
+                    autoComplete="new-password"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }
+                    }}
                   />
                   <button
                     type="button"
@@ -407,12 +413,13 @@ export function AdminModal({
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 className="w-full py-3 bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[#FF6B00]/30"
               >
                 ENTRAR
               </button>
-            </form>
+            </div>
           </>
         )}
       </motion.div>

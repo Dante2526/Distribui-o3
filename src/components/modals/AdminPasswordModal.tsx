@@ -50,7 +50,7 @@ export const AdminPasswordModal: React.FC<{
             title="Alterar Minha Senha" 
             scale={scale}
         >
-            <form noValidate onSubmit={handleSubmit} className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-4">
                 <div className="flex justify-center mb-2">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
@@ -68,6 +68,12 @@ export const AdminPasswordModal: React.FC<{
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className={inputClassName}
+                        autoComplete="new-password"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSubmit(e as any);
+                            }
+                        }}
                     />
                 </div>
 
@@ -78,6 +84,12 @@ export const AdminPasswordModal: React.FC<{
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className={inputClassName}
+                        autoComplete="new-password"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSubmit(e as any);
+                            }
+                        }}
                     />
                 </div>
 
@@ -87,10 +99,10 @@ export const AdminPasswordModal: React.FC<{
                     </div>
                 )}
 
-                <button type="submit" className="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg">
+                <button type="button" onClick={handleSubmit} className="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg">
                     SALVAR SENHA
                 </button>
-            </form>
+            </div>
         </Modal>
     );
 };
