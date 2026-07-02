@@ -63,7 +63,8 @@ export const AdminPasswordModal: React.FC<{
 
                 <div className="relative w-full">
                     <input
-                        type="password"
+                        type="text"
+                        style={{ WebkitTextSecurity: 'disc' } as any}
                         placeholder="Nova Senha"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
@@ -80,7 +81,8 @@ export const AdminPasswordModal: React.FC<{
 
                 <div className="relative w-full">
                     <input
-                        type="password"
+                        type="text"
+                        style={{ WebkitTextSecurity: 'disc' } as any}
                         placeholder="Confirmar Nova Senha"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}

@@ -373,7 +373,7 @@ export function AdminModal({
               <div className="relative flex flex-col gap-4">
                 <div className="relative w-full">
                   <input
-                    type={showEmail ? "text" : "password"}
+                    type="text"
                     placeholder="E-mail ou Senha"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
