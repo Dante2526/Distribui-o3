@@ -379,7 +379,7 @@ export function AdminModal({
                     id={Math.random().toString()}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 ${
+                    className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 font-mono ${
                       isDarkMode 
                         ? 'bg-[#111217] border border-white/10 placeholder-white/30 text-white' 
                         : 'bg-[#F3F4F6] border border-gray-200 placeholder-gray-400 text-gray-900'
