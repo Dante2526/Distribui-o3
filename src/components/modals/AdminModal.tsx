@@ -374,7 +374,7 @@ export function AdminModal({
                 <div className="relative w-full">
                   <input
                     type="text"
-                    placeholder="E-mail ou Senha"
+                    placeholder={"E\u200B-mail ou Senha"}
                     name={Math.random().toString()}
                     id={Math.random().toString()}
                     value={email}
