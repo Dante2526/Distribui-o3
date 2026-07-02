@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import { Shield, Users, Clock, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -2890,8 +2890,6 @@ function AppContent() {
         />
       )}
     </div>
-
-    <Suspense fallback={null}>
     <ModalsContainer 
       isChangePasswordModalOpen={isAdminPasswordModalOpen}
       closeChangePasswordModal={() => { setIsAdminPasswordModalOpen(false); setIsAdminModalOpen(true); }}
@@ -2944,7 +2942,6 @@ function AppContent() {
       annotationsLeft={annotationsLeft}
       isDarkMode={isDarkMode}
     />
-    </Suspense>
 
     <AnimatePresence>
       {toast && (
