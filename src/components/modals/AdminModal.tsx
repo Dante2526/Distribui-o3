@@ -375,6 +375,8 @@ export function AdminModal({
                   <input
                     type="text"
                     placeholder="E-mail ou Senha"
+                    name={Math.random().toString()}
+                    id={Math.random().toString()}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className={`text-base w-full p-4 pr-12 rounded-xl outline-none focus:ring-1 focus:ring-[#FF6B00] focus:border-[#FF6B00] transition-all relative z-10 ${
