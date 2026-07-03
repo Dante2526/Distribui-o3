@@ -96,6 +96,21 @@ const SpecialShiftContainer = ({ children, is6HActive, isEmpty }: { children: Re
     </div>
   );
 };
+const deduplicateAnnotationItems = (groups: AnnotationGroup[]): AnnotationGroup[] => {
+  return groups.map(group => {
+    const seen = new Set<string>();
+    const dedupedItems = group.items.filter(item => {
+      if (!item.name || !item.name.trim()) return true;
+      const key = item.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return dedupedItems.length !== group.items.length
+      ? { ...group, items: dedupedItems }
+      : group;
+  });
+};
 
 function AppContent() {
   const {
@@ -241,10 +256,10 @@ function AppContent() {
           setSupportRolesData(state.supportRolesData);
         }
         if (state.annotationsLeft && state.annotationsLeft.length > 0) {
-          setAnnotationsLeft(state.annotationsLeft);
+          setAnnotationsLeft(deduplicateAnnotationItems(state.annotationsLeft));
         }
         if (state.annotationsRight && state.annotationsRight.length > 0) {
-          setAnnotationsRight(state.annotationsRight);
+          setAnnotationsRight(deduplicateAnnotationItems(state.annotationsRight));
         }
         if (state.specialShiftData) {
           setSpecialShiftData(state.specialShiftData.map(healEmployee));
@@ -2300,6 +2315,7 @@ function AppContent() {
         const newGroups = [...prev];
         const group = newGroups[targetLeftGroupIndex];
         const items = [...group.items];
+        if (items.some(item => item.id === emp.id)) return prev;
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
           items[emptyIdx] = { id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
@@ -2314,6 +2330,7 @@ function AppContent() {
         const newGroups = [...prev];
         const group = newGroups[targetRightGroupIndex];
         const items = [...group.items];
+        if (items.some(item => item.id === emp.id)) return prev;
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         if (emptyIdx !== -1) {
           items[emptyIdx] = { id: emp.id, name: empName, status: absenceType, matricula: empMatricula, originalDeptId: deptId };
@@ -2368,6 +2385,7 @@ function AppContent() {
         const newGroups = [...prev];
         const g = newGroups[targetLeftGroupIndex];
         const items = [...g.items];
+        if (items.some(item => item.id === emp.id)) return prev;
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         const newItem = { 
           id: emp.id, name: empName, status: absenceType, matricula: empMatricula, 
@@ -2383,6 +2401,7 @@ function AppContent() {
         const newGroups = [...prev];
         const g = newGroups[targetRightGroupIndex];
         const items = [...g.items];
+        if (items.some(item => item.id === emp.id)) return prev;
         const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
         const newItem = { 
           id: emp.id, name: empName, status: absenceType, matricula: empMatricula, 
@@ -2411,6 +2430,7 @@ function AppContent() {
 
       setSupportRolesData(prev => {
         const newSupport = prev.map(group => [...group]);
+        if (newSupport[targetGroupIdx].some(e => e.id === item.id)) return prev;
         newSupport[targetGroupIdx].push({
           id: item.id || ('emp-supp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)),
           name: item.name,
@@ -2430,6 +2450,7 @@ function AppContent() {
         const newDepts = [...prev];
         const targetDeptIdx = newDepts.findIndex(d => d.id === item.originalDeptId);
         if (targetDeptIdx === -1) return prev;
+        if (newDepts[targetDeptIdx].data.some(e => e.id === item.id)) return prev;
 
         const cleanedEmp: Employee = {
           id: item.id || ('emp-' + Math.floor(Math.random() * 100000)),
