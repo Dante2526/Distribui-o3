@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { User, Trash2, ArrowRightLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSortable } from '@dnd-kit/sortable';
@@ -8,6 +8,20 @@ import { STATUS_METADATA } from '../types';
 import { getDeptTheme, PREDEFINED_LINES } from '../constants/data';
 import { PortalMenu } from './PortalMenu';
 import { DeptIcon } from './DeptIcon';
+
+const BORDER_LEFT_MAP: Record<string, string> = {
+  recepcao: 'border-l-4 border-l-[#0A84FF]',
+  classificacao: 'border-l-4 border-l-[#FF9F0A]',
+  formacao: 'border-l-4 border-l-[#30D158]',
+};
+const DEFAULT_BORDER_LEFT = 'border-l-4 border-l-[#5E5CE6]';
+
+const SWAP_HOVER_MAP: Record<string, string> = {
+  recepcao: 'hover:text-[#0A84FF] hover:bg-[#0A84FF]/10',
+  classificacao: 'hover:text-[#FF9F0A] hover:bg-[#FF9F0A]/10',
+  formacao: 'hover:text-[#30D158] hover:bg-[#30D158]/10',
+};
+const DEFAULT_SWAP_HOVER = 'hover:text-[#5E5CE6] hover:bg-[#5E5CE6]/10';
 
 export const EmployeeRow = React.memo(({
   emp,
@@ -53,7 +67,7 @@ export const EmployeeRow = React.memo(({
   const [showTransferMenu, setShowTransferMenu] = useState(false);
   const [showAbsentMenu, setShowAbsentMenu] = useState(false);
   const theme = getDeptTheme(department.id);
-  const otherDepts = departmentOptions.filter(d => d.id !== department.id);
+  const otherDepts = useMemo(() => departmentOptions.filter(d => d.id !== department.id), [departmentOptions, department.id]);
 
   const {
     attributes,
@@ -82,23 +96,12 @@ export const EmployeeRow = React.memo(({
 
   // Helper para borda lateral de destaque conforme o setor no modo claro/escuro
   const getBorderLeftClass = (deptId: string, hasError?: boolean) => {
-    if (hasError) return 'border-l-4 border-l-[#FF3B30]';
-    switch (deptId) {
-      case 'recepcao': return 'border-l-4 border-l-[#0A84FF]';
-      case 'classificacao': return 'border-l-4 border-l-[#FF9F0A]';
-      case 'formacao': return 'border-l-4 border-l-[#30D158]';
-      default: return 'border-l-4 border-l-[#5E5CE6]';
-    }
+    return hasError ? 'border-l-4 border-l-[#FF3B30]' : (BORDER_LEFT_MAP[deptId] || DEFAULT_BORDER_LEFT);
   };
 
   // Helper para hover do botão de troca conforme o setor
   const getSwapHoverClass = (deptId: string) => {
-    switch (deptId) {
-      case 'recepcao': return 'hover:text-[#0A84FF] hover:bg-[#0A84FF]/10';
-      case 'classificacao': return 'hover:text-[#FF9F0A] hover:bg-[#FF9F0A]/10';
-      case 'formacao': return 'hover:text-[#30D158] hover:bg-[#30D158]/10';
-      default: return 'hover:text-[#5E5CE6] hover:bg-[#5E5CE6]/10';
-    }
+    return SWAP_HOVER_MAP[deptId] || DEFAULT_SWAP_HOVER;
   };
 
   const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
@@ -143,19 +146,30 @@ export const EmployeeRow = React.memo(({
   }, [onStartEdit, emp.id, isAdmin]);
 
   const isMountedRef = useRef(false);
+  const onStartEditRef = useRef(onStartEdit);
+  const onStopEditRef = useRef(onStopEdit);
+  
+  useEffect(() => {
+    onStartEditRef.current = onStartEdit;
+  }, [onStartEdit]);
+  
+  useEffect(() => {
+    onStopEditRef.current = onStopEdit;
+  }, [onStopEdit]);
+
   useEffect(() => {
     if (!isMountedRef.current) {
       isMountedRef.current = true;
       return;
     }
     if (showAbsentMenu || showLineDropdown || showTransferMenu || showAvatarMenu) {
-      if (emp.id) onStartEdit?.(emp.id);
+      if (emp.id) onStartEditRef.current?.(emp.id);
     } else {
       // Quando todos os menus estão fechados, e se não houver um input ativo dentro do cartão (o blur do input lidaria com a parte dele),
       // nós notificamos para parar a edição originada pelos menus.
-      if (emp.id) onStopEdit?.(emp.id);
+      if (emp.id) onStopEditRef.current?.(emp.id);
     }
-  }, [showAbsentMenu, showLineDropdown, showTransferMenu, showAvatarMenu, emp.id, onStartEdit, onStopEdit]);
+  }, [showAbsentMenu, showLineDropdown, showTransferMenu, showAvatarMenu, emp.id]);
 
   return (
     <motion.div

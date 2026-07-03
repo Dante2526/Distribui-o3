@@ -130,7 +130,15 @@ function AppContent() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isConfirmBiometricModalOpen, setIsConfirmBiometricModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState('');
-  const [reportStats, setReportStats] = useState<any>(null);
+  const [reportStats, setReportStats] = useState<{
+    totalMaquinistas: number;
+    totalApoio: number;
+    totalTurno6H: number;
+    totalFuncionarios: number;
+    totalFerias: number;
+    totalFora: number;
+    totalATM: number;
+  } | null>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
 
   // Inicializa o state do history se não existir
@@ -160,6 +168,12 @@ function AppContent() {
 
   const isReceivingSnapshotRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);
+  const adminUserRef = useRef(adminUser);
+  
+  useEffect(() => {
+    adminUserRef.current = adminUser;
+  }, [adminUser]);
+
   // Ref para evitar stale closure em callbacks com dependências vazias (logMovement, handleDragEnd, etc.)
   const selectedTurmaRef = useRef(selectedTurma);
   const annotationsLeftRef = useRef(annotationsLeft);
@@ -208,12 +222,8 @@ function AppContent() {
       const hasEmployeesInSpecial = state?.specialShiftData?.length > 0 || false;
       const hasAnyEmployee = hasEmployeesInDepartments || hasEmployeesInSupport || hasEmployeesInSpecial;
 
-      console.log(`[DEBUG] Recebeu estado do Firestore (Registros). Tem algum funcionário salvo? ${hasAnyEmployee}`);
-
       // Se Firebase retornar dados válidos E tiver pelo menos 1 funcionário salvo
       if (state && state.departmentsData && state.departmentsData.length > 0 && hasAnyEmployee) {
-        console.log("[DEBUG] Carregando dados salvos do Firebase de Registros");
-        
         const healEmployee = (emp: Employee) => {
           if (!emp.matricula && emp.machine && emp.machine.length >= 7 && /^\d+$/.test(emp.machine)) {
             return { ...emp, matricula: emp.machine, machine: '' };
@@ -307,9 +317,26 @@ function AppContent() {
       setActiveEdits(cleanedEdits);
     });
 
+    const cleanupInterval = setInterval(() => {
+      setActiveEdits(prev => {
+        const now = Date.now();
+        const cleaned: Record<string, ActiveEdit> = {};
+        let changed = false;
+        Object.keys(prev).forEach(key => {
+          if (now - prev[key].timestamp < 15000) {
+            cleaned[key] = prev[key];
+          } else {
+            changed = true;
+          }
+        });
+        return changed ? cleaned : prev;
+      });
+    }, 5000);
+
     return () => {
       unsubscribe();
       unsubscribeEdits();
+      clearInterval(cleanupInterval);
     };
   }, [isDemoMode, selectedTurma, isTabVisible]);
 
@@ -403,8 +430,6 @@ function AppContent() {
       // 2. Adicionar Novos do DSS
       const newFromDSS = dssEmployees.filter(emp => !boardIds.has(emp.id));
       if (newFromDSS.length > 0) {
-        console.log(`[DEBUG] Adicionando ${newFromDSS.length} novos funcionários vindos do DSS.`);
-        
         const deptsToAdd: any[] = [];
         const supportToAdd: any[] = [];
         const rightAnnotationsToAdd: any[] = [];
@@ -455,19 +480,28 @@ function AppContent() {
   }, [selectedTurma, isDemoMode, isTabVisible]);
 
   // Efeito para salvar alterações locais no Firebase
+  const saveBoardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (isDemoMode || isReceivingSnapshotRef.current || isLoadingData || !selectedTurma) return;
     
     // Evita sobrescrever o banco com dados vazios logo no início se isLoadingData falhar de alguma forma
     if (departmentsData[0]?.id) {
-       firestoreService.saveBoardState(selectedTurma, {
-         departmentsData,
-         supportRolesData,
-         annotationsLeft,
-         annotationsRight,
-         specialShiftData
-       });
+       if (saveBoardTimeoutRef.current) clearTimeout(saveBoardTimeoutRef.current);
+       saveBoardTimeoutRef.current = setTimeout(() => {
+         firestoreService.saveBoardState(selectedTurma, {
+           departmentsData,
+           supportRolesData,
+           annotationsLeft,
+           annotationsRight,
+           specialShiftData
+         });
+       }, 2000);
     }
+
+    return () => {
+      if (saveBoardTimeoutRef.current) clearTimeout(saveBoardTimeoutRef.current);
+    };
   }, [departmentsData, supportRolesData, annotationsLeft, annotationsRight, specialShiftData, isDemoMode, isLoadingData, selectedTurma]);
 
   const loginToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -497,13 +531,15 @@ function AppContent() {
   }, [toast]);
 
   const logMovement = useCallback((employeeName: string, from: string, to: string, line?: string, machine?: string) => {
-    const mockAdmins = ["Lucas (Admin)", "Mariana (Super)", "Roberto (Gestor)", "Fernanda (Coord)"];
-    const randomAdmin = mockAdmins[Math.floor(Math.random() * mockAdmins.length)];
+    const currentAdmin = adminUserRef.current?.name ?? 'Sistema';
+    const adminName = isDemoModeRef.current
+      ? ["Lucas (Admin)", "Mariana (Super)", "Roberto (Gestor)", "Fernanda (Coord)"][Math.floor(Math.random() * 4)]
+      : currentAdmin;
     
     setMovementLogs(prev => {
       const newLog: MovementLog = {
         id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
-        adminName: randomAdmin,
+        adminName: adminName,
         employeeName,
         from,
         to,
@@ -518,7 +554,7 @@ function AppContent() {
     if (!isDemoModeRef.current && selectedTurmaRef.current) {
       firestoreService.saveMovementLog(selectedTurmaRef.current, {
         id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
-        adminName: randomAdmin,
+        adminName: adminName,
         employeeName,
         from,
         to,
