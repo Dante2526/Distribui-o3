@@ -1,81 +1,93 @@
-import React from 'react';
-import { Palmtree, LogOut, Activity, ShieldAlert, FileText, UserCog, RefreshCw, User } from 'lucide-react';
+import React from "react";
+import {
+  Palmtree,
+  LogOut,
+  Activity,
+  ShieldAlert,
+  FileText,
+  UserCog,
+  RefreshCw,
+  User,
+} from "lucide-react";
 
 // --- Turma Type ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D';
+export type TurmaType = "A" | "B" | "C" | "D";
 
 // --- Status Types ---
 export type StatusType =
-  | 'FÉRIAS'
-  | 'FORA'
-  | 'ATM'
-  | 'RESTRIÇÃO'
-  | 'INSS'
-  | 'TREINAMENTO'
-  | 'REVEZAMENTO'
-  | 'ESTÁGIO';
+  | "FÉRIAS"
+  | "FORA"
+  | "ATM"
+  | "RESTRIÇÃO"
+  | "INSS"
+  | "TREINAMENTO"
+  | "REVEZAMENTO"
+  | "ESTÁGIO";
 
-export const STATUS_METADATA: Record<StatusType, {
-  label: string;
-  colorDark: string;
-  colorLight: string;
-  dotColor: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = {
-  'FÉRIAS': {
-    label: 'FÉRIAS',
-    colorDark: 'text-[#30D158]',
-    colorLight: 'text-[#16A34A]',
-    dotColor: 'bg-[#30D158]',
+export const STATUS_METADATA: Record<
+  StatusType,
+  {
+    label: string;
+    colorDark: string;
+    colorLight: string;
+    dotColor: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
+> = {
+  FÉRIAS: {
+    label: "FÉRIAS",
+    colorDark: "text-[#30D158]",
+    colorLight: "text-[#16A34A]",
+    dotColor: "bg-[#30D158]",
     icon: Palmtree,
   },
-  'FORA': {
-    label: 'FORA',
-    colorDark: 'text-[#FF453A]',
-    colorLight: 'text-[#EF4444]',
-    dotColor: 'bg-[#FF453A]',
+  FORA: {
+    label: "FORA",
+    colorDark: "text-[#FF453A]",
+    colorLight: "text-[#EF4444]",
+    dotColor: "bg-[#FF453A]",
     icon: LogOut,
   },
-  'ATM': {
-    label: 'ATM',
-    colorDark: 'text-[#FFD60A]',
-    colorLight: 'text-[#D97706]',
-    dotColor: 'bg-[#FFD60A]',
+  ATM: {
+    label: "ATM",
+    colorDark: "text-[#FFD60A]",
+    colorLight: "text-[#D97706]",
+    dotColor: "bg-[#FFD60A]",
     icon: Activity,
   },
-  'RESTRIÇÃO': {
-    label: 'RESTRIÇÃO',
-    colorDark: 'text-[#BF5AF2]',
-    colorLight: 'text-[#8B5CF6]',
-    dotColor: 'bg-[#BF5AF2]',
+  RESTRIÇÃO: {
+    label: "RESTRIÇÃO",
+    colorDark: "text-[#BF5AF2]",
+    colorLight: "text-[#8B5CF6]",
+    dotColor: "bg-[#BF5AF2]",
     icon: ShieldAlert,
   },
-  'INSS': {
-    label: 'INSS',
-    colorDark: 'text-[#FF453A]',
-    colorLight: 'text-[#EF4444]',
-    dotColor: 'bg-[#FF453A]',
+  INSS: {
+    label: "INSS",
+    colorDark: "text-[#FF453A]",
+    colorLight: "text-[#EF4444]",
+    dotColor: "bg-[#FF453A]",
     icon: FileText,
   },
-  'TREINAMENTO': {
-    label: 'TREINAMENTO',
-    colorDark: 'text-[#0A84FF]',
-    colorLight: 'text-[#2563EB]',
-    dotColor: 'bg-[#0A84FF]',
+  TREINAMENTO: {
+    label: "TREINAMENTO",
+    colorDark: "text-[#0A84FF]",
+    colorLight: "text-[#2563EB]",
+    dotColor: "bg-[#0A84FF]",
     icon: UserCog,
   },
-  'REVEZAMENTO': {
-    label: 'REVEZAMENTO',
-    colorDark: 'text-[#32ADE6]',
-    colorLight: 'text-[#0284C7]',
-    dotColor: 'bg-[#32ADE6]',
+  REVEZAMENTO: {
+    label: "REVEZAMENTO",
+    colorDark: "text-[#32ADE6]",
+    colorLight: "text-[#0284C7]",
+    dotColor: "bg-[#32ADE6]",
     icon: RefreshCw,
   },
-  'ESTÁGIO': {
-    label: 'ESTÁGIO',
-    colorDark: 'text-[#10B981]',
-    colorLight: 'text-[#059669]',
-    dotColor: 'bg-[#10B981]',
+  ESTÁGIO: {
+    label: "ESTÁGIO",
+    colorDark: "text-[#10B981]",
+    colorLight: "text-[#059669]",
+    dotColor: "bg-[#10B981]",
     icon: User,
   },
 };
@@ -91,7 +103,7 @@ export type Employee = {
   originalDeptId?: string;
   originalSupportGroupIndex?: number;
   originalSupportRole?: string;
-  tagType?: 'MAQUINISTA' | 'OOF';
+  tagType?: "MAQUINISTA" | "OOF";
 };
 
 export type DepartmentOption = {
@@ -142,13 +154,13 @@ export interface BoardState {
 }
 
 export const MOCK_USERS = [
-  { name: 'Ana (Simulado)', color: '#0A84FF' },
-  { name: 'Carlos (Simulado)', color: '#30D158' },
-  { name: 'João (Simulado)', color: '#FF9F0A' },
-  { name: 'Maria (Simulado)', color: '#FF2D55' },
-  { name: 'Pedro (Simulado)', color: '#FFD60A' },
-  { name: 'Lucas (Simulado)', color: '#FF3B30' },
-  { name: 'Naylan (Você)', color: '#BF5AF2' },
+  { name: "Ana (Simulado)", color: "#0A84FF" },
+  { name: "Carlos (Simulado)", color: "#30D158" },
+  { name: "João (Simulado)", color: "#FF9F0A" },
+  { name: "Maria (Simulado)", color: "#FF2D55" },
+  { name: "Pedro (Simulado)", color: "#FFD60A" },
+  { name: "Lucas (Simulado)", color: "#FF3B30" },
+  { name: "Naylan (Você)", color: "#BF5AF2" },
 ];
 
 export interface MovementLog {
@@ -160,4 +172,42 @@ export interface MovementLog {
   line?: string;
   machine?: string;
   timestamp: Date;
+}
+export type HistoryStatus = "BEM" | "MAL" | "AUS" | "PEN";
+
+export interface HistoryEmployee {
+  m: string;
+  n: string;
+  s: HistoryStatus;
+  t: string | null;
+  turno: string;
+}
+
+export interface HistoryRegistro {
+  assunto: string;
+  matricula: string;
+  name: string;
+}
+
+export interface HistoryRecord {
+  data: string;
+  dataISO: string;
+  turma: string;
+  registros7H: HistoryRegistro[];
+  registros6H: HistoryRegistro[];
+  r: HistoryEmployee[];
+  totalFuncionarios: number;
+  totalPresentes: number;
+  totalAusentes: number;
+  totalMal: number;
+  totalPendentes: number;
+}
+
+export interface Administrator {
+  id: string;
+  name: string;
+  matricula: string;
+  email: string;
+  senha?: string;
+  nivel?: string;
 }

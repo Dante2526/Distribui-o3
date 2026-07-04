@@ -315,7 +315,7 @@ export function AdminModal({
 
                     {/* HISTÓRICO */}
                     <button
-                      onClick={onShowHistory}
+                      onClick={() => {}}
                       className="flex flex-col items-center justify-center p-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
                     >
                       <div className="scale-[0.85] md:scale-90 origin-bottom">
@@ -323,6 +323,31 @@ export function AdminModal({
                       </div>
                       <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
                         HISTÓRICO
+                      </span>
+                    </button>
+
+                    {/* LOG DE AUDITORIA */}
+                    <button
+                      onClick={onShowHistory}
+                      className="flex flex-col items-center justify-center p-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                    >
+                      <div className="scale-[0.85] md:scale-90 origin-bottom">
+                        <svg
+                          className="w-7 h-7 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                          />
+                        </svg>
+                      </div>
+                      <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
+                        LOG DE AUDITORIA
                       </span>
                     </button>
 
