@@ -208,7 +208,9 @@ export const SupportRoleRow = React.memo(
               document.activeElement.blur();
             }
           }
-          listeners?.onPointerDown?.(e as any);
+          if (isAdmin) {
+            listeners?.onPointerDown?.(e as any);
+          }
         }}
         className={`px-4 py-2.5 flex items-center rounded-[12px] ${isDragActive ? "" : "transition duration-300"} relative h-[56px] w-full ${
           isDragging || isGhost

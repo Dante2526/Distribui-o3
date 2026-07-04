@@ -234,7 +234,9 @@ export const EmployeeRow = React.memo(
               document.activeElement.blur();
             }
           }
-          listeners?.onPointerDown?.(e as any);
+          if (isAdmin) {
+            listeners?.onPointerDown?.(e as any);
+          }
         }}
         initial={false}
         animate={{
