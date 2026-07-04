@@ -197,7 +197,7 @@ export const SupportRoleRow = React.memo(
         ref={setNodeRef}
         style={style}
         {...attributes}
-        {...listeners}
+        {...(isAdmin ? listeners : {})}
         onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
           if (
             e.target instanceof HTMLElement &&

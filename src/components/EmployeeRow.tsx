@@ -221,7 +221,7 @@ export const EmployeeRow = React.memo(
         ref={setNodeRef}
         style={style}
         {...attributes}
-        {...listeners}
+        {...(isAdmin ? listeners : {})}
         onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
           // Força o blur do input ativo ao clicar no cartão (ex: arrastar)
           // NÃO chama onStopEdit aqui pois o onBlur do input já cuida disso
