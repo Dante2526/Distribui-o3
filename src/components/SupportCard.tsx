@@ -72,7 +72,7 @@ export const SupportCard = React.memo(({
       </div>
       
       {/* Support List */}
-      <div ref={setNodeRef} className="p-3 space-y-2 flex-1 min-h-[150px] flex flex-col">
+      <div ref={setNodeRef} className="p-3 space-y-2 flex-1 flex flex-col" style={{ minHeight: `${Math.max(5, roles.length) * 64}px` }}>
         <SortableContext id={`support-group-${groupIndex}`} items={sortableItems} strategy={verticalListSortingStrategy}>
         {roles.map((emp, i) => (
           <SupportRoleRow 
@@ -97,13 +97,6 @@ export const SupportCard = React.memo(({
           />
         ))}
 
-        {/* Slots vazios de preenchimento para garantir espaço de 5 usuários */}
-        {Array.from({ length: Math.max(0, 5 - roles.length) }).map((_, idx) => (
-          <div
-            key={`empty-support-${groupIndex}-${idx}`}
-            className="min-h-[56px] select-none pointer-events-none"
-          />
-        ))}
         </SortableContext>
       </div>
     </div>

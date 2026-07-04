@@ -6,7 +6,7 @@ const BOARD_DOC_ID = 'current';
 // Não precisamos mais de BOARD_COLLECTION global pois será dinâmico: turma a, turma b...
 
 // Debounce timer for saves
-let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+const saveTimeouts: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
 export const firestoreService = {
   // LER DADOS DO BANCO ANTIGO EM TEMPO REAL (CACHE ENABLED)
@@ -195,12 +195,20 @@ export const firestoreService = {
       }
     };
 
+    const key = turma.toLowerCase();
+
     if (immediate) {
-      if (saveTimeout) clearTimeout(saveTimeout);
+      const existing = saveTimeouts.get(key);
+      if (existing) clearTimeout(existing);
+      saveTimeouts.delete(key);
       executeSave();
     } else {
-      if (saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(executeSave, 200); // Debounce de 200ms
+      const existing = saveTimeouts.get(key);
+      if (existing) clearTimeout(existing);
+      saveTimeouts.set(key, setTimeout(() => {
+        saveTimeouts.delete(key);
+        executeSave();
+      }, 200)); // Debounce de 200ms
     }
   },
 

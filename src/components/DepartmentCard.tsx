@@ -77,7 +77,7 @@ export const DepartmentCard = React.memo(({
       {/* Área Direita (Grade de Colaboradores) */}
       <div ref={setNodeRef} className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
         <SortableContext id={department.id} items={sortableItems} strategy={verticalListSortingStrategy}>
-        <div className="grid grid-cols-1 gap-4 flex-1">
+        <div className="grid grid-cols-1 gap-4 flex-1" style={{ minHeight: `${maxCount * 156}px` }}>
           {department.data.map((emp, i) => (
             <EmployeeRow
               key={emp.id}
@@ -100,13 +100,6 @@ export const DepartmentCard = React.memo(({
             />
           ))}
 
-          {/* Slots vazios de preenchimento para igualar a altura máxima */}
-          {Array.from({ length: Math.max(0, maxCount - department.data.length) }).map((_, idx) => (
-            <div
-              key={`empty-${department.id}-${idx}`}
-              className="min-h-[140px] select-none pointer-events-none"
-            />
-          ))}
           </div>
         </SortableContext>
       </div>

@@ -27,14 +27,6 @@ import {
   MovementLog
 } from './types';
 
-// Função auxiliar para hash SHA-256 (Security)
-async function sha256(message: string) {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // Constantes e Dados Iniciais
 const EMPTY_OBJECT = Object.freeze({});
 const NOOP = () => {};
@@ -128,8 +120,7 @@ function AppContent() {
     selectedTurma, setSelectedTurma,
     movementLogs, setMovementLogs,
     isTabVisible, setIsTabVisible,
-    activeEdits, setActiveEdits,
-    healEmployee
+    activeEdits, setActiveEdits
   } = useDashboardData();
 
   const [isAdmin, setIsAdmin] = useState(false);
@@ -146,13 +137,19 @@ function AppContent() {
   const [isConfirmBiometricModalOpen, setIsConfirmBiometricModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState('');
   const [reportStats, setReportStats] = useState<{
-    totalMaquinistas: number;
-    totalApoio: number;
-    totalTurno6H: number;
-    totalFuncionarios: number;
-    totalFerias: number;
-    totalFora: number;
-    totalATM: number;
+    presentes: number;
+    afastados: number;
+    afastadosList: string[];
+    ausentes: number;
+    ativos: number;
+    ferias: number;
+    fora: number;
+    atm: number;
+    restricao: number;
+    estagio: number;
+    inss: number;
+    treinamento: number;
+    revezamento: number;
   } | null>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
 
@@ -185,27 +182,18 @@ function AppContent() {
   const isDemoModeRef = useRef(isDemoMode);
   const adminUserRef = useRef(adminUser);
   
-  useEffect(() => {
-    adminUserRef.current = adminUser;
-  }, [adminUser]);
-
   // Ref para evitar stale closure em callbacks com dependências vazias (logMovement, handleDragEnd, etc.)
   const selectedTurmaRef = useRef(selectedTurma);
   const annotationsLeftRef = useRef(annotationsLeft);
   const annotationsRightRef = useRef(annotationsRight);
   
   useEffect(() => {
+    adminUserRef.current = adminUser;
     isDemoModeRef.current = isDemoMode;
-  }, [isDemoMode]);
-
-  useEffect(() => {
     selectedTurmaRef.current = selectedTurma;
-  }, [selectedTurma]);
-
-  useEffect(() => {
     annotationsLeftRef.current = annotationsLeft;
     annotationsRightRef.current = annotationsRight;
-  }, [annotationsLeft, annotationsRight]);
+  }, [adminUser, isDemoMode, selectedTurma, annotationsLeft, annotationsRight]);
 
   // Efeito principal de sincronização de dados (Firebase vs Mock)
   useEffect(() => {
@@ -226,8 +214,7 @@ function AppContent() {
     if (!selectedTurma || !isTabVisible) return;
 
     // Modo Normal: escuta o Firebase
-    // Só mostramos o loading global se for a primeira carga
-    setIsLoadingData(prev => prev ? true : false);
+    // O loading global é desativado no callback
     
     const unsubscribe = firestoreService.subscribeToBoardState(selectedTurma, (state) => {
       isReceivingSnapshotRef.current = true;
@@ -390,10 +377,12 @@ function AppContent() {
       currentRight.forEach(g => g.items.forEach(e => boardIds.add(e.id)));
 
       // 1. Atualizar Existentes
+      const dssMap = new Map(dssEmployees.map(e => [e.id, e]));
+
       const updateDataArray = (dataArray: any[]) => {
         let modified = false;
         const next = dataArray.map(emp => {
-          const dssEmp = dssEmployees.find(e => e.id === emp.id);
+          const dssEmp = dssMap.get(emp.id);
           if (dssEmp && (dssEmp.name !== emp.name || dssEmp.matricula !== emp.matricula)) {
             modified = true;
             return { ...emp, name: dssEmp.name, matricula: dssEmp.matricula };
@@ -546,6 +535,7 @@ function AppContent() {
   }, [toast]);
 
   const logMovement = useCallback((employeeName: string, from: string, to: string, line?: string, machine?: string) => {
+    const logId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     const currentAdmin = adminUserRef.current?.name ?? 'Sistema';
     const adminName = isDemoModeRef.current
       ? ["Lucas (Admin)", "Mariana (Super)", "Roberto (Gestor)", "Fernanda (Coord)"][Math.floor(Math.random() * 4)]
@@ -553,7 +543,7 @@ function AppContent() {
     
     setMovementLogs(prev => {
       const newLog: MovementLog = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
+        id: logId,
         adminName: adminName,
         employeeName,
         from,
@@ -568,7 +558,7 @@ function AppContent() {
     // Bug 3/17: usa selectedTurmaRef para evitar stale closure
     if (!isDemoModeRef.current && selectedTurmaRef.current) {
       firestoreService.saveMovementLog(selectedTurmaRef.current, {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
+        id: logId,
         adminName: adminName,
         employeeName,
         from,
@@ -2284,7 +2274,7 @@ function AppContent() {
     const emp = dept.data[empIndex];
     if (!emp) return;
     const empName = emp.name;
-    const empMatricula = emp.machine || '';
+    const empMatricula = emp.matricula || '';
     
     if (!empName || !empName.trim()) return;
 
@@ -2457,7 +2447,7 @@ function AppContent() {
           name: item.name,
           matricula: item.matricula || '',
           line: '',
-          machine: item.machine || '',
+          machine: '',
           error: false
         };
 
@@ -2581,6 +2571,8 @@ function AppContent() {
     [departmentsData]
   );
 
+  const todayStr = React.useMemo(() => new Date().toLocaleDateString('pt-BR'), []);
+
   if (!selectedTurma) {
     return <TurmaSelectionScreen onSelect={setSelectedTurma} />;
   }
@@ -2661,7 +2653,7 @@ function AppContent() {
                 <div className="flex items-center gap-3">
                   <div className="h-[90px] px-8 min-w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-slate-700 to-slate-800 rounded-full shadow-lg select-none cursor-default border border-white/5">
                     <Calendar className="w-7 h-7 text-slate-300" />
-                    <span className="tracking-wide">{new Date().toLocaleDateString('pt-BR')}</span>
+                    <span className="tracking-wide">{todayStr}</span>
                   </div>
 
                   <button
@@ -2675,7 +2667,7 @@ function AppContent() {
 
                   <button
                     id="tutorial-btn"
-                    onClick={() => {}}
+                    onClick={handleShowTutorial}
                     className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 cursor-pointer"
                   >
                     <HelpIcon className="w-7 h-7" />
@@ -2875,51 +2867,7 @@ function AppContent() {
               </div>
 
               <DragOverlay dropAnimation={null}>
-                <div style={{ opacity: 0, pointerEvents: 'none' }}>
-                  {activeId && activeEmployee && activeDepartment ? (
-                    <EmployeeRow
-                      emp={activeEmployee}
-                      index={-1}
-                      department={activeDepartment}
-                      departmentOptions={departmentOptions}
-                      onMove={NOOP}
-                      onUpdateEmployee={NOOP}
-                      onDelete={NOOP}
-                      onTransferToSpecial={NOOP}
-                      onMarkAbsent={NOOP}
-                      isDarkMode={isDarkMode}
-                      is6HActive={is6HActive}
-                      isDragOverlay={true}
-                      isAdmin={isAdmin}
-                    />
-                  ) : activeId && activeSupportItem ? (
-                    <SupportRoleRow
-                      emp={activeSupportItem}
-                      index={-1}
-                      groupIndex={activeSupportGroupIndex}
-                      isDarkMode={isDarkMode}
-                      is6HActive={is6HActive}
-                      isDragOverlay={true}
-                      onUpdateRole={NOOP}
-                      onUpdateName={NOOP}
-                      onUpdateMatricula={NOOP}
-                      onMove={NOOP}
-                      onMoveToSpecial={NOOP}
-                      onMarkAbsent={NOOP}
-                      onDelete={NOOP}
-                      isAdmin={isAdmin}
-                    />
-                  ) : activeId && activeSpecialEmployee ? (
-                    <SpecialShiftSlot
-                      emp={activeSpecialEmployee}
-                      index={-1}
-                      departmentOptions={departmentOptions}
-                      onUpdate={NOOP}
-                      onTransfer={NOOP}
-                      isAdmin={isAdmin}
-                    />
-                  ) : null}
-                </div>
+                {null}
               </DragOverlay>
 
             </DndContext>

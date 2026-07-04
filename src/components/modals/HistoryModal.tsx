@@ -4,6 +4,15 @@ import { Clock, User, ArrowRight, FileText, ChevronDown, X, ArrowLeft } from 'lu
 import { MovementLog } from '../../types';
 import { useViewportStyles } from '../../hooks/useViewportStyles';
 
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit'
+});
+
+const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  hour: '2-digit', minute: '2-digit', second: '2-digit'
+});
+
 interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -134,10 +143,7 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                 <div className="space-y-4">
                   {groupedLogs.map((group) => {
                     const isExpanded = expandedGroups[group.employeeName];
-                    const lastDataFormatada = new Intl.DateTimeFormat('pt-BR', {
-                      day: '2-digit', month: '2-digit', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    }).format(new Date(group.lastMove));
+                    const lastDataFormatada = dateTimeFormatter.format(new Date(group.lastMove));
 
                     return (
                       <div 
@@ -196,9 +202,7 @@ export function HistoryModal({ isOpen, onClose, logs, isDarkMode, onBack }: Hist
                                 isDarkMode ? 'border-white/5 bg-black/20' : 'border-gray-100 bg-white/50'
                               }`}>
                                 {group.movements.map(log => {
-                                  const horaFormatada = new Intl.DateTimeFormat('pt-BR', {
-                                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                                  }).format(log.timestamp);
+                                  const horaFormatada = timeFormatter.format(log.timestamp);
                                   
                                   const isLocationMovement = 
                                     log.from.toUpperCase().startsWith('LINHA:') || 

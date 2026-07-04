@@ -33,19 +33,15 @@ export function useDashboardData() {
 
   const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
     const saved = localStorage.getItem('distribui-turma');
-    return saved ? (saved as TurmaType) : null;
+    const validTurmas: TurmaType[] = ['A', 'B', 'C', 'D'];
+    return saved && validTurmas.includes(saved as TurmaType) ? (saved as TurmaType) : null;
   });
 
   const [movementLogs, setMovementLogs] = useState<MovementLog[]>([]);
   const [isTabVisible, setIsTabVisible] = useState(true);
   const [activeEdits, setActiveEdits] = useState<Record<string, ActiveEdit>>({});
 
-  const healEmployee = (emp: any): Employee => ({
-    id: emp.id || crypto.randomUUID(),
-    name: emp.name || 'Desconhecido',
-    line: emp.line || '',
-    machine: emp.machine || ''
-  });
+
 
   return {
     departmentsData, setDepartmentsData,
@@ -62,7 +58,6 @@ export function useDashboardData() {
     selectedTurma, setSelectedTurma,
     movementLogs, setMovementLogs,
     isTabVisible, setIsTabVisible,
-    activeEdits, setActiveEdits,
-    healEmployee
+    activeEdits, setActiveEdits
   };
 }

@@ -187,7 +187,7 @@ export const EmployeeRow = React.memo(({
         }
         listeners?.onPointerDown?.(e as any);
       }}
-      initial={{ scale: 0.98, opacity: 0.4 }}
+      initial={false}
       animate={{ 
         scale: 1, 
         opacity: (isDragging || isGhost) ? 0.30 : 1 

@@ -28,6 +28,7 @@ const AnnotationItemRow = React.memo(({
           type="text" 
           value={item.name} 
           onChange={(e) => onUpdate(groupIdx, itemIdx, 'name', e.target.value)}
+          readOnly={!isAdmin}
           placeholder="NOME E SOBRENOME"
           className="bg-transparent text-white text-[13px] font-bold uppercase w-full focus:outline-none placeholder:text-[#a0aec0]/30 truncate leading-none md:group-hover:text-[#FF9F0A] transition-colors duration-300" 
         />
@@ -37,6 +38,7 @@ const AnnotationItemRow = React.memo(({
             type="text" 
             value={item.matricula || ''} 
             onChange={(e) => onUpdate(groupIdx, itemIdx, 'matricula', e.target.value)}
+            readOnly={!isAdmin}
             placeholder="N/A"
             maxLength={8}
             className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
@@ -63,6 +65,7 @@ const AnnotationItemRow = React.memo(({
         type="text" 
         value={item.status} 
         onChange={(e) => onUpdate(groupIdx, itemIdx, 'status', e.target.value)}
+        readOnly={!isAdmin}
         placeholder="STATUS"
         className="bg-transparent text-[#a0aec0] text-[11px] font-semibold uppercase w-[30%] text-right focus:outline-none placeholder:text-[#a0aec0]/30 truncate relative z-10" 
       />
@@ -182,5 +185,11 @@ export const AnnotationsBoard = React.memo(({
         </div>
       </div>
     </div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.leftGroups === nextProps.leftGroups &&
+    prevProps.rightGroups === nextProps.rightGroups &&
+    prevProps.isAdmin === nextProps.isAdmin
   );
 });
