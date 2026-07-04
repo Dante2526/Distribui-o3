@@ -9,3 +9,6 @@ coverage/
 
 # AI Assistant Plans
 docs/superpowers/
+
+# Agentes
+.agents/
