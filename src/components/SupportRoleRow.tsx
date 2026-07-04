@@ -225,7 +225,25 @@ export const SupportRoleRow = React.memo(({
             setIsTransferOpen(false);
             setIsOpen(false);
             if (open) {
-              setAbsentRect(e.currentTarget.getBoundingClientRect());
+              const target = e.currentTarget;
+              const rect = target.getBoundingClientRect();
+              const menuHeight = 350; // Altura estimada para 8 itens
+              
+              if (rect.bottom + menuHeight > window.innerHeight) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                let frameId: number;
+                const startTime = Date.now();
+                const trackScroll = () => {
+                  setAbsentRect(target.getBoundingClientRect());
+                  if (Date.now() - startTime < 800) {
+                    frameId = requestAnimationFrame(trackScroll);
+                  }
+                };
+                frameId = requestAnimationFrame(trackScroll);
+              } else {
+                setAbsentRect(rect);
+              }
             } else {
               setAbsentRect(null);
             }
