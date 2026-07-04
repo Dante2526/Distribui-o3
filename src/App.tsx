@@ -124,7 +124,7 @@ function AppContent() {
   } = useDashboardData();
 
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminUser, setAdminUser] = useState<{name: string, email: string, color?: string} | null>(null);
+  const [adminUser, setAdminUser] = useState<{name: string, email: string, color?: string, funcao?: string} | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => {
     return localStorage.getItem('distribui-page') || 'home';
@@ -536,7 +536,9 @@ function AppContent() {
 
   const logMovement = useCallback((employeeName: string, from: string, to: string, line?: string, machine?: string) => {
     const logId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
-    const currentAdmin = adminUserRef.current?.name ?? 'Sistema';
+    const currentAdmin = adminUserRef.current 
+      ? (adminUserRef.current.funcao ? `${adminUserRef.current.name} (${adminUserRef.current.funcao})` : adminUserRef.current.name) 
+      : 'Sistema';
     const adminName = isDemoModeRef.current
       ? ["Lucas (Admin)", "Mariana (Super)", "Roberto (Gestor)", "Fernanda (Coord)"][Math.floor(Math.random() * 4)]
       : currentAdmin;
@@ -765,14 +767,15 @@ function AppContent() {
     if (!selectedTurma || !isAdmin || !adminUser) return;
     setActiveEdits((prev) => {
       const newEdits = { ...prev };
+      const adminDisplayName = adminUser.funcao ? `${adminUser.name} (${adminUser.funcao})` : adminUser.name;
       Object.keys(newEdits).forEach(key => {
-        if (newEdits[key].userName === adminUser.name) {
+        if (newEdits[key].userName === adminDisplayName) {
           delete newEdits[key];
         }
       });
       newEdits[empId] = {
         empId,
-        userName: adminUser.name,
+        userName: adminDisplayName,
         color: adminUser.color || '#3b82f6',
         timestamp: Date.now()
       };
@@ -834,8 +837,9 @@ function AppContent() {
         setActiveEdits((prev) => {
           const newEdits = { ...prev };
           let changed = false;
+          const adminDisplayName = adminUser.funcao ? `${adminUser.name} (${adminUser.funcao})` : adminUser.name;
           Object.keys(newEdits).forEach(key => {
-            if (newEdits[key].userName === adminUser.name) {
+            if (newEdits[key].userName === adminDisplayName) {
               delete newEdits[key];
               changed = true;
             }

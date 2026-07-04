@@ -276,7 +276,7 @@ export const firestoreService = {
   },
 
   // VERIFICAR LOGIN DE ADMIN (E-mail ou Senha)
-  async verifyAdminLogin(inputStr: string, isBiometric: boolean = false): Promise<{ name: string; email: string; color?: string } | null> {
+  async verifyAdminLogin(inputStr: string, isBiometric: boolean = false): Promise<{ name: string; email: string; color?: string; funcao?: string } | null> {
     if (!dbDSS) return null;
 
     try {
@@ -292,7 +292,8 @@ export const firestoreService = {
           return {
             name: data.name || data.email.split('@')[0],
             email: data.email,
-            color: data.color
+            color: data.color,
+            funcao: data['função'] || data.funcao || data.role
           };
         }
       }
@@ -312,7 +313,8 @@ export const firestoreService = {
         return {
           name: data.name || data.email.split('@')[0],
           email: data.email,
-          color: data.color
+          color: data.color,
+          funcao: data['função'] || data.funcao || data.role
         };
       }
       
