@@ -209,12 +209,9 @@ export const EmployeeRow = React.memo(({
     >
       {/* Active Edit Badge */}
       {activeEdit && !isDragOverlay && (
-        <div 
-          className="absolute -top-4 right-0 bg-[#111217] px-3 py-1.5 rounded-[12px] text-[10px] font-bold text-white shadow-lg border border-white/10 flex items-center gap-2 z-50 animate-[fadeIn_0.2s_ease-out]"
-          style={{ borderTop: `2px solid ${activeEdit.color}` }}
-        >
-          <div className="w-2 h-2 rounded-full animate-pulse shadow-sm" style={{ backgroundColor: activeEdit.color }} />
-          <span className="opacity-90 tracking-wide uppercase whitespace-nowrap">
+        <div className="absolute -top-3 right-0 bg-[#2A2D3E] px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-lg border border-white/10 flex items-center gap-2 z-50 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeEdit.color }} />
+          <span className="opacity-90 whitespace-nowrap">
             {activeEdit.userName} editando...
           </span>
         </div>
