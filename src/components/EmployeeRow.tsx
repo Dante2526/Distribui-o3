@@ -331,7 +331,7 @@ export const EmployeeRow = React.memo(
                     if (rect.bottom + menuHeight > window.innerHeight) {
                       const scrollAmount =
                         rect.bottom + menuHeight - window.innerHeight + 20;
-                      const viewport = document.getElementById("viewport");
+                      const viewport = document.querySelector(".viewport");
                       if (viewport) {
                         viewport.scrollBy({
                           top: scrollAmount,

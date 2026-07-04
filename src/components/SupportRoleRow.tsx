@@ -301,7 +301,15 @@ export const SupportRoleRow = React.memo(
                 if (rect.bottom + menuHeight > window.innerHeight) {
                   const scrollAmount =
                     rect.bottom + menuHeight - window.innerHeight + 20;
-                  window.scrollBy({ top: scrollAmount, behavior: "smooth" });
+                  const viewport = document.querySelector(".viewport");
+                  if (viewport) {
+                    viewport.scrollBy({
+                      top: scrollAmount,
+                      behavior: "smooth",
+                    });
+                  } else {
+                    window.scrollBy({ top: scrollAmount, behavior: "smooth" });
+                  }
 
                   let frameId: number;
                   const startTime = Date.now();
