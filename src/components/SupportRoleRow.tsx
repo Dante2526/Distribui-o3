@@ -579,10 +579,15 @@ export const SupportRoleRow = React.memo(
             <div
               style={{
                 position: "fixed",
-                top: absentRect.bottom + 10,
+                ...(absentRect.bottom + 240 > window.innerHeight
+                  ? { bottom: window.innerHeight - absentRect.top + 10 }
+                  : { top: absentRect.bottom + 10 }),
                 left: absentRect.left + absentRect.width / 2,
                 transform: "translateX(-50%) scale(var(--app-scale, 1))",
-                transformOrigin: "top center",
+                transformOrigin:
+                  absentRect.bottom + 240 > window.innerHeight
+                    ? "bottom center"
+                    : "top center",
                 zIndex: 1000,
               }}
             >
