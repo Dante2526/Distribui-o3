@@ -1,5 +1,4 @@
 import React from "react";
-import { ShieldLogo } from "./modals/icons";
 import DarkModeToggle from "./DarkModeToggle";
 
 interface ThemeSelectionScreenProps {
@@ -22,7 +21,11 @@ const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({
       }`}
     >
       <div className="flex flex-col items-center text-center max-w-md w-full px-4 z-10 flex-grow justify-center">
-        <ShieldLogo className="h-12 w-12 md:h-16 md:w-16 mb-2" />
+        <img
+          src="/favicon.svg"
+          alt="Logo Distribuição"
+          className="h-12 w-12 md:h-16 md:w-16 mb-2"
+        />
         <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-1">
           Bem-vindo ao Distribuição
         </h1>
