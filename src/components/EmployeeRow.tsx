@@ -110,7 +110,7 @@ export const EmployeeRow = React.memo(
     const style: React.CSSProperties = {
       transform: CSS.Transform.toString(transform),
       transition: isDragging ? "none" : transition,
-      touchAction: "none",
+      touchAction: isAdmin ? "none" : "auto",
       ...(activeEdit
         ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: "1.5px" }
         : {}),
