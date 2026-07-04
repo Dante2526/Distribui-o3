@@ -1,5 +1,5 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,12 +8,22 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   scale?: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
   showScrollbar?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm', className = '', showScrollbar = false }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  onBack,
+  title,
+  children,
+  scale = 1,
+  size = "sm",
+  className = "",
+  showScrollbar = false,
+}) => {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -23,9 +33,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
     const originalTop = document.body.style.top;
     const originalWidth = document.body.style.width;
 
-    document.body.style.position = 'fixed';
+    document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    document.body.style.width = "100%";
 
     return () => {
       document.body.style.position = originalPosition;
@@ -39,25 +49,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
 
   const modalStyle = {
     transform: `scale(${scale})`,
-    animation: 'fade-in-scale 0.3s forwards ease-out'
+    animation: "fade-in-scale 0.3s forwards ease-out",
   };
 
   const sizeClass = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
   }[size];
 
   const modalContent = (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-[9999] overflow-hidden"
       style={{
-        height: '100dvh', // Usa Dynamic Viewport Height para suportar teclado mobile nativamente
+        height: "100dvh", // Usa Dynamic Viewport Height para suportar teclado mobile nativamente
       }}
       onMouseDown={onClose}
     >
       <div
-        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto ${showScrollbar ? 'custom-scrollbar' : 'hide-scrollbar'} ${sizeClass} text-center relative flex flex-col ${className}`}
+        className={`bg-white border border-gray-100 text-[#1F2937] dark:bg-[#1E2029] dark:border-white/10 dark:text-white rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto ${showScrollbar ? "custom-scrollbar" : "hide-scrollbar"} ${sizeClass} text-center relative flex flex-col ${className}`}
         style={modalStyle}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -69,15 +79,34 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
                 title="Voltar"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             )}
           </div>
-          {title && <h2 className="text-[15px] sm:text-lg font-bold uppercase text-light-text dark:text-dark-text text-center flex-grow px-1 whitespace-nowrap tracking-tighter sm:tracking-normal">{title}</h2>}
+          {title && (
+            <h2 className="text-[15px] sm:text-lg font-bold uppercase text-light-text dark:text-dark-text text-center flex-grow px-1 whitespace-nowrap tracking-tighter sm:tracking-normal">
+              {title}
+            </h2>
+          )}
           <div className="w-8 flex justify-end shrink-0">
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold leading-none -mt-1">&times;</button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold leading-none -mt-1"
+            >
+              &times;
+            </button>
           </div>
         </div>
         <div className="flex-grow flex flex-col min-h-0">

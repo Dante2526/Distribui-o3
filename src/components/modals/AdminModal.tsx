@@ -426,31 +426,20 @@ export function AdminModal({
                         </span>
                       </button>
                     )}
-                  </div>
-
-                  {/* Linha Divisória Fina */}
-                  <div
-                    className="h-px w-full my-2.5"
-                    style={{
-                      backgroundColor: isDarkMode
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(0, 0, 0, 0.08)",
-                    }}
-                  ></div>
-
-                  <div className="w-full">
                     {/* AJUDA / TUTORIAL */}
                     <button
-                      onClick={() => {
-                        onShowHelp();
-                      }}
-                      className="py-3 bg-[#06B6D4] hover:bg-[#0891B2] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer shadow-md w-full uppercase tracking-wider h-[50px]"
+                      onClick={onShowHelp}
+                      className="flex flex-col items-center justify-center p-3 bg-[#06B6D4] hover:bg-[#0891B2] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
                     >
-                      <HelpCircle
-                        className="w-5 h-5 text-white"
-                        strokeWidth={2}
-                      />
-                      AJUDA / TUTORIAL
+                      <div className="scale-[0.85] md:scale-90 origin-bottom">
+                        <HelpCircle
+                          className="w-7 h-7 text-white"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
+                        AJUDA / TUTORIAL
+                      </span>
                     </button>
                   </div>
                 </div>
