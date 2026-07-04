@@ -591,7 +591,7 @@ export const SupportRoleRow = React.memo(
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -8 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
+                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] max-h-[220px] overflow-y-auto overflow-x-hidden hide-scrollbar flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
                   isDarkMode
                     ? "bg-slate-950/40 border border-white/10 text-white"
                     : "bg-white/40 border border-slate-300/50 text-slate-800"
