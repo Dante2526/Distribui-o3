@@ -92,16 +92,8 @@ export async function onRequest(context) {
       { id: "formacao", title: "Formação", count: 0, data: [] },
     ];
 
-    // 7 grupos de apoio conforme configurado no projeto
-    const emptySupportRolesData = [
-      { items: [] },
-      { items: [] },
-      { items: [] },
-      { items: [] },
-      { items: [] },
-      { items: [] },
-      { items: [] },
-    ];
+    // 3 grupos de apoio conforme configurado no projeto (Recepção, Classificação, Formação)
+    const emptySupportRolesData = [{ items: [] }, { items: [] }, { items: [] }];
 
     await updateDoc(docRef, {
       departmentsData: emptyDepartmentsData,
