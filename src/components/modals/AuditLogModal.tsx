@@ -8,6 +8,7 @@ import {
   ChevronDown,
   X,
   ArrowLeft,
+  ClipboardList,
 } from "lucide-react";
 import { MovementLog } from "../../types";
 import { useViewportStyles } from "../../hooks/useViewportStyles";
@@ -143,15 +144,15 @@ export function AuditLogModal({
                   />
                 </button>
               )}
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-#6366F1 to-#4F46E5 flex items-center justify-center shadow-lg shadow-#4F46E5/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-#4F46E5/50 hover:scale-105">
-                <Clock
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#d904ff] to-[#bd00de] flex items-center justify-center shadow-lg shadow-[#bd00de]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#bd00de]/50 hover:scale-105">
+                <ClipboardList
                   className="w-5 h-5 md:w-6 md:h-6 text-white"
                   strokeWidth={2.5}
                 />
               </div>
               <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
                 <h2 className="text-[16px] leading-[1.1] md:leading-normal md:text-2xl font-black uppercase tracking-wide">
-                  HISTÓRICO
+                  LOG DE AUDITORIA
                 </h2>
                 <p
                   className={`text-[11px] md:text-sm mt-1 font-medium leading-tight md:leading-normal ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
