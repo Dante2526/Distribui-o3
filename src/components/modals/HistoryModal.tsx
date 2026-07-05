@@ -822,88 +822,20 @@ const HistoryModal: React.FC<{
       isOpen={isOpen}
       onClose={onClose}
       onBack={onBack}
-      title="Log de Auditoria"
+      title="HISTÓRICO"
       scale={scale}
       size="md"
     >
       <div className="w-full">
-        {/* Seletor de Data e Busca por Tema */}
+        {/* Seletor de Data */}
         <div className="flex flex-col gap-3 mb-6">
-          <div className="group relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon className="w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
-            </div>
-            <input
-              type="text"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="BUSCAR TEMA (EX: EPI)"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearchSubmit();
-              }}
-              className="w-full pl-10 pr-24 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
-              style={{ fontSize: "16px", textTransform: "uppercase" }}
+          <div className="animate-in fade-in slide-in-from-top-1 duration-300">
+            <CustomDatePicker
+              selectedDate={selectedDate}
+              onChange={handleDateChange}
+              maxDate={new Date().toISOString().split("T")[0]}
             />
-            {searchTerm.trim() && debouncedSearch !== searchTerm && (
-              <button
-                onClick={handleSearchSubmit}
-                className="absolute inset-y-1.5 right-1.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center shadow-sm"
-              >
-                BUSCAR
-              </button>
-            )}
           </div>
-
-          {searchTerm && (
-            <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
-              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">
-                Buscar também nas turmas:
-              </span>
-              {["A", "B", "C", "D", "B_CG", "A_CG"].map((t) => {
-                const isSelected = selectedSearchTurmas.includes(t);
-                return (
-                  <button
-                    key={t}
-                    onClick={() => {
-                      let nextTurmas;
-                      if (isSelected) {
-                        if (selectedSearchTurmas.length === 1) return;
-                        nextTurmas = selectedSearchTurmas.filter(
-                          (x) => x !== t,
-                        );
-                      } else {
-                        nextTurmas = [...selectedSearchTurmas, t];
-                      }
-                      setSelectedSearchTurmas(nextTurmas);
-                      setAllRecords([]);
-                      setHasMore(true);
-                      setLastVisible(null);
-                    }}
-                    className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
-                      isSelected
-                        ? "bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-600 dark:text-indigo-300 shadow-sm"
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    TURMA {t === "B_CG" ? "B CG" : t === "A_CG" ? "A CG" : t}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {!searchTerm && (
-            <div className="animate-in fade-in slide-in-from-top-1 duration-300">
-              <CustomDatePicker
-                selectedDate={selectedDate}
-                onChange={handleDateChange}
-                maxDate={new Date().toISOString().split("T")[0]}
-              />
-            </div>
-          )}
         </div>
 
         {/* Lista de Resultados da Busca por Tema */}
