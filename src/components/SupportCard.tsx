@@ -7,7 +7,6 @@ import {
 } from "@dnd-kit/sortable";
 import type { SupportRole, StatusType, ActiveEdit } from "../types";
 import { SupportRoleRow } from "./SupportRoleRow";
-import { SUPPORT_ROLES_OPTIONS } from "../constants/data";
 
 export const SupportCard = React.memo(
   ({
@@ -106,7 +105,8 @@ export const SupportCard = React.memo(
               <Users className="w-5 h-5" />
             </div>
             <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">
-              {SUPPORT_ROLES_OPTIONS[groupIndex] || `Grupo ${groupIndex + 1}`}
+              {["Recepção", "Classificação", "Formação"][groupIndex] ||
+                `Grupo ${groupIndex + 1}`}
             </h4>
           </div>
           <div
