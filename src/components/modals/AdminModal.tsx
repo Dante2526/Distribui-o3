@@ -352,28 +352,29 @@ export function AdminModal({
                       </span>
                     </button>
 
-                    {/* HISTÓRICO DSS */}
+                    {/* HISTÓRICO */}
                     <button
                       onClick={onShowDSSHistory}
-                      className="flex flex-col items-center justify-center p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                      className="flex flex-col items-center justify-center p-3 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
                     >
                       <div className="scale-[0.85] md:scale-90 origin-bottom">
                         <svg
-                          className="w-7 h-7 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
                         </svg>
                       </div>
                       <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
-                        HISTÓRICO DSS
+                        HISTÓRICO
                       </span>
                     </button>
 
