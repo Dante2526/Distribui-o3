@@ -2375,7 +2375,8 @@ function AppContent() {
         scalableContainer.scrollHeight > 0
       ) {
         const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
-        const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
+        const scaleH =
+          viewport.clientHeight / (scalableContainer.scrollHeight - 300);
         minScale = Math.max(scaleW, scaleH);
       }
 
@@ -2426,11 +2427,19 @@ function AppContent() {
     initializeScale();
     const initTimer = setTimeout(initializeScale, 50);
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Quando o conteúdo carregar e o contêiner crescer, reajusta a largura do wrapper
-      setScale(scaleStateRef.current.currentScale);
+    const resizeObserver = new ResizeObserver((entries) => {
+      let viewportChanged = false;
+      for (let entry of entries) {
+        if (entry.target === viewport) viewportChanged = true;
+      }
+      if (viewportChanged) {
+        initializeScale();
+      } else {
+        setScale(scaleStateRef.current.currentScale);
+      }
     });
     resizeObserver.observe(scalableContainer);
+    resizeObserver.observe(viewport);
 
     let initialDistance = 0;
     let initialScaleValue = 1;
@@ -2495,7 +2504,8 @@ function AppContent() {
           scalableContainer.scrollHeight > 0
         ) {
           const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
-          const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
+          const scaleH =
+            viewport.clientHeight / (scalableContainer.scrollHeight - 300);
           computedMinScale = Math.max(scaleW, scaleH);
         }
 
@@ -2548,7 +2558,8 @@ function AppContent() {
           scalableContainer.scrollHeight > 0
         ) {
           const scaleW = viewport.clientWidth / scalableContainer.scrollWidth;
-          const scaleH = viewport.clientHeight / scalableContainer.scrollHeight;
+          const scaleH =
+            viewport.clientHeight / (scalableContainer.scrollHeight - 300);
           minScale = Math.max(scaleW, scaleH);
         }
 
@@ -2608,7 +2619,7 @@ function AppContent() {
         target.closest(
           isAdmin
             ? 'button, input, select, textarea, a, [role="button"], .employee-row-card, .support-role-row, .special-shift-slot'
-            : 'button, input, select, textarea, a, [role="button"]',
+            : 'button, input, select, textarea, a, [role="button"]:not(.employee-row-card):not(.support-role-row):not(.special-shift-slot)',
         )
       )
         return;
