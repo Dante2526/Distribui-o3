@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Clock,
+  ClipboardList,
   User,
   ArrowRight,
   FileText,
@@ -144,19 +144,19 @@ export function AuditLogModal({
                 </button>
               )}
               <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#4F46E5]/50 hover:scale-105">
-                <Clock
+                <ClipboardList
                   className="w-5 h-5 md:w-6 md:h-6 text-white"
                   strokeWidth={2.5}
                 />
               </div>
               <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
                 <h2 className="text-[16px] leading-[1.1] md:leading-normal md:text-2xl font-black uppercase tracking-wide">
-                  Hist+�rico
+                  LOG DE AUDITORIA
                 </h2>
                 <p
                   className={`text-[11px] md:text-sm mt-1 font-medium leading-tight md:leading-normal ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
                 >
-                  Registro agrupado por funcion+�rio
+                  Registro agrupado por funcionário
                 </p>
               </div>
               <button
@@ -181,11 +181,11 @@ export function AuditLogModal({
                       <FileText className="w-10 h-10 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold">Nenhuma movimenta+�+�o</h3>
+                  <h3 className="text-lg font-bold">Nenhuma movimentação</h3>
                   <p
                     className={`text-sm mt-2 max-w-[250px] mx-auto ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
                   >
-                    As altera+�+�es feitas nos cart+�es aparecer+�o aqui.
+                    As alterações feitas nos cartões aparecerão aqui.
                   </p>
                 </div>
               ) : (
@@ -238,13 +238,13 @@ export function AuditLogModal({
                                 >
                                   {group.count}{" "}
                                   {group.count === 1
-                                    ? "Movimenta+�+�o"
-                                    : "Movimenta+�+�es"}
+                                    ? "Movimentação"
+                                    : "Movimentações"}
                                 </span>
                                 <span
                                   className={`text-[11px] md:text-xs whitespace-nowrap ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
                                 >
-                                  +�ltima +�s {lastDataFormatada}
+                                  Última às {lastDataFormatada}
                                 </span>
                               </div>
                             </div>
