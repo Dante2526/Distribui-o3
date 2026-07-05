@@ -445,7 +445,7 @@ function AppContent() {
 
   // Efeito para carregar o histórico de logs apenas quando o modal for aberto
   useEffect(() => {
-    if (isDemoMode || !selectedTurma || !isHistoryModalOpen || !isTabVisible)
+    if (isDemoMode || !selectedTurma || !isAuditLogModalOpen || !isTabVisible)
       return;
 
     const unsubscribeLogs = firestoreService.subscribeToHistory(
@@ -460,7 +460,7 @@ function AppContent() {
     return () => {
       unsubscribeLogs();
     };
-  }, [isDemoMode, selectedTurma, isHistoryModalOpen, isTabVisible]);
+  }, [isDemoMode, selectedTurma, isAuditLogModalOpen, isTabVisible]);
 
   // Efeito de Sincronização Contínua e Inteligente com o DSS (Dupla-Mão)
   useEffect(() => {

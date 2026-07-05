@@ -404,8 +404,15 @@ export function AdminModal({
                     </button>
 
                     <button
-                      onClick={onToggleDemoMode}
-                      className="flex flex-col items-center justify-center p-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                      onClick={
+                        import.meta.env.DEV ? onToggleDemoMode : undefined
+                      }
+                      disabled={!import.meta.env.DEV}
+                      className={`flex flex-col items-center justify-center p-3 text-white rounded-xl shadow-md h-[86px] md:h-[82px] transition-all duration-300 ${
+                        import.meta.env.DEV
+                          ? "bg-[#7C3AED] hover:bg-[#6D28D9] active:scale-[0.98] cursor-pointer"
+                          : "bg-[#7C3AED] opacity-50 cursor-not-allowed grayscale"
+                      }`}
                     >
                       <div className="scale-[0.85] md:scale-90 origin-bottom">
                         <MousePointer
