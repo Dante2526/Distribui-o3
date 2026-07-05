@@ -2723,7 +2723,7 @@ function AppContent() {
       }
       resizeObserver.disconnect();
     };
-  }, [initializeScale, setScale, activePage, isAdmin]);
+  }, [initializeScale, setScale, activePage, isAdmin, selectedTurma]);
 
   const handleUpdateSupportRole = useCallback(
     (groupIndex: number, empIndex: number, newRole: string) => {
