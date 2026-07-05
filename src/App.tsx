@@ -42,6 +42,7 @@ import {
   initialSupportData,
   initialAnnotationsLeft,
   initialAnnotationsRight,
+  SUPPORT_ROLES_OPTIONS,
 } from "./constants/data";
 import { firestoreService } from "./services/firestoreService";
 import {
@@ -1778,13 +1779,12 @@ function AppContent() {
         }
       }
       if (!initialTitle && clonedSupportRef.current) {
-        const supportTitles = ["Recepção", "Classificação", "Formação"];
         for (let i = 0; i < clonedSupportRef.current.length; i++) {
           const emp = clonedSupportRef.current[i].find(
             (e) => e.id === activeIdVal,
           );
           if (emp) {
-            initialTitle = `Apoio - ${supportTitles[i] || `Grupo ${i + 1}`}`;
+            initialTitle = `Apoio - ${SUPPORT_ROLES_OPTIONS[i] || `Grupo ${i + 1}`}`;
             employeeName = emp.name;
             employeeMachine = emp.matricula || "";
             break;
@@ -1811,12 +1811,11 @@ function AppContent() {
         }
       }
       if (!finalTitle) {
-        const supportTitles = ["Recepção", "Classificação", "Formação"];
         for (let i = 0; i < supportRolesDataRef.current.length; i++) {
           if (
             supportRolesDataRef.current[i].some((e) => e.id === activeIdVal)
           ) {
-            finalTitle = `Apoio - ${supportTitles[i] || `Grupo ${i + 1}`}`;
+            finalTitle = `Apoio - ${SUPPORT_ROLES_OPTIONS[i] || `Grupo ${i + 1}`}`;
             break;
           }
         }
@@ -3084,8 +3083,7 @@ function AppContent() {
 
       if (!empName || !empName.trim()) return;
 
-      const supportTitles = ["Recepção", "Classificação", "Formação"];
-      const groupName = `Apoio - ${supportTitles[groupIndex] || `Grupo ${groupIndex + 1}`}`;
+      const groupName = `Apoio - ${SUPPORT_ROLES_OPTIONS[groupIndex] || `Grupo ${groupIndex + 1}`}`;
       logMovement(empName, groupName, absenceType, undefined, empMatricula);
 
       setSupportRolesData((prev) => {
@@ -3190,8 +3188,7 @@ function AppContent() {
         const targetGroupIdx = (item as any).originalSupportGroupIndex;
         const roleStr = (item as any).originalSupportRole || "VIRADOR";
 
-        const supportTitles = ["Recepção", "Classificação", "Formação"];
-        const groupName = `Apoio - ${supportTitles[targetGroupIdx] || `Grupo ${targetGroupIdx + 1}`}`;
+        const groupName = `Apoio - ${SUPPORT_ROLES_OPTIONS[targetGroupIdx] || `Grupo ${targetGroupIdx + 1}`}`;
         logMovement(
           item.name,
           item.status,
