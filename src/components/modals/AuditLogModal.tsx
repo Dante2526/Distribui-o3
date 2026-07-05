@@ -219,8 +219,8 @@ export function AuditLogModal({
                             <div
                               className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${
                                 isDarkMode
-                                  ? "bg-#6366F1/20 text-#818CF8"
-                                  : "bg-#4F46E5/10 text-#4F46E5"
+                                  ? "bg-[#d904ff]/20 text-[#e879f9]"
+                                  : "bg-[#d904ff]/10 text-[#d904ff]"
                               }`}
                             >
                               <User className="w-5 h-5" />
@@ -304,7 +304,7 @@ export function AuditLogModal({
                                       <div className="flex items-center justify-between w-full md:w-auto md:min-w-[90px]">
                                         <div className="flex items-center gap-2 shrink-0">
                                           <div
-                                            className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-#6366F1" : "bg-#4F46E5"}`}
+                                            className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-[#d904ff]" : "bg-[#d904ff]"}`}
                                           ></div>
                                           <span className="font-bold text-sm">
                                             {horaFormatada}
@@ -365,8 +365,8 @@ export function AuditLogModal({
                                         <span
                                           className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider h-fit ${
                                             isDarkMode
-                                              ? "bg-#6366F1/20 text-#818CF8"
-                                              : "bg-#4F46E5/10 text-#4F46E5"
+                                              ? "bg-[#d904ff]/20 text-[#e879f9]"
+                                              : "bg-[#d904ff]/10 text-[#d904ff]"
                                           }`}
                                         >
                                           {log.to}
