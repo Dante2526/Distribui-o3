@@ -5,6 +5,7 @@ import { ConfirmBiometricModal } from "./ConfirmBiometricModal";
 import { AddUserModal } from "./AddUserModal";
 import { ImportEmployeeModal } from "./ImportEmployeeModal";
 import { HistoryModal } from "./HistoryModal";
+import { AuditLogModal } from "./AuditLogModal";
 import { ReportModal } from "./ReportModal";
 
 export function ModalsContainer(props: any) {
@@ -41,6 +42,13 @@ export function ModalsContainer(props: any) {
 
         isDarkMode={props.isDarkMode}
         onBack={props.onImportBack}
+      />
+      <AuditLogModal
+        isOpen={props.isAuditLogModalOpen}
+        onClose={props.closeAuditLogModal}
+        logs={props.movementLogs}
+        isDarkMode={props.isDarkMode}
+        onBack={props.onAuditLogBack}
       />
       <HistoryModal
         isOpen={props.isHistoryModalOpen}

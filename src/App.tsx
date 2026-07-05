@@ -184,6 +184,8 @@ function AppContent() {
   const [isAdminPasswordModalOpen, setIsAdminPasswordModalOpen] =
     useState(false);
   const [showLoginToast, setShowLoginToast] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isAuditLogModalOpen, setIsAuditLogModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isConfirmBiometricModalOpen, setIsConfirmBiometricModalOpen] =
     useState(false);
@@ -219,8 +221,6 @@ function AppContent() {
   }, [activePage]);
 
   // Histórico de Movimentações
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-
   // Faz o login anônimo ao montar o app (se as vars existirem)
   useEffect(() => {
     signInToFirebase();
@@ -1002,6 +1002,11 @@ function AppContent() {
 
   const handleShowHistory = useCallback(() => {
     setIsHistoryModalOpen(true);
+    setIsAdminModalOpen(false); // Fecha o modal admin se estiver aberto
+  }, []);
+
+  const handleShowAuditLog = useCallback(() => {
+    setIsAuditLogModalOpen(true);
     setIsAdminModalOpen(false); // Fecha o modal admin se estiver aberto
   }, []);
 
@@ -3880,7 +3885,8 @@ function AppContent() {
           onToggle6H: handleToggle6H,
           onToggleAutomation: handleToggleAutomation,
           isAutomationPaused,
-          onShowHistory: handleShowHistory,
+          onShowAuditLog: handleShowAuditLog,
+          onShowDSSHistory: handleShowHistory,
           onShowHelp: handleShowHelp,
           onShowTutorial: handleShowTutorial,
           isDemoMode,
@@ -3916,7 +3922,13 @@ function AppContent() {
 
         isHistoryModalOpen={isHistoryModalOpen}
         closeHistoryModal={() => setIsHistoryModalOpen(false)}
-        logs={movementLogs}
+        isAuditLogModalOpen={isAuditLogModalOpen}
+        closeAuditLogModal={() => setIsAuditLogModalOpen(false)}
+        movementLogs={movementLogs}
+        onAuditLogBack={() => {
+          setIsAuditLogModalOpen(false);
+          setIsAdminModalOpen(true);
+        }}
         onHistoryBack={() => {
           setIsHistoryModalOpen(false);
           setIsAdminModalOpen(true);
