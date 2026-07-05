@@ -313,19 +313,6 @@ export function AdminModal({
                       </span>
                     </button>
 
-                    {/* HISTÓRICO */}
-                    <button
-                      onClick={() => {}}
-                      className="flex flex-col items-center justify-center p-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
-                    >
-                      <div className="scale-[0.85] md:scale-90 origin-bottom">
-                        <Clock className="w-7 h-7 text-white" strokeWidth={2} />
-                      </div>
-                      <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
-                        HISTÓRICO
-                      </span>
-                    </button>
-
                     {/* LOG DE AUDITORIA */}
                     <button
                       onClick={onShowHistory}

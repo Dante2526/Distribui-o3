@@ -822,7 +822,7 @@ const HistoryModal: React.FC<{
       isOpen={isOpen}
       onClose={onClose}
       onBack={onBack}
-      title="Histórico DSS"
+      title="Log de Auditoria"
       scale={scale}
       size="md"
     >
