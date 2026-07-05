@@ -2606,7 +2606,9 @@ function AppContent() {
 
       if (
         target.closest(
-          'button, input, select, textarea, a, [role="button"], .employee-row-card',
+          isAdmin
+            ? 'button, input, select, textarea, a, [role="button"], .employee-row-card, .support-role-row, .special-shift-slot'
+            : 'button, input, select, textarea, a, [role="button"]',
         )
       )
         return;
@@ -2710,7 +2712,7 @@ function AppContent() {
       }
       resizeObserver.disconnect();
     };
-  }, [initializeScale, setScale, activePage]);
+  }, [initializeScale, setScale, activePage, isAdmin]);
 
   const handleUpdateSupportRole = useCallback(
     (groupIndex: number, empIndex: number, newRole: string) => {
