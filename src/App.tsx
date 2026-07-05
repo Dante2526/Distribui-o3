@@ -2431,16 +2431,8 @@ function AppContent() {
     initializeScale();
     const initTimer = setTimeout(initializeScale, 50);
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      let viewportChanged = false;
-      for (let entry of entries) {
-        if (entry.target === viewport) viewportChanged = true;
-      }
-      if (viewportChanged) {
-        initializeScale();
-      } else {
-        setScale(scaleStateRef.current.currentScale);
-      }
+    const resizeObserver = new ResizeObserver(() => {
+      setScale(scaleStateRef.current.currentScale);
     });
     resizeObserver.observe(scalableContainer);
     resizeObserver.observe(viewport);
