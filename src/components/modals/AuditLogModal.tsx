@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  ClipboardList,
+  Clock,
   User,
   ArrowRight,
   FileText,
@@ -143,15 +143,15 @@ export function AuditLogModal({
                   />
                 </button>
               )}
-              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-lg shadow-[#4F46E5]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-[#4F46E5]/50 hover:scale-105">
-                <ClipboardList
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-#6366F1 to-#4F46E5 flex items-center justify-center shadow-lg shadow-#4F46E5/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-#4F46E5/50 hover:scale-105">
+                <Clock
                   className="w-5 h-5 md:w-6 md:h-6 text-white"
                   strokeWidth={2.5}
                 />
               </div>
               <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
                 <h2 className="text-[16px] leading-[1.1] md:leading-normal md:text-2xl font-black uppercase tracking-wide">
-                  LOG DE AUDITORIA
+                  HISTÓRICO
                 </h2>
                 <p
                   className={`text-[11px] md:text-sm mt-1 font-medium leading-tight md:leading-normal ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
@@ -176,8 +176,8 @@ export function AuditLogModal({
               {groupedLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="relative group flex justify-center mb-6 mt-4">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-[#6366F1] to-[#4F46E5] rounded-full blur opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#6366F1] to-[#4F46E5] flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-#6366F1 to-#4F46E5 rounded-full blur opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-#6366F1 to-#4F46E5 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
                       <FileText className="w-10 h-10 text-white" />
                     </div>
                   </div>
@@ -218,8 +218,8 @@ export function AuditLogModal({
                             <div
                               className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${
                                 isDarkMode
-                                  ? "bg-[#6366F1]/20 text-[#818CF8]"
-                                  : "bg-[#4F46E5]/10 text-[#4F46E5]"
+                                  ? "bg-#6366F1/20 text-#818CF8"
+                                  : "bg-#4F46E5/10 text-#4F46E5"
                               }`}
                             >
                               <User className="w-5 h-5" />
@@ -303,7 +303,7 @@ export function AuditLogModal({
                                       <div className="flex items-center justify-between w-full md:w-auto md:min-w-[90px]">
                                         <div className="flex items-center gap-2 shrink-0">
                                           <div
-                                            className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-[#6366F1]" : "bg-[#4F46E5]"}`}
+                                            className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-#6366F1" : "bg-#4F46E5"}`}
                                           ></div>
                                           <span className="font-bold text-sm">
                                             {horaFormatada}
@@ -364,8 +364,8 @@ export function AuditLogModal({
                                         <span
                                           className={`px-2.5 py-1 rounded-md font-medium text-[11px] uppercase tracking-wider h-fit ${
                                             isDarkMode
-                                              ? "bg-[#6366F1]/20 text-[#818CF8]"
-                                              : "bg-[#4F46E5]/10 text-[#4F46E5]"
+                                              ? "bg-#6366F1/20 text-#818CF8"
+                                              : "bg-#4F46E5/10 text-#4F46E5"
                                           }`}
                                         >
                                           {log.to}
