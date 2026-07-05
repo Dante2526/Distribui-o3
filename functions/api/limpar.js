@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, updateDoc } from "firebase/firestore/lite";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const ANCHOR_DATES = {
   D: "2026-01-26",
@@ -75,9 +76,13 @@ export async function onRequest(context) {
   };
 
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getFirestore(app);
 
   try {
+    // Autenticação anônima obrigatória pelas regras de segurança
+    await signInAnonymously(auth);
+
     // Apenas limpar os campos de Linha e Loco
     const docRef = doc(db, `turma ${team.toLowerCase()}`, "estado_painel");
 
