@@ -325,7 +325,11 @@ function AppContent() {
           }
           if (state.annotationsLeft && state.annotationsLeft.length > 0) {
             setAnnotationsLeft(
-              deduplicateAnnotationItems(state.annotationsLeft),
+              deduplicateAnnotationItems(state.annotationsLeft).map((g) =>
+                g.title === "FÉRIAS/TE/TREIN./REVEZA"
+                  ? { ...g, title: "TE/TREIN./REVEZA" }
+                  : g,
+              ),
             );
           }
           if (state.annotationsRight && state.annotationsRight.length > 0) {
