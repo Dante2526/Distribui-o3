@@ -3694,7 +3694,6 @@ function AppContent() {
                     )}
 
                     <DndContext
-                      key={isAdmin ? "admin" : "guest"}
                       sensors={sensors}
                       collisionDetection={pointerWithin}
                       modifiers={[scaleCompensationModifier]}
