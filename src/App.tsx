@@ -766,9 +766,6 @@ function AppContent() {
     setSpecialShiftData((prev) =>
       prev.map((emp) => ({ ...emp, line: "", machine: "" })),
     );
-    setSupportRolesData((prev) =>
-      prev.map((group) => group.map((emp) => ({ ...emp, role: "" }))),
-    );
     showToastMessage("Distribuição limpa com sucesso!", "success");
     setIsAdminModalOpen(false);
   }, [showToastMessage]);

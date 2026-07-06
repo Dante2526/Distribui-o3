@@ -1,7 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, updateDoc } from "firebase/firestore/lite";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore/lite";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
+// Datas-âncora para cálculo de escala 2x2.
+// TODO: Adicionar turmas A, B e C quando suas datas-âncora forem definidas.
+// Turmas sem âncora nunca terão dias de folga pulados pelo cron.
 const ANCHOR_DATES = {
   D: "2026-01-26",
 };
@@ -75,30 +78,73 @@ export async function onRequest(context) {
     projectId: env.VITE_projectId_distribuicao,
   };
 
-  const app = initializeApp(firebaseConfig);
+  // C1 fix: Reutiliza o Firebase App se já foi inicializado neste isolate
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
   try {
     // Autenticação anônima obrigatória pelas regras de segurança
     await signInAnonymously(auth);
+    console.log(
+      `[limpar] Turma ${team} — autenticação OK, iniciando limpeza...`,
+    );
 
-    // Apenas limpar os campos de Linha e Loco
+    // Apenas limpar os campos de Linha e Loco dos maquinistas
     const docRef = doc(db, `turma ${team.toLowerCase()}`, "estado_painel");
+    const docSnap = await getDoc(docRef);
 
-    const emptyDepartmentsData = [
-      { id: "recepcao", title: "Recepção", count: 0, data: [] },
-      { id: "classificacao", title: "Classificação", count: 0, data: [] },
-      { id: "formacao", title: "Formação", count: 0, data: [] },
-    ];
+    // C2 fix: Retorna status diferenciado se o documento não existir
+    if (!docSnap.exists()) {
+      console.log(
+        `[limpar] Turma ${team} — documento não encontrado no Firestore.`,
+      );
+      return new Response(
+        JSON.stringify({
+          status: "no_data",
+          message: `Nenhum dado encontrado para a Turma ${team}. Nada para limpar.`,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
 
-    // 3 grupos de apoio conforme configurado no projeto (Recepção, Classificação, Formação)
-    const emptySupportRolesData = [{ items: [] }, { items: [] }, { items: [] }];
+    const state = docSnap.data();
 
-    await updateDoc(docRef, {
-      departmentsData: emptyDepartmentsData,
-      supportRolesData: emptySupportRolesData,
-    });
+    // Limpa linha e loco dos departamentos (maquinistas)
+    let newDepartmentsData = state.departmentsData;
+    if (Array.isArray(newDepartmentsData)) {
+      newDepartmentsData = newDepartmentsData.map((dept) => ({
+        ...dept,
+        data: (dept.data || []).map((emp) => ({
+          ...emp,
+          line: "",
+          machine: "",
+        })),
+      }));
+    }
+
+    // Limpa linha e loco do turno especial (6H)
+    let newSpecialShiftData = state.specialShiftData;
+    if (Array.isArray(newSpecialShiftData)) {
+      newSpecialShiftData = newSpecialShiftData.map((emp) => ({
+        ...emp,
+        line: "",
+        machine: "",
+      }));
+    }
+
+    // I2 fix: checagem robusta com Array.isArray antes de incluir nos updates
+    const updates = { updatedAt: new Date().toISOString() };
+    if (Array.isArray(newDepartmentsData))
+      updates.departmentsData = newDepartmentsData;
+    if (Array.isArray(newSpecialShiftData))
+      updates.specialShiftData = newSpecialShiftData;
+
+    await updateDoc(docRef, updates);
+    console.log(`[limpar] Turma ${team} — limpeza concluída com sucesso.`);
 
     return new Response(
       JSON.stringify({
