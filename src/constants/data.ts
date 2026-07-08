@@ -34,24 +34,32 @@ export const getDeptTheme = (deptId: string) => {
       return {
         color: "text-[#0A84FF]",
         bg: "bg-[#0A84FF]/15",
+        solidBg: "bg-[#0A84FF]",
+        badgeBg: "bg-[#0A84FF]/50",
         iconName: "Inbox",
       };
     case "classificacao":
       return {
         color: "text-[#FF9F0A]",
         bg: "bg-[#FF9F0A]/15",
+        solidBg: "bg-[#FF9F0A]",
+        badgeBg: "bg-[#FF9F0A]/50",
         iconName: "Layers",
       };
     case "formacao":
       return {
         color: "text-[#30D158]",
         bg: "bg-[#30D158]/15",
+        solidBg: "bg-[#30D158]",
+        badgeBg: "bg-[#30D158]/50",
         iconName: "UserCog",
       };
     default:
       return {
         color: "text-[#5E5CE6]",
         bg: "bg-[#5E5CE6]/15",
+        solidBg: "bg-[#5E5CE6]",
+        badgeBg: "bg-[#5E5CE6]/50",
         iconName: "LayoutGrid",
       };
   }

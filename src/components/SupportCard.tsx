@@ -69,18 +69,24 @@ export const SupportCard = React.memo(
         bg: "bg-[#0A84FF]/10",
         border: "border-[#0A84FF]/20",
         text: "text-[#0A84FF]",
+        solidBg: "bg-[#0A84FF]",
+        badgeBg: "bg-[#0A84FF]/50",
         bar: "bg-[#0A84FF]",
       },
       {
         bg: "bg-[#FF9F0A]/10",
         border: "border-[#FF9F0A]/20",
         text: "text-[#FF9F0A]",
+        solidBg: "bg-[#FF9F0A]",
+        badgeBg: "bg-[#FF9F0A]/50",
         bar: "bg-[#FF9F0A]",
       },
       {
         bg: "bg-[#30D158]/10",
         border: "border-[#30D158]/20",
         text: "text-[#30D158]",
+        solidBg: "bg-[#30D158]",
+        badgeBg: "bg-[#30D158]/50",
         bar: "bg-[#30D158]",
       },
     ];
@@ -110,9 +116,13 @@ export const SupportCard = React.memo(
             </h4>
           </div>
           <div
-            className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.text} ${theme.bg}`}
+            className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.badgeBg}`}
+            style={{ color: "#ffffff" }}
           >
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+            <CheckCircle2
+              className="w-3.5 h-3.5 mr-1.5"
+              style={{ color: "#ffffff" }}
+            />
             {roles.length} Colab.
           </div>
         </div>

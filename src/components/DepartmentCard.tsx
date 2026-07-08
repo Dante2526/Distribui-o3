@@ -99,9 +99,13 @@ export const DepartmentCard = React.memo(
             </h3>
           </div>
           <div
-            className={`flex items-center font-semibold text-[14px] px-4 py-2 rounded-full ${theme.color} ${theme.bg}`}
+            className={`flex items-center font-semibold text-[14px] px-4 py-2 rounded-full ${theme.badgeBg}`}
+            style={{ color: "#ffffff" }}
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle2
+              className="w-4 h-4 mr-2"
+              style={{ color: "#ffffff" }}
+            />
             {department.count} Colab.
           </div>
         </div>
