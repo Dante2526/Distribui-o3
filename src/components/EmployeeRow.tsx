@@ -124,7 +124,7 @@ export const EmployeeRow = React.memo(
         : BORDER_LEFT_MAP[deptId] || DEFAULT_BORDER_LEFT;
     };
 
-    // Helper para hover do bot├úo de troca conforme o setor
+    // Helper para hover do botão de troca conforme o setor
     const getSwapHoverClass = (deptId: string) => {
       return SWAP_HOVER_MAP[deptId] || DEFAULT_SWAP_HOVER;
     };
@@ -204,8 +204,8 @@ export const EmployeeRow = React.memo(
       ) {
         if (emp.id) onStartEditRef.current?.(emp.id);
       } else {
-        // Quando todos os menus est├úo fechados, e se n├úo houver um input ativo dentro do cart├úo (o blur do input lidaria com a parte dele),
-        // n├│s notificamos para parar a edi├º├úo originada pelos menus.
+        // Quando todos os menus estão fechados, e se não houver um input ativo dentro do cartão (o blur do input lidaria com a parte dele),
+        // nós notificamos para parar a edição originada pelos menus.
         if (emp.id) onStopEditRef.current?.(emp.id);
       }
     }, [
@@ -223,8 +223,8 @@ export const EmployeeRow = React.memo(
         {...attributes}
         {...(isAdmin ? listeners : {})}
         onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
-          // For├ºa o blur do input ativo ao clicar no cart├úo (ex: arrastar)
-          // N├âO chama onStopEdit aqui pois o onBlur do input j├í cuida disso
+          // Força o blur do input ativo ao clicar no cartão (ex: arrastar)
+          // NÃO chama onStopEdit aqui pois o onBlur do input já cuida disso
           if (
             e.target instanceof HTMLElement &&
             e.target.tagName !== "INPUT" &&
@@ -275,7 +275,7 @@ export const EmployeeRow = React.memo(
 
         {/* Main Row Content */}
         <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
-          {/* Top Row: Avatar, Nome e Bot├úo de Expandir */}
+          {/* Top Row: Avatar, Nome e Botão de Expandir */}
           <div className="flex items-center justify-between w-full bg-[#1E2029] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
             <div className="flex items-center min-w-0">
               {/* Avatar Container with Pop-up Menu */}
@@ -362,7 +362,7 @@ export const EmployeeRow = React.memo(
                     setAbsentRect(null);
                   }
                 }}
-                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
+                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#E08A36] hover:bg-[#C9792B] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
               >
                 AUSENTE
               </button>
