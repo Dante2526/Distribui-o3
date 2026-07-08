@@ -200,7 +200,7 @@ export const SpecialShiftSlot = React.memo(
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
-                className="input-linha-loco h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase border border-transparent shadow-sm transition-colors cursor-pointer"
+                className="input-linha-loco h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-semibold w-[120px] text-center uppercase border border-transparent shadow-sm transition-colors cursor-pointer"
               >
                 <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
                 <ChevronDown className="w-3 h-3 shrink-0" />
@@ -219,7 +219,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
-                  className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
+                  className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
               </div>
               <div className="flex flex-col items-center">
@@ -233,7 +233,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
-                  className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
+                  className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
               </div>
             </>
