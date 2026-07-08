@@ -408,7 +408,7 @@ export const EmployeeRow = React.memo(
             className="flex items-center justify-center gap-3 w-full mt-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col items-center relative flex-1">
+            <div className="flex flex-col items-center relative">
               <input
                 type="text"
                 value={localLine}
@@ -442,13 +442,13 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-all"
               />
-              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[10px] text-white uppercase font-extrabold tracking-wider mt-1">
                 Linha
               </span>
             </div>
-            <div className="flex flex-col items-center flex-1">
+            <div className="flex flex-col items-center">
               <input
                 type="text"
                 value={localMachine}
@@ -473,9 +473,9 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-all"
               />
-              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[10px] text-white uppercase font-extrabold tracking-wider mt-1">
                 Loco
               </span>
             </div>

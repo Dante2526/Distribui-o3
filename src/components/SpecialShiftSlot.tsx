@@ -190,9 +190,9 @@ export const SpecialShiftSlot = React.memo(
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mt-auto w-full">
+        <div className="flex items-center justify-center gap-2 mt-auto">
           {emp.tagType === "OOF" ? (
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-center">
               <button
                 ref={oofButtonRef}
                 onClick={(e) => {
@@ -200,7 +200,7 @@ export const SpecialShiftSlot = React.memo(
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
-                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-full text-center uppercase bg-white/5 border border-white/10 text-white shadow-sm transition-colors hover:bg-white/10 focus:bg-white/10 cursor-pointer"
+                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-white/5 border border-white/10 text-white shadow-sm transition-colors hover:bg-white/10 focus:bg-white/10 cursor-pointer"
               >
                 <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
                 <ChevronDown className="w-3 h-3 shrink-0" />
@@ -208,7 +208,7 @@ export const SpecialShiftSlot = React.memo(
             </div>
           ) : (
             <>
-              <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-col items-center">
                 <input
                   type="text"
                   value={emp.line}
@@ -219,10 +219,10 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-colors"
                 />
               </div>
-              <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-col items-center">
                 <input
                   type="text"
                   value={emp.machine}
@@ -233,7 +233,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-colors"
                 />
               </div>
             </>
