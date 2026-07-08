@@ -468,14 +468,14 @@ a {
 /* === INPUTS LINHA / LOCO - forçar cores nos dois modos === */
 .light-mode input.input-linha-loco,
 .light-mode button.input-linha-loco {
-  background-color: #d1d5db !important; /* gray-300 */
-  color: #1e293b !important; /* slate-800 */
+  background-color: #475569 !important; /* slate-600 for contrast */
+  color: #ffffff !important; /* white text as requested */
 }
 .light-mode input.input-linha-loco:hover,
 .light-mode input.input-linha-loco:focus,
 .light-mode button.input-linha-loco:hover {
-  background-color: #9ca3af !important; /* gray-400 */
-  color: #1e293b !important; /* slate-800 */
+  background-color: #334155 !important; /* slate-700 for hover */
+  color: #ffffff !important;
 }
 
 body:not(.light-mode) input.input-linha-loco,
