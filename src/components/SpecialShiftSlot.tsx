@@ -200,7 +200,7 @@ export const SpecialShiftSlot = React.memo(
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
-                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-gray-300 dark:bg-white/5 text-black dark:text-white border border-transparent dark:border-white/10 shadow-sm transition-colors hover:bg-gray-400 dark:hover:bg-white/10 cursor-pointer"
+                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase !bg-gray-300 dark:!bg-white/5 !text-black dark:!text-white border border-transparent dark:border-white/10 shadow-sm transition-colors hover:!bg-gray-400 dark:hover:!bg-white/10 cursor-pointer"
               >
                 <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
                 <ChevronDown className="w-3 h-3 shrink-0" />
@@ -219,7 +219,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none bg-gray-300 dark:bg-white/5 text-black dark:text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:bg-gray-400 dark:hover:bg-white/10 focus:bg-gray-400 dark:focus:bg-white/10 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none !bg-gray-300 dark:!bg-white/5 !text-black dark:!text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:!bg-gray-400 dark:hover:!bg-white/10 focus:!bg-gray-400 dark:focus:!bg-white/10 transition-colors"
                 />
               </div>
               <div className="flex flex-col items-center">
@@ -233,7 +233,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none bg-gray-300 dark:bg-white/5 text-black dark:text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:bg-gray-400 dark:hover:bg-white/10 focus:bg-gray-400 dark:focus:bg-white/10 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-bold w-[95px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none !bg-gray-300 dark:!bg-white/5 !text-black dark:!text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:!bg-gray-400 dark:hover:!bg-white/10 focus:!bg-gray-400 dark:focus:!bg-white/10 transition-colors"
                 />
               </div>
             </>
