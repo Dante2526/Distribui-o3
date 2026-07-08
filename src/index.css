@@ -465,6 +465,19 @@ a {
   color: var(--text-main) !important;
 }
 
+/* === INPUTS LINHA / LOCO - forçar preto no modo claro === */
+.light-mode input.input-linha-loco,
+.light-mode button.input-linha-loco {
+  background-color: #d1d5db !important; /* gray-300 */
+  color: #000000 !important;
+}
+.light-mode input.input-linha-loco:hover,
+.light-mode input.input-linha-loco:focus,
+.light-mode button.input-linha-loco:hover {
+  background-color: #9ca3af !important; /* gray-400 */
+  color: #000000 !important;
+}
+
 .light-mode * {
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
