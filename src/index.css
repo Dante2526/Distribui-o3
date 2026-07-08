@@ -469,13 +469,13 @@ a {
 .light-mode input.input-linha-loco,
 .light-mode button.input-linha-loco {
   background-color: #d1d5db !important; /* gray-300 */
-  color: #000000 !important;
+  color: #1e293b !important; /* slate-800 */
 }
 .light-mode input.input-linha-loco:hover,
 .light-mode input.input-linha-loco:focus,
 .light-mode button.input-linha-loco:hover {
   background-color: #9ca3af !important; /* gray-400 */
-  color: #000000 !important;
+  color: #1e293b !important; /* slate-800 */
 }
 
 body:not(.light-mode) input.input-linha-loco,

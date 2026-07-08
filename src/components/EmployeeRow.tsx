@@ -444,7 +444,7 @@ export const EmployeeRow = React.memo(
                 readOnly={!isAdmin}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[11px] text-black uppercase font-bold tracking-wider mt-1">
+              <span className="text-[11px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
               </span>
             </div>
@@ -475,7 +475,7 @@ export const EmployeeRow = React.memo(
                 readOnly={!isAdmin}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[11px] text-black uppercase font-bold tracking-wider mt-1">
+              <span className="text-[11px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco
               </span>
             </div>
