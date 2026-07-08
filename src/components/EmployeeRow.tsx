@@ -257,7 +257,7 @@ export const EmployeeRow = React.memo(
             ? "opacity-30 border-dashed border-2 border-white/10 bg-white/[0.02] shadow-none pointer-events-none"
             : showAbsentMenu
               ? "opacity-40 z-[100] shadow-none"
-              : "shadow-sm hover:shadow-md hover:-translate-y-1 cursor-grab"
+              : "shadow-md hover:shadow-xl hover:-translate-y-1 cursor-grab"
         }`}
       >
         {/* Active Edit Badge */}
@@ -276,7 +276,7 @@ export const EmployeeRow = React.memo(
         {/* Main Row Content */}
         <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
           {/* Top Row: Avatar, Nome e Botão de Expandir */}
-          <div className="flex items-center justify-between w-full bg-[#1E2029] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+          <div className="flex items-center justify-between w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
             <div className="flex items-center min-w-0">
               {/* Avatar Container with Pop-up Menu */}
               <div className="relative">

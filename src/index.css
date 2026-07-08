@@ -303,7 +303,8 @@ a {
 }
 
 .light-mode .bg-\[\#111217\] .bg-header-dept.bg-header-dept {
-  background-color: #0c7df2 !important;
+  background-image: linear-gradient(to right, #0c7df2, #3b9dff) !important;
+  background-color: transparent !important;
   border-color: #006ee6 !important;
   box-shadow: none !important;
 }
@@ -471,14 +472,15 @@ a {
 /* === INPUTS LINHA / LOCO - forçar cores nos dois modos === */
 .light-mode input.input-linha-loco,
 .light-mode button.input-linha-loco {
-  background-color: #475569 !important; /* slate-600 for contrast */
-  color: #ffffff !important; /* white text as requested */
+  background-color: #f1f5f9 !important; /* soft slate-100 */
+  color: #1e293b !important; /* dark text for contrast */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .light-mode input.input-linha-loco:hover,
 .light-mode input.input-linha-loco:focus,
 .light-mode button.input-linha-loco:hover {
-  background-color: #334155 !important; /* slate-700 for hover */
-  color: #ffffff !important;
+  background-color: #e2e8f0 !important; /* slate-200 for hover */
+  color: #0f172a !important;
 }
 
 body:not(.light-mode) input.input-linha-loco,

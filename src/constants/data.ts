@@ -35,6 +35,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#0A84FF]",
         bg: "bg-[#0A84FF]/15",
         solidBg: "bg-[#0A84FF]",
+        gradientBg: "bg-gradient-to-r from-[#0A84FF] to-[#3B9DFF]",
         badgeBg: "bg-[#0A84FF]/90",
         iconName: "Inbox",
       };
@@ -43,6 +44,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#FF9F0A]",
         bg: "bg-[#FF9F0A]/15",
         solidBg: "bg-[#FF9F0A]",
+        gradientBg: "bg-gradient-to-r from-[#FF9F0A] to-[#FFB340]",
         badgeBg: "bg-[#FF9F0A]/90",
         iconName: "Layers",
       };
@@ -51,6 +53,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#30D158]",
         bg: "bg-[#30D158]/15",
         solidBg: "bg-[#30D158]",
+        gradientBg: "bg-gradient-to-r from-[#30D158] to-[#4BE070]",
         badgeBg: "bg-[#30D158]/90",
         iconName: "UserCog",
       };
@@ -59,6 +62,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#5E5CE6]",
         bg: "bg-[#5E5CE6]/15",
         solidBg: "bg-[#5E5CE6]",
+        gradientBg: "bg-gradient-to-r from-[#5E5CE6] to-[#7A78FF]",
         badgeBg: "bg-[#5E5CE6]/90",
         iconName: "LayoutGrid",
       };

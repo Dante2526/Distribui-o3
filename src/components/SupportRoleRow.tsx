@@ -217,7 +217,7 @@ export const SupportRoleRow = React.memo(
             ? "opacity-30 border-dashed border border-white/10 bg-white/[0.02] shadow-none pointer-events-none"
             : showAbsentMenu
               ? "bg-[#111217] opacity-40 z-[100] shadow-none"
-              : `bg-[#111217] hover:bg-[#252836] ${theme.borderLeft} shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-grab`
+              : `bg-[#111217] hover:bg-[#252836] ${theme.borderLeft} shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-grab`
         }`}
       >
         {/* Active Edit Badge */}
