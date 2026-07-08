@@ -70,7 +70,7 @@ export const SupportCard = React.memo(
         border: "border-[#0A84FF]/20",
         text: "text-[#0A84FF]",
         solidBg: "bg-[#0A84FF]",
-        badgeBg: "bg-[#0A84FF]/50",
+        badgeBg: "bg-[#0A84FF]/90",
         bar: "bg-[#0A84FF]",
       },
       {
@@ -78,7 +78,7 @@ export const SupportCard = React.memo(
         border: "border-[#FF9F0A]/20",
         text: "text-[#FF9F0A]",
         solidBg: "bg-[#FF9F0A]",
-        badgeBg: "bg-[#FF9F0A]/50",
+        badgeBg: "bg-[#FF9F0A]/90",
         bar: "bg-[#FF9F0A]",
       },
       {
@@ -86,7 +86,7 @@ export const SupportCard = React.memo(
         border: "border-[#30D158]/20",
         text: "text-[#30D158]",
         solidBg: "bg-[#30D158]",
-        badgeBg: "bg-[#30D158]/50",
+        badgeBg: "bg-[#30D158]/90",
         bar: "bg-[#30D158]",
       },
     ];

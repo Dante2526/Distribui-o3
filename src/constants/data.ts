@@ -35,7 +35,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#0A84FF]",
         bg: "bg-[#0A84FF]/15",
         solidBg: "bg-[#0A84FF]",
-        badgeBg: "bg-[#0A84FF]/50",
+        badgeBg: "bg-[#0A84FF]/90",
         iconName: "Inbox",
       };
     case "classificacao":
@@ -43,7 +43,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#FF9F0A]",
         bg: "bg-[#FF9F0A]/15",
         solidBg: "bg-[#FF9F0A]",
-        badgeBg: "bg-[#FF9F0A]/50",
+        badgeBg: "bg-[#FF9F0A]/90",
         iconName: "Layers",
       };
     case "formacao":
@@ -51,7 +51,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#30D158]",
         bg: "bg-[#30D158]/15",
         solidBg: "bg-[#30D158]",
-        badgeBg: "bg-[#30D158]/50",
+        badgeBg: "bg-[#30D158]/90",
         iconName: "UserCog",
       };
     default:
@@ -59,7 +59,7 @@ export const getDeptTheme = (deptId: string) => {
         color: "text-[#5E5CE6]",
         bg: "bg-[#5E5CE6]/15",
         solidBg: "bg-[#5E5CE6]",
-        badgeBg: "bg-[#5E5CE6]/50",
+        badgeBg: "bg-[#5E5CE6]/90",
         iconName: "LayoutGrid",
       };
   }
