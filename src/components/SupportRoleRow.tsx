@@ -254,7 +254,7 @@ export const SupportRoleRow = React.memo(
             <User className="w-[14px] h-[14px]" strokeWidth={2.5} />
           </button>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="font-extrabold text-[15px] text-white w-full truncate leading-none uppercase tracking-wide block">
+            <span className="font-bold text-[15px] text-white w-full truncate leading-none uppercase tracking-wide block">
               {emp.name}
             </span>
             <div className="flex items-center gap-1 mt-1">

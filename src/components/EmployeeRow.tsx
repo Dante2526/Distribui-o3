@@ -305,7 +305,7 @@ export const EmployeeRow = React.memo(
 
               <div className="flex flex-col min-w-0">
                 <span
-                  className={`font-extrabold text-[15px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
+                  className={`font-bold text-[15px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
                 >
                   {emp.name}
                 </span>

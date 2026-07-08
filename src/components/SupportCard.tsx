@@ -116,7 +116,7 @@ export const SupportCard = React.memo(
             </h4>
           </div>
           <div
-            className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.badgeBg}`}
+            className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.solidBg}`}
             style={{ color: "#ffffff" }}
           >
             <CheckCircle2

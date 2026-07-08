@@ -99,7 +99,7 @@ export const DepartmentCard = React.memo(
             </h3>
           </div>
           <div
-            className={`flex items-center font-semibold text-[14px] px-4 py-2 rounded-full ${theme.badgeBg}`}
+            className={`flex items-center font-semibold text-[14px] px-4 py-2 rounded-full ${theme.solidBg}`}
             style={{ color: "#ffffff" }}
           >
             <CheckCircle2
