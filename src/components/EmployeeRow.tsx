@@ -362,7 +362,7 @@ export const EmployeeRow = React.memo(
                     setAbsentRect(null);
                   }
                 }}
-                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#E08A36] hover:bg-[#C9792B] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
+                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
               >
                 AUSENTE
               </button>
@@ -444,7 +444,7 @@ export const EmployeeRow = React.memo(
                 readOnly={!isAdmin}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[13px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
               </span>
             </div>
@@ -475,7 +475,7 @@ export const EmployeeRow = React.memo(
                 readOnly={!isAdmin}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[13px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco
               </span>
             </div>

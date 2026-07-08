@@ -329,7 +329,7 @@ export const SupportRoleRow = React.memo(
                 setAbsentRect(null);
               }
             }}
-            className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-[#E08A36] hover:bg-[#C9792B] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150 shrink-0"
+            className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150 shrink-0"
           >
             AUSENTE
           </button>
