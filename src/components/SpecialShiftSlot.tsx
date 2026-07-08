@@ -200,7 +200,7 @@ export const SpecialShiftSlot = React.memo(
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
-                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-extrabold w-[120px] text-center uppercase bg-slate-100 border border-slate-200 text-slate-800 shadow-sm transition-colors hover:bg-slate-200 cursor-pointer"
+                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-extrabold w-[120px] text-center uppercase bg-gray-300 text-black shadow-sm transition-colors hover:bg-gray-400 cursor-pointer"
               >
                 <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
                 <ChevronDown className="w-3 h-3 shrink-0" />
@@ -219,7 +219,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-slate-400 focus:outline-none bg-slate-100 border border-slate-200 text-slate-800 shadow-sm hover:bg-slate-200 focus:bg-slate-200 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-gray-500 focus:outline-none bg-gray-300 text-black shadow-inner hover:bg-gray-400 focus:bg-gray-400 transition-colors"
                 />
               </div>
               <div className="flex flex-col items-center">
@@ -233,7 +233,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-slate-400 focus:outline-none bg-slate-100 border border-slate-200 text-slate-800 shadow-sm hover:bg-slate-200 focus:bg-slate-200 transition-colors"
+                  className="h-[34px] px-1 rounded-md text-[12px] font-extrabold w-[95px] text-center uppercase placeholder-gray-500 focus:outline-none bg-gray-300 text-black shadow-inner hover:bg-gray-400 focus:bg-gray-400 transition-colors"
                 />
               </div>
             </>

@@ -442,7 +442,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-slate-400 focus:outline-none bg-slate-100 border border-slate-200 text-slate-800 shadow-sm hover:bg-slate-200 focus:bg-slate-200 transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-gray-500 focus:outline-none bg-gray-300 text-black shadow-inner hover:bg-gray-400 focus:bg-gray-400 transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
@@ -473,7 +473,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-slate-400 focus:outline-none bg-slate-100 border border-slate-200 text-slate-800 shadow-sm hover:bg-slate-200 focus:bg-slate-200 transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-gray-500 focus:outline-none bg-gray-300 text-black shadow-inner hover:bg-gray-400 focus:bg-gray-400 transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco
