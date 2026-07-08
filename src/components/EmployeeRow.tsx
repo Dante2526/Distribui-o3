@@ -442,9 +442,9 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-slate-700 text-white shadow-sm border-none hover:bg-slate-600 transition-all"
               />
-              <span className="text-[10px] text-white uppercase font-extrabold tracking-wider mt-1">
+              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
               </span>
             </div>
@@ -473,9 +473,9 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[15px] font-extrabold w-[95px] sm:w-[105px] text-center uppercase placeholder-black/30 focus:outline-none bg-white text-black shadow-inner transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-slate-700 text-white shadow-sm border-none hover:bg-slate-600 transition-all"
               />
-              <span className="text-[10px] text-white uppercase font-extrabold tracking-wider mt-1">
+              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco
               </span>
             </div>
