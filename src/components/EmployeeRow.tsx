@@ -310,7 +310,7 @@ export const EmployeeRow = React.memo(
                   {emp.name}
                 </span>
                 <span className="text-[11px] text-[#888890] mt-1 font-medium truncate span-emp-matricula">
-                  Matr├¡cula: {emp.matricula || "N/A"}
+                  Matrícula: {emp.matricula || "N/A"}
                 </span>
               </div>
             </div>
@@ -442,9 +442,9 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
+                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[11px] text-black uppercase font-bold tracking-wider mt-1">
                 Linha
               </span>
             </div>
@@ -473,9 +473,9 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
+                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
-              <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+              <span className="text-[11px] text-black uppercase font-bold tracking-wider mt-1">
                 Loco
               </span>
             </div>
@@ -609,7 +609,7 @@ export const EmployeeRow = React.memo(
               l.toLowerCase().includes(localLine.toLowerCase()),
             ).length > 0 && (
               <PortalMenu>
-                {/* Overlay invis├¡vel para garantir fechamento ao clicar fora */}
+                {/* Overlay invisível para garantir fechamento ao clicar fora */}
                 <div
                   className="fixed inset-0 z-[999]"
                   onMouseDown={(e) => {
@@ -703,14 +703,14 @@ export const EmployeeRow = React.memo(
                   }`}
                 >
                   {[
-                    { type: "F├ëRIAS" },
+                    { type: "FÉRIAS" },
                     { type: "FORA" },
                     { type: "ATM" },
-                    { type: "RESTRI├ç├âO" },
+                    { type: "RESTRIÇÃO" },
                     { type: "INSS" },
                     { type: "TREINAMENTO" },
                     { type: "REVEZAMENTO" },
-                    { type: "EST├üGIO" },
+                    { type: "ESTÁGIO" },
                   ].map((opt) => {
                     const meta = STATUS_METADATA[opt.type as StatusType];
                     const Icon = meta.icon;
