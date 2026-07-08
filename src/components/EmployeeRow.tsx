@@ -442,7 +442,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none !bg-gray-300 dark:!bg-white/5 !text-black dark:!text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:!bg-gray-400 dark:hover:!bg-white/10 focus:!bg-gray-400 dark:focus:!bg-white/10 transition-all"
+                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-bold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
@@ -473,7 +473,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-gray-500 dark:placeholder-white/30 focus:outline-none !bg-gray-300 dark:!bg-white/5 !text-black dark:!text-white border border-transparent dark:border-white/10 shadow-inner dark:shadow-sm hover:!bg-gray-400 dark:hover:!bg-white/10 focus:!bg-gray-400 dark:focus:!bg-white/10 transition-all"
+                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[15px] font-bold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco

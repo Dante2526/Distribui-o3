@@ -465,7 +465,7 @@ a {
   color: var(--text-main) !important;
 }
 
-/* === INPUTS LINHA / LOCO - forçar preto no modo claro === */
+/* === INPUTS LINHA / LOCO - forçar cores nos dois modos === */
 .light-mode input.input-linha-loco,
 .light-mode button.input-linha-loco {
   background-color: #d1d5db !important; /* gray-300 */
@@ -476,6 +476,18 @@ a {
 .light-mode button.input-linha-loco:hover {
   background-color: #9ca3af !important; /* gray-400 */
   color: #000000 !important;
+}
+
+body:not(.light-mode) input.input-linha-loco,
+body:not(.light-mode) button.input-linha-loco {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+body:not(.light-mode) input.input-linha-loco:hover,
+body:not(.light-mode) input.input-linha-loco:focus,
+body:not(.light-mode) button.input-linha-loco:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .light-mode * {
