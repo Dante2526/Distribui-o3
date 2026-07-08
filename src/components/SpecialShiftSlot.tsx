@@ -152,7 +152,12 @@ export const SpecialShiftSlot = React.memo(
               <User className="w-3 h-3" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-[13px] text-white w-[130px] truncate uppercase leading-none block">
+              <span
+                className="font-bold text-[13px] w-[130px] truncate uppercase leading-none block"
+                style={{
+                  color: emp.tagType === "MAQUINISTA" ? "#0A84FF" : "#BF5AF2",
+                }}
+              >
                 {emp.name}
               </span>
               {emp.tagType && (
