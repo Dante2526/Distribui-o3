@@ -305,11 +305,11 @@ export const EmployeeRow = React.memo(
 
               <div className="flex flex-col min-w-0">
                 <span
-                  className={`font-bold text-[14px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
+                  className={`font-extrabold text-[15px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
                 >
                   {emp.name}
                 </span>
-                <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">
+                <span className="text-[11px] text-[#888890] mt-1 font-medium truncate span-emp-matricula">
                   Matrícula: {emp.matricula || "N/A"}
                 </span>
               </div>
@@ -408,7 +408,7 @@ export const EmployeeRow = React.memo(
             className="flex items-center justify-center gap-3 w-full mt-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col items-center relative">
+            <div className="flex flex-col items-center relative flex-1">
               <input
                 type="text"
                 value={localLine}
@@ -442,13 +442,13 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none hover:bg-[#E66000] transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Linha
               </span>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center flex-1">
               <input
                 type="text"
                 value={localMachine}
@@ -473,7 +473,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
-                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-[95px] sm:w-[105px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
+                className="h-[42px] px-2 rounded-[8px] text-[13px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-all"
               />
               <span className="text-[9px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
                 Loco
@@ -656,7 +656,7 @@ export const EmployeeRow = React.memo(
                           setShowLineDropdown(false);
                           setLineRect(null);
                         }}
-                        className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] rounded-[8px] transition-all duration-150 outline-none"
+                        className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-white/10 rounded-[8px] transition-all duration-150 outline-none"
                       >
                         {linha}
                       </button>

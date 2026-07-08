@@ -152,7 +152,7 @@ export const SpecialShiftSlot = React.memo(
               <User className="w-3 h-3" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-[12px] text-white w-[130px] truncate uppercase leading-none block">
+              <span className="font-extrabold text-[13px] text-white w-[130px] truncate uppercase leading-none block">
                 {emp.name}
               </span>
               {emp.tagType && (
@@ -190,9 +190,9 @@ export const SpecialShiftSlot = React.memo(
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mt-auto">
+        <div className="flex items-center justify-center gap-2 mt-auto w-full">
           {emp.tagType === "OOF" ? (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center w-full">
               <button
                 ref={oofButtonRef}
                 onClick={(e) => {
@@ -200,7 +200,7 @@ export const SpecialShiftSlot = React.memo(
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
-                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-[120px] text-center uppercase bg-[#FF6B00] text-white shadow-sm border-none transition-colors hover:bg-[#E66000] cursor-pointer"
+                className="h-[26px] px-2 flex items-center justify-center gap-1 rounded-md text-[10px] font-bold w-full text-center uppercase bg-white/5 border border-white/10 text-white shadow-sm transition-colors hover:bg-white/10 focus:bg-white/10 cursor-pointer"
               >
                 <span className="truncate">{emp.line || "LOCAL DE APOIO"}</span>
                 <ChevronDown className="w-3 h-3 shrink-0" />
@@ -208,7 +208,7 @@ export const SpecialShiftSlot = React.memo(
             </div>
           ) : (
             <>
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center flex-1">
                 <input
                   type="text"
                   value={emp.line}
@@ -219,10 +219,10 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#FF6B00] text-white shadow-sm border-none"
+                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-colors"
                 />
               </div>
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center flex-1">
                 <input
                   type="text"
                   value={emp.machine}
@@ -233,7 +233,7 @@ export const SpecialShiftSlot = React.memo(
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
-                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-[95px] text-center uppercase placeholder-white/30 focus:outline-none bg-[#10B981] text-white shadow-sm border-none"
+                  className="h-[34px] px-1 rounded-md text-[10px] font-bold w-full text-center uppercase placeholder-white/30 focus:outline-none bg-white/5 border border-white/10 text-white shadow-inner hover:bg-white/10 focus:bg-white/10 transition-colors"
                 />
               </div>
             </>
