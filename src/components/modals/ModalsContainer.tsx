@@ -7,6 +7,9 @@ import { ImportEmployeeModal } from "./ImportEmployeeModal";
 import { HistoryModal } from "./HistoryModal";
 import { AuditLogModal } from "./AuditLogModal";
 import { ReportModal } from "./ReportModal";
+import { ManageAdminsModal } from "./ManageAdminsModal";
+import { AddAdminModal } from "./AddAdminModal";
+import { EditAdminModal } from "./EditAdminModal";
 
 export function ModalsContainer(props: any) {
   return (
@@ -70,6 +73,32 @@ export function ModalsContainer(props: any) {
 
         isDarkMode={props.isDarkMode}
         onBack={props.onReportBack}
+      />
+      <ManageAdminsModal
+        isOpen={props.isManageAdminsModalOpen}
+        onClose={props.closeManageAdminsModal}
+        onBack={props.onManageAdminsBack}
+        administrators={props.administrators || []}
+        currentAdminEmail={props.adminEmail}
+        onOpenAddAdmin={props.onOpenAddAdmin}
+        onOpenEditAdmin={props.onOpenEditAdmin}
+        onDeleteAdmin={props.onDeleteAdmin}
+        isDarkMode={props.isDarkMode}
+      />
+      <AddAdminModal
+        isOpen={props.isAddAdminModalOpen}
+        onClose={props.closeAddAdminModal}
+        onBack={props.onAddAdminBack}
+        onAddAdmin={props.handleAddAdmin}
+        isDarkMode={props.isDarkMode}
+      />
+      <EditAdminModal
+        isOpen={props.isEditAdminModalOpen}
+        onClose={props.closeEditAdminModal}
+        onBack={props.onEditAdminBack}
+        admin={props.adminToEdit}
+        onEditAdmin={props.handleEditAdmin}
+        isDarkMode={props.isDarkMode}
       />
     </>
   );

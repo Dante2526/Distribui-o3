@@ -174,6 +174,7 @@ function AppContent() {
     email: string;
     color?: string;
     funcao?: string;
+    nivel?: string;
   } | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => {
@@ -189,6 +190,11 @@ function AppContent() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isConfirmBiometricModalOpen, setIsConfirmBiometricModalOpen] =
     useState(false);
+  const [isManageAdminsModalOpen, setIsManageAdminsModalOpen] = useState(false);
+  const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
+  const [isEditAdminModalOpen, setIsEditAdminModalOpen] = useState(false);
+  const [administrators, setAdministrators] = useState<any[]>([]);
+  const [adminToEdit, setAdminToEdit] = useState<any | null>(null);
   const [reportContent, setReportContent] = useState("");
   const [reportStats, setReportStats] = useState<{
     presentes: number;
@@ -973,6 +979,98 @@ function AppContent() {
         `Colaborador ${name} importado da Turma ${sourceTurma}!`,
         "success",
       );
+    },
+    [showToastMessage],
+  );
+
+  const handleOpenManageAdmins = useCallback(async () => {
+    setIsAdminModalOpen(false);
+    const admins = await firestoreService.getAdministrators();
+    setAdministrators(admins);
+    setIsManageAdminsModalOpen(true);
+  }, []);
+
+  const handleOpenAddAdmin = useCallback(() => {
+    setIsManageAdminsModalOpen(false);
+    setIsAddAdminModalOpen(true);
+  }, []);
+
+  const handleOpenEditAdmin = useCallback(
+    (id: string) => {
+      const admin = administrators.find((a) => a.id === id);
+      if (admin) {
+        setAdminToEdit(admin);
+        setIsManageAdminsModalOpen(false);
+        setIsEditAdminModalOpen(true);
+      }
+    },
+    [administrators],
+  );
+
+  const handleDeleteAdmin = useCallback(
+    async (id: string, name?: string, matricula?: string) => {
+      try {
+        await firestoreService.deleteAdministrator(id);
+        showToastMessage(
+          `ADM ${name || matricula} excluído com sucesso!`,
+          "success",
+        );
+        const updatedAdmins = await firestoreService.getAdministrators();
+        setAdministrators(updatedAdmins);
+      } catch (err: any) {
+        showToastMessage("Erro ao excluir ADM: " + err.message, "error");
+      }
+    },
+    [showToastMessage],
+  );
+
+  const handleAddAdmin = useCallback(
+    async (
+      name: string,
+      email: string,
+      matricula: string,
+      nivel: string,
+      senha?: string,
+    ) => {
+      try {
+        await firestoreService.addAdministrator({
+          name,
+          email,
+          matricula,
+          nivel,
+          senha,
+        });
+        showToastMessage(`ADM ${name} adicionado com sucesso!`, "success");
+        const updatedAdmins = await firestoreService.getAdministrators();
+        setAdministrators(updatedAdmins);
+      } catch (err: any) {
+        showToastMessage("Erro ao adicionar ADM: " + err.message, "error");
+      }
+    },
+    [showToastMessage],
+  );
+
+  const handleEditAdmin = useCallback(
+    async (
+      id: string,
+      name: string,
+      email: string,
+      matricula: string,
+      nivel: string,
+    ) => {
+      try {
+        await firestoreService.updateAdministrator(id, {
+          name,
+          email,
+          matricula,
+          nivel,
+        });
+        showToastMessage(`ADM ${name} atualizado com sucesso!`, "success");
+        const updatedAdmins = await firestoreService.getAdministrators();
+        setAdministrators(updatedAdmins);
+      } catch (err: any) {
+        showToastMessage("Erro ao editar ADM: " + err.message, "error");
+      }
     },
     [showToastMessage],
   );
@@ -3898,6 +3996,7 @@ function AppContent() {
           },
           hasBiometrics: hasRegisteredBiometrics(),
           onClearBiometrics: clearBiometricData,
+          onOpenManageAdmins: handleOpenManageAdmins,
         }}
 
         isConfirmBiometricModalOpen={isConfirmBiometricModalOpen}
@@ -3919,6 +4018,35 @@ function AppContent() {
           setIsImportModalOpen(false);
           setIsAdminModalOpen(true);
         }}
+
+        adminEmail={adminUser?.email}
+        administrators={administrators}
+        isManageAdminsModalOpen={isManageAdminsModalOpen}
+        closeManageAdminsModal={() => setIsManageAdminsModalOpen(false)}
+        onManageAdminsBack={() => {
+          setIsManageAdminsModalOpen(false);
+          setIsAdminModalOpen(true);
+        }}
+        onOpenAddAdmin={handleOpenAddAdmin}
+        onOpenEditAdmin={handleOpenEditAdmin}
+        onDeleteAdmin={handleDeleteAdmin}
+
+        isAddAdminModalOpen={isAddAdminModalOpen}
+        closeAddAdminModal={() => setIsAddAdminModalOpen(false)}
+        onAddAdminBack={() => {
+          setIsAddAdminModalOpen(false);
+          setIsManageAdminsModalOpen(true);
+        }}
+        handleAddAdmin={handleAddAdmin}
+
+        isEditAdminModalOpen={isEditAdminModalOpen}
+        closeEditAdminModal={() => setIsEditAdminModalOpen(false)}
+        onEditAdminBack={() => {
+          setIsEditAdminModalOpen(false);
+          setIsManageAdminsModalOpen(true);
+        }}
+        adminToEdit={adminToEdit}
+        handleEditAdmin={handleEditAdmin}
 
         isHistoryModalOpen={isHistoryModalOpen}
         closeHistoryModal={() => setIsHistoryModalOpen(false)}

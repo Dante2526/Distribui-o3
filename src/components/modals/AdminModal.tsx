@@ -53,6 +53,8 @@ export function AdminModal({
   onChangeAdminPassword,
   hasBiometrics,
   onClearBiometrics,
+  adminLevel,
+  onOpenManageAdmins,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -79,6 +81,8 @@ export function AdminModal({
   onChangeAdminPassword: () => void;
   hasBiometrics?: boolean;
   onClearBiometrics?: () => void;
+  adminLevel?: string;
+  onOpenManageAdmins?: () => void;
 }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -475,6 +479,36 @@ export function AdminModal({
                         AJUDA / TUTORIAL
                       </span>
                     </button>
+
+                    {/* GERENCIAR ADMS - APENAS PARA NIVEL 2 */}
+                    {adminLevel === "2" && (
+                      <button
+                        onClick={onOpenManageAdmins}
+                        className="flex flex-col items-center justify-center p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-md h-[86px] md:h-[82px]"
+                      >
+                        <div className="scale-[0.85] md:scale-90 origin-bottom">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                        </div>
+                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight mt-1">
+                          GERENCIAR ADMS
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </>

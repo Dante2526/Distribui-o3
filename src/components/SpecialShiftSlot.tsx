@@ -127,10 +127,8 @@ export const SpecialShiftSlot = React.memo(
           stiffness: 400,
           damping: 25,
         }}
-        className={`special-shift-slot w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 border-l-4 border-l-[#BF5AF2] shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors ${
-          isDragging
-            ? "opacity-30 border-dashed border-2 border-white/10 bg-white/[0.02] shadow-none pointer-events-none"
-            : "cursor-grab"
+        className={`special-shift-slot w-[250px] shrink-0 h-[100px] p-3 flex flex-col justify-between relative group transition-colors ${
+          isDragging ? "opacity-30 pointer-events-none" : "cursor-grab"
         }`}
       >
         {/* Active Edit Badge */}
