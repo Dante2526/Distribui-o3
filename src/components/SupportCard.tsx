@@ -172,7 +172,8 @@ export const SupportCard = React.memo(
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.isDragActive === nextProps.isDragActive &&
       prevProps.groupIndex === nextProps.groupIndex &&
-      prevProps.activeEdits === nextProps.activeEdits
+      prevProps.activeEdits === nextProps.activeEdits &&
+      prevProps.isAdmin === nextProps.isAdmin
     );
   },
 );

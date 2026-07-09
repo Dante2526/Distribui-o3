@@ -158,7 +158,8 @@ export const DepartmentCard = React.memo(
       prevProps.isDarkMode === nextProps.isDarkMode &&
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.isDragActive === nextProps.isDragActive &&
-      prevProps.activeEdits === nextProps.activeEdits
+      prevProps.activeEdits === nextProps.activeEdits &&
+      prevProps.isAdmin === nextProps.isAdmin
     );
   },
 );

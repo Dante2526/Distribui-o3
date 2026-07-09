@@ -776,7 +776,8 @@ export const EmployeeRow = React.memo(
       prevProps.activeEdit === nextProps.activeEdit &&
       prevProps.index === nextProps.index &&
       prevProps.isDarkMode === nextProps.isDarkMode &&
-      prevProps.is6HActive === nextProps.is6HActive
+      prevProps.is6HActive === nextProps.is6HActive &&
+      prevProps.isAdmin === nextProps.isAdmin
     );
   },
 );

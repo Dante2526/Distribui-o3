@@ -310,7 +310,8 @@ export const SpecialShiftSlot = React.memo(
     return (
       prevProps.emp === nextProps.emp &&
       prevProps.activeEdit === nextProps.activeEdit &&
-      prevProps.index === nextProps.index
+      prevProps.index === nextProps.index &&
+      prevProps.isAdmin === nextProps.isAdmin
     );
   },
 );
