@@ -262,12 +262,22 @@ export const EmployeeRow = React.memo(
       >
         {/* Active Edit Badge */}
         {activeEdit && !isDragOverlay && (
-          <div className="absolute -top-3 right-0 bg-[#2A2D3E] px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-lg border border-white/10 flex items-center gap-2 z-50 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`absolute -top-3 right-0 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg border flex items-center gap-2 z-50 animate-[fadeIn_0.2s_ease-out] ${
+              isDarkMode
+                ? "bg-[#2A2D3E] text-white border-white/10"
+                : "bg-white text-slate-800 border-slate-200"
+            }`}
+          >
             <div
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="!text-white opacity-90 whitespace-nowrap">
+            <span
+              className={`opacity-90 whitespace-nowrap ${
+                isDarkMode ? "text-white" : "text-slate-800"
+              }`}
+            >
               {activeEdit.userName} editando...
             </span>
           </div>
@@ -656,7 +666,11 @@ export const EmployeeRow = React.memo(
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar"
+                    className={`w-[130px] max-h-[150px] overflow-y-auto backdrop-blur-md border rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar ${
+                      isDarkMode
+                        ? "bg-[#1E2029]/80 border-white/10"
+                        : "bg-white/90 border-slate-200"
+                    }`}
                   >
                     {PREDEFINED_LINES.filter((l) =>
                       l.toLowerCase().includes(localLine.toLowerCase()),
@@ -670,7 +684,11 @@ export const EmployeeRow = React.memo(
                           setShowLineDropdown(false);
                           setLineRect(null);
                         }}
-                        className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-white/10 rounded-[8px] transition-all duration-150 outline-none"
+                        className={`text-center px-2 py-1.5 text-[12px] font-bold rounded-[8px] transition-all duration-150 outline-none ${
+                          isDarkMode
+                            ? "text-white hover:bg-white/10"
+                            : "text-slate-800 hover:bg-slate-800/10"
+                        }`}
                       >
                         {linha}
                       </button>

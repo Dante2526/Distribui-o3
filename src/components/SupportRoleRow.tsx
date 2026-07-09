@@ -222,12 +222,22 @@ export const SupportRoleRow = React.memo(
       >
         {/* Active Edit Badge */}
         {activeEdit && !isDragOverlay && (
-          <div className="absolute -top-3 right-0 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`absolute -top-3 right-0 border px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out] ${
+              isDarkMode
+                ? "bg-[#1E2029] border-white/10 text-white"
+                : "bg-white border-slate-200 text-slate-800"
+            }`}
+          >
             <div
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="text-[10px] !text-white font-bold whitespace-nowrap">
+            <span
+              className={`text-[10px] font-bold whitespace-nowrap ${
+                isDarkMode ? "text-white" : "text-slate-800"
+              }`}
+            >
               {activeEdit.userName} editando...
             </span>
           </div>

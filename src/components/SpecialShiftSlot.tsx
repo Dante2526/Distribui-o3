@@ -133,12 +133,22 @@ export const SpecialShiftSlot = React.memo(
       >
         {/* Active Edit Badge */}
         {activeEdit && (
-          <div className="absolute -top-3 right-2 bg-[#1E2029] border border-white/10 px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className={`absolute -top-3 right-2 border px-2 py-0.5 rounded-[6px] z-[100] shadow-lg flex items-center gap-1.5 animate-[fadeIn_0.2s_ease-out] ${
+              isDarkMode
+                ? "bg-[#1E2029] border-white/10 text-white"
+                : "bg-white border-slate-200 text-slate-800"
+            }`}
+          >
             <div
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="!text-white opacity-90 text-[10px] font-bold whitespace-nowrap">
+            <span
+              className={`opacity-90 text-[10px] font-bold whitespace-nowrap ${
+                isDarkMode ? "text-white" : "text-slate-800"
+              }`}
+            >
               {activeEdit.userName} editando...
             </span>
           </div>
@@ -269,7 +279,11 @@ export const SpecialShiftSlot = React.memo(
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="bg-[#1a1c23]/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl py-2 w-48 overflow-hidden z-[210] flex flex-col"
+                className={`backdrop-blur-md border rounded-xl shadow-2xl py-2 w-48 overflow-hidden z-[210] flex flex-col ${
+                  isDarkMode
+                    ? "bg-[#1a1c23]/90 border-white/10"
+                    : "bg-white/90 border-slate-200"
+                }`}
                 style={{
                   position: "absolute",
                   top: `${oofRect.bottom + 8}px`,
@@ -281,15 +295,18 @@ export const SpecialShiftSlot = React.memo(
                   (opcao) => (
                     <button
                       key={opcao}
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         handleUpdateLocal("line", opcao);
                         setShowOofMenu(false);
                       }}
-                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 text-[11px] font-bold tracking-wider hover:bg-white/10 transition-all uppercase ${
+                      className={`text-left px-4 py-2.5 text-[12px] font-bold transition-all duration-150 flex items-center justify-between mx-2 rounded-lg ${
                         emp.line === opcao
-                          ? "text-[#BF5AF2] bg-[#BF5AF2]/10 font-extrabold"
-                          : "text-slate-300"
+                          ? isDarkMode
+                            ? "text-[#BF5AF2] bg-[#BF5AF2]/10 font-extrabold"
+                            : "text-[#BF5AF2] bg-[#BF5AF2]/15 font-extrabold"
+                          : isDarkMode
+                            ? "text-slate-300 hover:bg-white/5"
+                            : "text-slate-700 hover:bg-slate-800/5"
                       }`}
                     >
                       <span>{opcao}</span>
