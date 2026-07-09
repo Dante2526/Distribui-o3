@@ -146,13 +146,13 @@ export const SpecialShiftSlot = React.memo(
           </div>
         )}
 
-        <div className="flex items-center justify-between w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2 rounded-[10px] shadow-sm">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center min-w-0">
-            <div className="avatar-emp w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">
               <User className="w-3 h-3" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="input-emp-name font-bold text-[13px] text-white w-[130px] truncate uppercase leading-none block">
+              <span className="font-extrabold text-[13px] text-white w-[130px] truncate uppercase leading-none block">
                 {emp.name}
               </span>
               {emp.tagType && (
