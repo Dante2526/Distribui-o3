@@ -512,9 +512,12 @@ function AppContent() {
       isDemoMode ||
       !selectedTurma ||
       !isTabVisible ||
-      departmentsData.length === 0
-    )
+      departmentsData.length === 0 ||
+      isLoadingData ||
+      isReceivingSnapshotRef.current
+    ) {
       return;
+    }
 
     const unsubscribeDSS = firestoreService.subscribeToDSS(
       selectedTurma,
@@ -661,7 +664,13 @@ function AppContent() {
     return () => {
       unsubscribeDSS();
     };
-  }, [selectedTurma, isDemoMode, isTabVisible]);
+  }, [
+    selectedTurma,
+    isDemoMode,
+    isTabVisible,
+    isLoadingData,
+    departmentsData.length,
+  ]);
 
   // Efeito para salvar alterações locais no Firebase
   const saveBoardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
