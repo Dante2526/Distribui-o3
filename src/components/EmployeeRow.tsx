@@ -267,7 +267,7 @@ export const EmployeeRow = React.memo(
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="opacity-90 whitespace-nowrap">
+            <span className="!text-white opacity-90 whitespace-nowrap">
               {activeEdit.userName} editando...
             </span>
           </div>
@@ -418,13 +418,19 @@ export const EmployeeRow = React.memo(
                   setLineRect(e.currentTarget.getBoundingClientRect());
                   handleStartEditLocal();
                 }}
-                onBlur={() => {
+                onBlur={(e) => {
                   if (!isAdmin) return;
                   if (localLine !== (emp.line || "")) {
                     handleUpdateEmployeeFieldLocal("line", localLine);
                   }
-                  // Chama onStopEdit IMEDIATAMENTE, sem esperar o setTimeout do dropdown
-                  onStopEdit?.(emp.id);
+
+                  const related = e.relatedTarget as HTMLElement | null;
+                  if (related && related.dataset.empId === emp.id) {
+                    // movendo foco dentro do mesmo card, mantém edição
+                  } else {
+                    onStopEdit?.(emp.id);
+                  }
+
                   setTimeout(() => {
                     setShowLineDropdown(false);
                     setLineRect(null);
@@ -442,6 +448,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
+                data-emp-id={emp.id}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
               <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
@@ -456,12 +463,18 @@ export const EmployeeRow = React.memo(
                   if (!isAdmin) return;
                   handleStartEditLocal();
                 }}
-                onBlur={() => {
+                onBlur={(e) => {
                   if (!isAdmin) return;
                   if (localMachine !== (emp.machine || "")) {
                     handleUpdateEmployeeFieldLocal("machine", localMachine);
                   }
-                  onStopEdit?.(emp.id);
+
+                  const related = e.relatedTarget as HTMLElement | null;
+                  if (related && related.dataset.empId === emp.id) {
+                    // movendo foco dentro do mesmo card, mantém edição
+                  } else {
+                    onStopEdit?.(emp.id);
+                  }
                 }}
                 onChange={(e) => {
                   if (!isAdmin) return;
@@ -473,6 +486,7 @@ export const EmployeeRow = React.memo(
                   }
                 }}
                 readOnly={!isAdmin}
+                data-emp-id={emp.id}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
               <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">

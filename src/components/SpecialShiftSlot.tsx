@@ -138,7 +138,7 @@ export const SpecialShiftSlot = React.memo(
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="text-[10px] text-white font-bold whitespace-nowrap">
+            <span className="!text-white opacity-90 text-[10px] font-bold whitespace-nowrap">
               {activeEdit.userName} editando...
             </span>
           </div>
@@ -211,12 +211,20 @@ export const SpecialShiftSlot = React.memo(
                   type="text"
                   value={emp.line}
                   onFocus={handleStartEditLocal}
-                  onBlur={() => onStopEdit?.(emp.id)}
+                  onBlur={(e) => {
+                    const related = e.relatedTarget as HTMLElement | null;
+                    if (related && related.dataset.empId === emp.id) {
+                      // movendo foco no mesmo card, não para edição
+                    } else {
+                      onStopEdit?.(emp.id);
+                    }
+                  }}
                   onChange={(e) =>
                     handleUpdateLocal("line", e.target.value.toUpperCase())
                   }
                   placeholder="LINHA"
                   readOnly={!isAdmin}
+                  data-emp-id={emp.id}
                   className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
               </div>
@@ -225,12 +233,20 @@ export const SpecialShiftSlot = React.memo(
                   type="text"
                   value={emp.machine}
                   onFocus={handleStartEditLocal}
-                  onBlur={() => onStopEdit?.(emp.id)}
+                  onBlur={(e) => {
+                    const related = e.relatedTarget as HTMLElement | null;
+                    if (related && related.dataset.empId === emp.id) {
+                      // movendo foco no mesmo card, não para edição
+                    } else {
+                      onStopEdit?.(emp.id);
+                    }
+                  }}
                   onChange={(e) =>
                     handleUpdateLocal("machine", e.target.value.toUpperCase())
                   }
                   placeholder="LOCO"
                   readOnly={!isAdmin}
+                  data-emp-id={emp.id}
                   className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
               </div>

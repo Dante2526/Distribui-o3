@@ -227,7 +227,7 @@ export const SupportRoleRow = React.memo(
               className="w-2 h-2 rounded-full animate-pulse"
               style={{ backgroundColor: activeEdit.color }}
             />
-            <span className="text-[10px] text-white font-bold whitespace-nowrap">
+            <span className="text-[10px] !text-white font-bold whitespace-nowrap">
               {activeEdit.userName} editando...
             </span>
           </div>
