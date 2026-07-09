@@ -3,11 +3,18 @@ import autoTable from "jspdf-autotable";
 import type { Department } from "../types";
 
 export const generateDailyReportPDF = (departmentsData: Department[]) => {
-  const doc = new jsPDF();
+  // Configurando uma página longa (210mm x 1200mm) para não haver quebra de página (um PDF "grandão")
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [210, 1200],
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFontSize(18);
   doc.setTextColor(40);
-  doc.text("RELATÓRIO DIÁRIO", 14, 22);
+  doc.text("RELATÓRIO DIÁRIO", pageWidth / 2, 22, { align: "center" });
 
   doc.setFontSize(10);
   doc.setTextColor(100);
@@ -19,7 +26,7 @@ export const generateDailyReportPDF = (departmentsData: Department[]) => {
       year: "numeric",
     })
     .toUpperCase();
-  doc.text(dateFormatted, 14, 30);
+  doc.text(dateFormatted, pageWidth / 2, 30, { align: "center" });
 
   let startY = 40;
 
@@ -46,7 +53,13 @@ export const generateDailyReportPDF = (departmentsData: Department[]) => {
 
     autoTable(doc, {
       startY,
-      head: [[dept.title.toUpperCase(), "LINHA", "LOCO"]],
+      head: [
+        [
+          { content: dept.title.toUpperCase(), styles: { halign: "left" } },
+          { content: "LINHA", styles: { halign: "center" } },
+          { content: "LOCO", styles: { halign: "center" } },
+        ],
+      ],
       body: activeData.map((emp) => {
         const matricula = emp.matricula
           ? `(MAT: ${emp.matricula})`
@@ -70,18 +83,13 @@ export const generateDailyReportPDF = (departmentsData: Department[]) => {
       },
       columnStyles: {
         0: { cellWidth: 80, fontStyle: "bold" },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 40 },
+        1: { cellWidth: 40, halign: "center", fontStyle: "bold" },
+        2: { cellWidth: 40, halign: "center", fontStyle: "bold" },
       },
       margin: { left: 14, right: 14 },
     });
 
     startY = (doc as any).lastAutoTable.finalY + 15;
-
-    if (startY > 270) {
-      doc.addPage();
-      startY = 20;
-    }
   });
 
   doc.save("relatorio_diario.pdf");

@@ -91,7 +91,7 @@ export function ReportModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`rounded-[16px] shadow-2xl w-full max-w-[420px] relative flex flex-col overflow-hidden transition-colors duration-300 bg-[#1C1D24] text-white`}
+            className={`rounded-[16px] shadow-2xl w-full max-w-[420px] relative flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-[#1C1D24] text-white" : "bg-white text-[#1C1D24]"}`}
             style={{
               ...(isViewportBackdrop ? viewportStyles.card : {}),
               maxHeight: "90vh",
@@ -101,7 +101,7 @@ export function ReportModal({
             {onBack && (
               <button
                 onClick={onBack}
-                className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors"
+                className={`absolute top-4 left-4 transition-colors ${isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-800"}`}
               >
                 <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
               </button>
@@ -109,19 +109,23 @@ export function ReportModal({
 
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              className={`absolute top-4 right-4 transition-colors ${isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-800"}`}
             >
               <X className="w-5 h-5" strokeWidth={2.5} />
             </button>
 
             <div className="pt-8 pb-4 flex flex-col items-center">
-              <h2 className="text-[20px] md:text-[22px] font-black uppercase tracking-wider text-white">
+              <h2
+                className={`text-[20px] md:text-[22px] font-black uppercase tracking-wider ${isDarkMode ? "text-white" : "text-gray-800"}`}
+              >
                 RELATÓRIO DIÁRIO
               </h2>
               <div className="text-[#6C7280] font-medium text-[13px] mt-2 mb-4">
                 {dateFormatted}
               </div>
-              <div className="w-[85%] h-px bg-white/10"></div>
+              <div
+                className={`w-[85%] h-px ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}
+              ></div>
             </div>
 
             <div className="px-5 md:px-6 py-2 overflow-y-auto flex-1 flex flex-col gap-6 hide-scrollbar">
