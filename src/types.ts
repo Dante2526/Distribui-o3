@@ -119,14 +119,14 @@ export type Department = {
 };
 
 export type SupportRole = {
-  id?: string;
+  id: string;
   name: string;
   role: string;
   matricula?: string;
 };
 
 export type AnnotationItem = {
-  id?: string;
+  id: string;
   name: string;
   status: string;
   matricula?: string;
