@@ -3854,6 +3854,7 @@ function AppContent() {
                                   onStartEdit={handleStartEdit}
                                   onStopEdit={handleStopEdit}
                                   isAdmin={isAdmin}
+                                  isDarkMode={isDarkMode}
                                 />
                               ))}
                             </div>
