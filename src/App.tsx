@@ -108,14 +108,14 @@ const SpecialShiftContainer = ({
     </div>
   );
 };
-const deduplicateAnnotationItems = (
+export const deduplicateAnnotationItems = (
   groups: AnnotationGroup[],
 ): AnnotationGroup[] => {
   return groups.map((group) => {
     const seen = new Set<string>();
     const dedupedItems = group.items.filter((item) => {
       if (!item.name || !item.name.trim()) return true;
-      const key = `${item.matricula}|${item.name}`;
+      const key = item.id || `${item.matricula}|${item.name}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -123,6 +123,30 @@ const deduplicateAnnotationItems = (
     return dedupedItems.length !== group.items.length
       ? { ...group, items: dedupedItems }
       : group;
+  });
+};
+
+export const deduplicateEmployees = (employees: Employee[]): Employee[] => {
+  const seen = new Set<string>();
+  return employees.filter((emp) => {
+    const key = emp.id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+export const deduplicateSupportRoles = (
+  groups: SupportRole[][],
+): SupportRole[][] => {
+  return groups.map((group) => {
+    const seen = new Set<string>();
+    return group.filter((emp) => {
+      const key = emp.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   });
 };
 
@@ -319,16 +343,23 @@ function AppContent() {
             return emp;
           };
 
-          // Bug 8: normaliza o count para garantir coerência com data.length
+          // Bug 8 e Correção de Duplicatas: normaliza e deduplica
           setDepartmentsData(
-            state.departmentsData.map((d) => ({
-              ...d,
-              data: (d.data || []).map(healEmployee),
-              count: d.data.length,
-            })),
+            state.departmentsData.map((d) => {
+              const healedAndDeduped = deduplicateEmployees(
+                (d.data || []).map(healEmployee),
+              );
+              return {
+                ...d,
+                data: healedAndDeduped,
+                count: healedAndDeduped.length,
+              };
+            }),
           );
           if (state.supportRolesData && state.supportRolesData.length > 0) {
-            setSupportRolesData(state.supportRolesData);
+            setSupportRolesData(
+              deduplicateSupportRoles(state.supportRolesData),
+            );
           }
           if (state.annotationsLeft && state.annotationsLeft.length > 0) {
             setAnnotationsLeft(
@@ -345,7 +376,9 @@ function AppContent() {
             );
           }
           if (state.specialShiftData) {
-            setSpecialShiftData(state.specialShiftData.map(healEmployee));
+            setSpecialShiftData(
+              deduplicateEmployees(state.specialShiftData.map(healEmployee)),
+            );
           }
           setIsLoadingData(false);
           setTimeout(() => {
