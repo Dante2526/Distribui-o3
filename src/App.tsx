@@ -53,6 +53,7 @@ import { signInToFirebase } from "./lib/firebase";
 import { TurmaSelectionScreen } from "./components/TurmaSelectionScreen";
 import ThemeSelectionScreen from "./components/ThemeSelectionScreen";
 import type { TurmaType } from "./types";
+import { generateDailyReportPDF } from "./utils/pdfGenerator";
 
 // Componentes
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -825,10 +826,21 @@ function AppContent() {
     report += `• Revezamento: ${todasAnotacoes.filter((item) => item.status.toUpperCase().includes("REVEZA")).length}\n\n`;
     report += `\n--- COLABORADORES POR SETOR ---\n`;
     departmentsData.forEach((d) => {
-      report += `\n[${d.title}] (${d.count} Colab.)\n`;
+      let icon = "🟢";
+      if (
+        d.id.toLowerCase() === "classificacao" ||
+        d.id.toLowerCase() === "classificação"
+      )
+        icon = "🟡";
+      if (
+        d.id.toLowerCase() === "formacao" ||
+        d.id.toLowerCase() === "formação"
+      )
+        icon = "🔵";
+      report += `\n[${d.title.toUpperCase()}] (${d.count} COLAB.)\n`;
       d.data.forEach((e) => {
         if (e.name.trim())
-          report += `  - ${e.name} (Matrícula: ${e.matricula || "S/N"}, Linha: ${e.line || "---"}, Loco: ${e.machine || "---"})\n`;
+          report += `${icon} ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
       });
     });
 
@@ -836,9 +848,9 @@ function AppContent() {
     supportRolesData.forEach((group, idx) => {
       const activeGroup = group.filter((e) => e.name.trim() !== "");
       if (activeGroup.length > 0) {
-        report += `\n[Grupo de Apoio ${idx + 1}]\n`;
+        report += `\n[GRUPO DE APOIO ${idx + 1}]\n`;
         activeGroup.forEach((e) => {
-          report += `  - ${e.name} (Matrícula: ${e.matricula || "S/N"})\n`;
+          report += `🟣 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"})\n\n`;
         });
       }
     });
@@ -847,7 +859,7 @@ function AppContent() {
     if (activeSpecial.length > 0) {
       report += `\n--- TURNO 6H ---\n`;
       activeSpecial.forEach((e) => {
-        report += `  - ${e.name} (Matrícula: ${e.matricula || "S/N"}, Linha: ${e.line || "---"}, Loco: ${e.machine || "---"})\n`;
+        report += `🟠 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
       });
     }
 
@@ -855,9 +867,9 @@ function AppContent() {
     annotationsLeft.concat(annotationsRight).forEach((group) => {
       const activeAnnotations = group.items.filter((e) => e.name.trim() !== "");
       if (activeAnnotations.length > 0) {
-        report += `\n[${group.title}]\n`;
+        report += `\n[${group.title.toUpperCase()}]\n`;
         activeAnnotations.forEach((e) => {
-          report += `  - ${e.name} (Matrícula: ${e.matricula || "S/N"}, Status: ${e.status || "---"})\n`;
+          report += `  - ${e.name.toUpperCase()}\n    (MAT: ${e.matricula || "S/N"}) - STATUS: ${e.status ? e.status.toUpperCase() : "---"}\n\n`;
         });
       }
     });
@@ -912,6 +924,10 @@ function AppContent() {
     annotationsLeft,
     annotationsRight,
   ]);
+
+  const handleDownloadPDF = useCallback(() => {
+    generateDailyReportPDF(departmentsData);
+  }, [departmentsData]);
 
   const handleAddNewUser = useCallback(
     async (name: string, matricula: string, sectorId: string) => {
@@ -3970,6 +3986,7 @@ function AppContent() {
           onLoginError: handleAdminLoginError,
           onClearAll: handleClearAll,
           onGenerateReport: handleGenerateReport,
+          onDownloadPDF: handleDownloadPDF,
           onAddUser: () => {
             setIsAddUserModalOpen(true);
             setIsAdminModalOpen(false);
@@ -4066,6 +4083,7 @@ function AppContent() {
         closeReportModal={() => setIsReportModalOpen(false)}
         reportText={reportContent}
         stats={reportStats}
+        onDownloadPDF={handleDownloadPDF}
         onReportBack={() => {
           setIsReportModalOpen(false);
           setIsAdminModalOpen(true);

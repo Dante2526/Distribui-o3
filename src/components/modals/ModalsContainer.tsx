@@ -70,6 +70,7 @@ export function ModalsContainer(props: any) {
         onClose={props.closeReportModal}
         reportText={props.reportText}
         stats={props.stats}
+        onDownloadPDF={props.onDownloadPDF}
 
         isDarkMode={props.isDarkMode}
         onBack={props.onReportBack}
