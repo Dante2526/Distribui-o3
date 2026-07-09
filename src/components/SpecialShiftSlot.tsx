@@ -23,6 +23,7 @@ export const SpecialShiftSlot = React.memo(
     onStartEdit,
     onStopEdit,
     isAdmin,
+    isDarkMode,
   }: {
     emp: Employee;
     index: number;
@@ -33,6 +34,7 @@ export const SpecialShiftSlot = React.memo(
     onStartEdit?: (empId: string) => void;
     onStopEdit?: (empId: string) => void;
     isAdmin?: boolean;
+    isDarkMode?: boolean;
   }) => {
     const {
       attributes,
@@ -328,7 +330,8 @@ export const SpecialShiftSlot = React.memo(
       prevProps.emp === nextProps.emp &&
       prevProps.activeEdit === nextProps.activeEdit &&
       prevProps.index === nextProps.index &&
-      prevProps.isAdmin === nextProps.isAdmin
+      prevProps.isAdmin === nextProps.isAdmin &&
+      prevProps.isDarkMode === nextProps.isDarkMode
     );
   },
 );
