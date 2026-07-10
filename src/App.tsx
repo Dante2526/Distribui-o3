@@ -108,14 +108,14 @@ const SpecialShiftContainer = ({
     </div>
   );
 };
-export const deduplicateAnnotationItems = (
+const deduplicateAnnotationItems = (
   groups: AnnotationGroup[],
 ): AnnotationGroup[] => {
   return groups.map((group) => {
     const seen = new Set<string>();
     const dedupedItems = group.items.filter((item) => {
       if (!item.name || !item.name.trim()) return true;
-      const key = item.id || `${item.matricula}|${item.name}`;
+      const key = item.id;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -126,7 +126,7 @@ export const deduplicateAnnotationItems = (
   });
 };
 
-export const deduplicateEmployees = (employees: Employee[]): Employee[] => {
+const deduplicateEmployees = (employees: Employee[]): Employee[] => {
   const seen = new Set<string>();
   return employees.filter((emp) => {
     const key = emp.id;
@@ -136,9 +136,7 @@ export const deduplicateEmployees = (employees: Employee[]): Employee[] => {
   });
 };
 
-export const deduplicateSupportRoles = (
-  groups: SupportRole[][],
-): SupportRole[][] => {
+const deduplicateSupportRoles = (groups: SupportRole[][]): SupportRole[][] => {
   return groups.map((group) => {
     const seen = new Set<string>();
     return group.filter((emp) => {
@@ -513,8 +511,7 @@ function AppContent() {
       !selectedTurma ||
       !isTabVisible ||
       departmentsData.length === 0 ||
-      isLoadingData ||
-      isReceivingSnapshotRef.current
+      isLoadingData
     ) {
       return;
     }
@@ -522,6 +519,9 @@ function AppContent() {
     const unsubscribeDSS = firestoreService.subscribeToDSS(
       selectedTurma,
       (dssEmployees) => {
+        // Ignora se estamos processando um snapshot do BoardState para evitar race conditions
+        if (isReceivingSnapshotRef.current) return;
+
         // Lê o estado atual via Refs para não re-assinar a cada drag
         const currentDepts = departmentsDataRef.current;
         const currentSupport = supportRolesDataRef.current;
