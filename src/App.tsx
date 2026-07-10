@@ -2624,7 +2624,7 @@ function AppContent() {
       const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 0.85);
       setScale(finalScale, 0, 0);
     } else {
-      const contentWidth = 1880;
+      const contentWidth = 1716;
       const threeColumnsScale = viewport.clientWidth / contentWidth;
       const finalScale = Math.min(Math.max(threeColumnsScale, 0.3), 2.0);
       setScale(finalScale, 0, 0);
@@ -3999,7 +3999,7 @@ function AppContent() {
 
                         <div className="flex gap-6 w-max pb-8">
                           {supportRolesData.map((group, index) => (
-                            <div key={index} className="w-[600px] shrink-0">
+                            <div key={index} className="w-[540px] shrink-0">
                               <SupportCard
                                 roles={group}
                                 groupIndex={index}
