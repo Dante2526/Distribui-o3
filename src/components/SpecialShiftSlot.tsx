@@ -129,7 +129,7 @@ export const SpecialShiftSlot = React.memo(
           stiffness: 400,
           damping: 25,
         }}
-        className={`special-shift-slot w-[250px] shrink-0 h-[100px] p-3 flex flex-col justify-between relative group transition-colors ${
+        className={`special-shift-slot w-[250px] shrink-0 h-[100px] p-3 flex flex-col justify-between relative group transition-colors border border-[#BF5AF2]/20 rounded-xl ${
           isDragging ? "opacity-30 pointer-events-none" : "cursor-grab"
         }`}
       >
