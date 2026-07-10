@@ -4024,6 +4024,7 @@ function AppContent() {
         closeAdminModal={() => setIsAdminModalOpen(false)}
         adminModalProps={{
           isAdmin,
+          adminLevel: adminUser?.nivel,
           onLogin: handleAdminLogin,
           onLogout: handleAdminLogout,
           onLoginError: handleAdminLoginError,
