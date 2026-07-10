@@ -33,15 +33,33 @@ export function useViewportStyles(isOpen: boolean): {
         if (isMobile) {
           setViewportStyles((prev) => {
             const prevBackdrop = prev.backdrop as any;
-            // Evita re-render desnecessário se valores não mudaram (quebra loop infinito)
+            const prevCard = prev.card as any;
+
+            const prevLeft = parseFloat(prevBackdrop.left) || 0;
+            const prevTop = parseFloat(prevBackdrop.top) || 0;
+            const prevWidth = parseFloat(prevBackdrop.width) || 0;
+            const prevHeight = parseFloat(prevBackdrop.height) || 0;
+
+            let prevScale = 1;
+            if (prevCard?.transform) {
+              const match = prevCard.transform.match(/scale\(([^)]+)\)/);
+              if (match) prevScale = parseFloat(match[1]);
+            }
+
+            const targetScale = 1 / scale;
+
+            // Tolerância de 2px para absorver flutuações de ponto flutuante (jitter) e evitar loop infinito (Error 185)
             if (
-              prevBackdrop.left === `${offsetLeft}px` &&
-              prevBackdrop.top === `${offsetTop}px` &&
-              prevBackdrop.width === `${width}px` &&
-              prevBackdrop.height === `${height}px`
+              Object.keys(prevBackdrop).length > 0 &&
+              Math.abs(prevLeft - offsetLeft) < 2 &&
+              Math.abs(prevTop - offsetTop) < 2 &&
+              Math.abs(prevWidth - width) < 2 &&
+              Math.abs(prevHeight - height) < 2 &&
+              Math.abs(prevScale - targetScale) < 0.05
             ) {
               return prev;
             }
+
             return {
               backdrop: {
                 position: "absolute",
@@ -51,7 +69,7 @@ export function useViewportStyles(isOpen: boolean): {
                 height: `${height}px`,
               },
               card: {
-                transform: `scale(${1 / scale})`,
+                transform: `scale(${targetScale})`,
                 transformOrigin: "center center",
                 maxHeight: `${height * 0.95}px`,
               },

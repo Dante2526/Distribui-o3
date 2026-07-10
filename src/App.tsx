@@ -2515,6 +2515,12 @@ function AppContent() {
     }),
     [],
   );
+
+  const dndModifiers = useMemo(
+    () => [scaleCompensationModifier],
+    [scaleCompensationModifier],
+  );
+
   const dragScrollRef = useRef({
     isDragging: false,
     startX: 0,
@@ -3849,7 +3855,7 @@ function AppContent() {
                     <DndContext
                       sensors={sensors}
                       collisionDetection={pointerWithin}
-                      modifiers={[scaleCompensationModifier]}
+                      modifiers={dndModifiers}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
                       onDragEnd={handleDragEnd}
