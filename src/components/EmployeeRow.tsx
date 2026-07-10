@@ -283,228 +283,417 @@ export const EmployeeRow = React.memo(
           </div>
         )}
 
+        {/* Glow Dinâmico no hover (Teste) */}
+        {index === 0 &&
+          department.id === "recepcao" &&
+          !emp.error &&
+          !isDragging &&
+          !isGhost && (
+            <div className="absolute inset-0 rounded-[14px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-[0_0_25px_rgba(10,132,255,0.25)]" />
+          )}
+
         {/* Main Row Content */}
-        <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
-          {/* Top Row: Avatar, Nome e Botão de Expandir */}
-          <div className="flex items-center justify-between w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
-            <div className="flex items-center min-w-0">
-              {/* Avatar Container with Pop-up Menu */}
-              <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const open = !showAvatarMenu;
-                    setShowAvatarMenu(open);
-                    setShowTransferMenu(false);
-                    setShowAbsentMenu(false);
-                    if (open) {
-                      setAvatarRect(e.currentTarget.getBoundingClientRect());
-                    } else {
-                      setAvatarRect(null);
-                    }
-                  }}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
-                    emp.error
-                      ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-                      : `${theme.bg} ${theme.color} hover:opacity-80`
-                  }`}
-                >
-                  <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
-                </button>
+        {index === 0 && department.id === "recepcao" ? (
+          <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3 z-10">
+            {/* NOVO DESIGN DO TOP ROW */}
+            <div className="flex w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm relative overflow-hidden">
+              <div className="flex items-center min-w-0 flex-1">
+                {/* Avatar */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const open = !showAvatarMenu;
+                      setShowAvatarMenu(open);
+                      setShowTransferMenu(false);
+                      setShowAbsentMenu(false);
+                      if (open) {
+                        setAvatarRect(e.currentTarget.getBoundingClientRect());
+                      } else {
+                        setAvatarRect(null);
+                      }
+                    }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mr-3 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
+                      emp.error
+                        ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                        : `${theme.bg} ${theme.color} hover:opacity-80`
+                    }`}
+                  >
+                    <User className="w-[16px] h-[16px]" strokeWidth={2.5} />
+                  </button>
+                </div>
+                {/* Nome e Matrícula (mais espaço liberado) */}
+                <div className="flex flex-col min-w-0 flex-1 mr-2">
+                  <span
+                    className={`font-extrabold text-[16px] tracking-wide uppercase truncate leading-none w-full block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
+                  >
+                    {emp.name}
+                  </span>
+                  <span className="text-[11px] text-[#888890] mt-1.5 font-medium truncate span-emp-matricula">
+                    MAT: {emp.matricula || "N/A"}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col min-w-0">
-                <span
-                  className={`font-bold text-[15px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
-                >
-                  {emp.name}
-                </span>
-                <span className="text-[11px] text-[#888890] mt-1 font-medium truncate span-emp-matricula">
-                  Matrícula: {emp.matricula || "N/A"}
-                </span>
+              {/* Action Buttons na Lateral Direita (Flex-Col) */}
+              <div className="relative flex flex-col items-end gap-1.5 shrink-0 justify-center">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={(e) => {
+                      if (!isAdmin) return;
+                      e.stopPropagation();
+                      const open = !showAbsentMenu;
+                      setShowAbsentMenu(open);
+                      setShowTransferMenu(false);
+                      setShowAvatarMenu(false);
+                      if (open) {
+                        setAbsentRect(e.currentTarget.getBoundingClientRect());
+                      } else {
+                        setAbsentRect(null);
+                      }
+                    }}
+                    className="h-[26px] px-2.5 flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[6px] text-[9px] tracking-tight text-center leading-none whitespace-nowrap cursor-pointer transition-colors"
+                  >
+                    AUSENTE
+                  </button>
+                  {is6HActive && (
+                    <button
+                      onClick={(e) => {
+                        if (!isAdmin) return;
+                        e.stopPropagation();
+                        handleTransferToSpecialLocal();
+                      }}
+                      className="h-[26px] px-2.5 flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[6px] text-[9px] tracking-tight text-center leading-none whitespace-nowrap cursor-pointer hover:shadow-md transition-all"
+                    >
+                      6H
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 justify-end w-full">
+                  <button
+                    onClick={(e) => {
+                      if (!isAdmin) return;
+                      e.stopPropagation();
+                      const open = !showTransferMenu;
+                      setShowTransferMenu(open);
+                      setShowAvatarMenu(false);
+                      setShowAbsentMenu(false);
+                      if (open) {
+                        setTransferRect(
+                          e.currentTarget.getBoundingClientRect(),
+                        );
+                      } else {
+                        setTransferRect(null);
+                      }
+                    }}
+                    className={`h-[26px] px-4 rounded-[6px] flex items-center justify-center transition-all outline-none btn-emp-swap cursor-pointer ${
+                      emp.error
+                        ? "bg-red-400/10 text-red-400 hover:bg-red-400/20"
+                        : `bg-[#0A84FF]/10 text-[#0A84FF] hover:bg-[#0A84FF]/20`
+                    }`}
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="relative flex items-center gap-2">
-              <button
-                onClick={(e) => {
-                  if (!isAdmin) return;
-                  e.stopPropagation();
-                  const open = !showAbsentMenu;
-                  setShowAbsentMenu(open);
-                  setShowTransferMenu(false);
-                  setShowAvatarMenu(false);
-                  if (open) {
-                    const target = e.currentTarget;
-                    const rect = target.getBoundingClientRect();
-                    const menuHeight = 350; // Altura estimada para 8 itens
-
-                    if (rect.bottom + menuHeight > window.innerHeight) {
-                      const scrollAmount =
-                        rect.bottom + menuHeight - window.innerHeight + 20;
-                      const viewport = document.querySelector(".viewport");
-                      if (viewport) {
-                        viewport.scrollBy({
-                          top: scrollAmount,
-                          behavior: "smooth",
-                        });
-                      } else {
-                        window.scrollBy({
-                          top: scrollAmount,
-                          behavior: "smooth",
-                        });
-                      }
-
-                      let frameId: number;
-                      const startTime = Date.now();
-                      const trackScroll = () => {
-                        setAbsentRect(target.getBoundingClientRect());
-                        if (Date.now() - startTime < 800) {
-                          frameId = requestAnimationFrame(trackScroll);
-                        }
-                      };
-                      frameId = requestAnimationFrame(trackScroll);
-                    } else {
-                      setAbsentRect(rect);
+            {/* NOVO DESIGN DO BOTTOM ROW (Cápsulas Linha/Loco) */}
+            <div
+              className="flex items-center justify-center gap-4 w-full mt-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cápsula LINHA */}
+              <div className="flex items-center bg-[#000000]/30 border border-white/5 rounded-[8px] overflow-hidden focus-within:border-[#0A84FF]/50 focus-within:shadow-[0_0_12px_rgba(10,132,255,0.2)] transition-all h-[42px] group/linha relative w-[130px]">
+                <div className="px-2.5 h-full flex items-center justify-center bg-black/40 border-r border-white/5 text-[#888890] group-focus-within/linha:text-[#0A84FF] transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-widest -rotate-90">
+                    LNH
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={localLine}
+                  onFocus={(e) => {
+                    if (!isAdmin) return;
+                    setShowLineDropdown(true);
+                    setLineRect(e.currentTarget.getBoundingClientRect());
+                    handleStartEditLocal();
+                  }}
+                  onBlur={(e) => {
+                    if (!isAdmin) return;
+                    if (localLine !== (emp.line || "")) {
+                      handleUpdateEmployeeFieldLocal("line", localLine);
                     }
-                  } else {
-                    setAbsentRect(null);
-                  }
-                }}
-                className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
-              >
-                AUSENTE
-              </button>
-              {is6HActive && (
+                    onStopEdit?.(emp.id);
+                    setTimeout(() => setShowLineDropdown(false), 150);
+                  }}
+                  onChange={(e) => {
+                    if (!isAdmin) return;
+                    setLocalLine(e.target.value);
+                    setShowLineDropdown(true);
+                    setLineRect(e.currentTarget.getBoundingClientRect());
+                  }}
+                  readOnly={!isAdmin}
+                  placeholder="---"
+                  className="bg-transparent flex-1 w-full text-[16px] text-white font-bold text-center uppercase focus:outline-none placeholder:text-[#888890]/30 px-1"
+                />
+              </div>
+
+              {/* Cápsula LOCO */}
+              <div className="flex items-center bg-[#000000]/30 border border-white/5 rounded-[8px] overflow-hidden focus-within:border-[#0A84FF]/50 focus-within:shadow-[0_0_12px_rgba(10,132,255,0.2)] transition-all h-[42px] group/loco relative w-[130px]">
+                <div className="px-2.5 h-full flex items-center justify-center bg-black/40 border-r border-white/5 text-[#888890] group-focus-within/loco:text-[#0A84FF] transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-widest -rotate-90">
+                    LCO
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={localMachine}
+                  onFocus={(e) => {
+                    if (!isAdmin) return;
+                    handleStartEditLocal();
+                  }}
+                  onBlur={(e) => {
+                    if (!isAdmin) return;
+                    if (localMachine !== (emp.machine || "")) {
+                      handleUpdateEmployeeFieldLocal("machine", localMachine);
+                    }
+                    onStopEdit?.(emp.id);
+                  }}
+                  onChange={(e) => {
+                    if (!isAdmin) return;
+                    setLocalMachine(e.target.value);
+                  }}
+                  readOnly={!isAdmin}
+                  placeholder="---"
+                  className="bg-transparent flex-1 w-full text-[16px] text-white font-bold text-center uppercase focus:outline-none placeholder:text-[#888890]/30 px-1"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
+            {/* Top Row: Avatar, Nome e Botão de Expandir */}
+            <div className="flex items-center justify-between w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
+              <div className="flex items-center min-w-0">
+                {/* Avatar Container with Pop-up Menu */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const open = !showAvatarMenu;
+                      setShowAvatarMenu(open);
+                      setShowTransferMenu(false);
+                      setShowAbsentMenu(false);
+                      if (open) {
+                        setAvatarRect(e.currentTarget.getBoundingClientRect());
+                      } else {
+                        setAvatarRect(null);
+                      }
+                    }}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
+                      emp.error
+                        ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                        : `${theme.bg} ${theme.color} hover:opacity-80`
+                    }`}
+                  >
+                    <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                  <span
+                    className={`font-bold text-[15px] tracking-wide uppercase truncate leading-none w-[220px] block input-emp-name ${emp.error ? "text-red-400" : "text-white"}`}
+                  >
+                    {emp.name}
+                  </span>
+                  <span className="text-[11px] text-[#888890] mt-1 font-medium truncate span-emp-matricula">
+                    Matrícula: {emp.matricula || "N/A"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="relative flex items-center gap-2">
                 <button
                   onClick={(e) => {
                     if (!isAdmin) return;
                     e.stopPropagation();
-                    handleTransferToSpecialLocal();
+                    const open = !showAbsentMenu;
+                    setShowAbsentMenu(open);
+                    setShowTransferMenu(false);
+                    setShowAvatarMenu(false);
+                    if (open) {
+                      const target = e.currentTarget;
+                      const rect = target.getBoundingClientRect();
+                      const menuHeight = 350; // Altura estimada para 8 itens
+
+                      if (rect.bottom + menuHeight > window.innerHeight) {
+                        const scrollAmount =
+                          rect.bottom + menuHeight - window.innerHeight + 20;
+                        const viewport = document.querySelector(".viewport");
+                        if (viewport) {
+                          viewport.scrollBy({
+                            top: scrollAmount,
+                            behavior: "smooth",
+                          });
+                        } else {
+                          window.scrollBy({
+                            top: scrollAmount,
+                            behavior: "smooth",
+                          });
+                        }
+
+                        let frameId: number;
+                        const startTime = Date.now();
+                        const trackScroll = () => {
+                          setAbsentRect(target.getBoundingClientRect());
+                          if (Date.now() - startTime < 800) {
+                            frameId = requestAnimationFrame(trackScroll);
+                          }
+                        };
+                        frameId = requestAnimationFrame(trackScroll);
+                      } else {
+                        setAbsentRect(rect);
+                      }
+                    } else {
+                      setAbsentRect(null);
+                    }
                   }}
-                  className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer"
+                  className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
                 >
-                  TURNO 6H
+                  AUSENTE
                 </button>
-              )}
-              <button
-                onClick={(e) => {
-                  if (!isAdmin) return;
-                  e.stopPropagation();
-                  const open = !showTransferMenu;
-                  setShowTransferMenu(open);
-                  setShowAvatarMenu(false);
-                  setShowAbsentMenu(false);
-                  if (open) {
-                    setTransferRect(e.currentTarget.getBoundingClientRect());
-                  } else {
-                    setTransferRect(null);
-                  }
-                }}
-                className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap cursor-pointer ${
-                  emp.error
-                    ? "bg-red-400/10 text-red-400 hover:bg-red-400/20"
-                    : `bg-white/5 text-[#a0aec0] hover:bg-white/10 ${getSwapHoverClass(department.id)}`
-                }`}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-              </button>
+                {is6HActive && (
+                  <button
+                    onClick={(e) => {
+                      if (!isAdmin) return;
+                      e.stopPropagation();
+                      handleTransferToSpecialLocal();
+                    }}
+                    className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded-[8px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer"
+                  >
+                    TURNO 6H
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    if (!isAdmin) return;
+                    e.stopPropagation();
+                    const open = !showTransferMenu;
+                    setShowTransferMenu(open);
+                    setShowAvatarMenu(false);
+                    setShowAbsentMenu(false);
+                    if (open) {
+                      setTransferRect(e.currentTarget.getBoundingClientRect());
+                    } else {
+                      setTransferRect(null);
+                    }
+                  }}
+                  className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap cursor-pointer ${
+                    emp.error
+                      ? "bg-red-400/10 text-red-400 hover:bg-red-400/20"
+                      : `bg-white/5 text-[#a0aec0] hover:bg-white/10 ${getSwapHoverClass(department.id)}`
+                  }`}
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Row: Inputs "Linha" e "Loco" */}
+            <div
+              className="flex items-center justify-center gap-3 w-full mt-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center relative">
+                <input
+                  type="text"
+                  value={localLine}
+                  onFocus={(e) => {
+                    if (!isAdmin) return;
+                    setShowLineDropdown(true);
+                    setLineRect(e.currentTarget.getBoundingClientRect());
+                    handleStartEditLocal();
+                  }}
+                  onBlur={(e) => {
+                    if (!isAdmin) return;
+                    if (localLine !== (emp.line || "")) {
+                      handleUpdateEmployeeFieldLocal("line", localLine);
+                    }
+
+                    const related = e.relatedTarget as HTMLElement | null;
+                    if (related && related.dataset.empId === emp.id) {
+                      // movendo foco dentro do mesmo card, mantém edição
+                    } else {
+                      onStopEdit?.(emp.id);
+                    }
+
+                    setTimeout(() => {
+                      setShowLineDropdown(false);
+                      setLineRect(null);
+                    }, 150);
+                  }}
+                  onChange={(e) => {
+                    if (!isAdmin) return;
+                    setLocalLine(e.target.value);
+                    setShowLineDropdown(true);
+                    setLineRect(e.currentTarget.getBoundingClientRect());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  readOnly={!isAdmin}
+                  data-emp-id={emp.id}
+                  className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
+                />
+                <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+                  Linha
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <input
+                  type="text"
+                  value={localMachine}
+                  onFocus={(e) => {
+                    if (!isAdmin) return;
+                    handleStartEditLocal();
+                  }}
+                  onBlur={(e) => {
+                    if (!isAdmin) return;
+                    if (localMachine !== (emp.machine || "")) {
+                      handleUpdateEmployeeFieldLocal("machine", localMachine);
+                    }
+
+                    const related = e.relatedTarget as HTMLElement | null;
+                    if (related && related.dataset.empId === emp.id) {
+                      // movendo foco dentro do mesmo card, mantém edição
+                    } else {
+                      onStopEdit?.(emp.id);
+                    }
+                  }}
+                  onChange={(e) => {
+                    if (!isAdmin) return;
+                    setLocalMachine(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  readOnly={!isAdmin}
+                  data-emp-id={emp.id}
+                  className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
+                />
+                <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
+                  Loco
+                </span>
+              </div>
             </div>
           </div>
-
-          {/* Bottom Row: Inputs "Linha" e "Loco" */}
-          <div
-            className="flex items-center justify-center gap-3 w-full mt-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col items-center relative">
-              <input
-                type="text"
-                value={localLine}
-                onFocus={(e) => {
-                  if (!isAdmin) return;
-                  setShowLineDropdown(true);
-                  setLineRect(e.currentTarget.getBoundingClientRect());
-                  handleStartEditLocal();
-                }}
-                onBlur={(e) => {
-                  if (!isAdmin) return;
-                  if (localLine !== (emp.line || "")) {
-                    handleUpdateEmployeeFieldLocal("line", localLine);
-                  }
-
-                  const related = e.relatedTarget as HTMLElement | null;
-                  if (related && related.dataset.empId === emp.id) {
-                    // movendo foco dentro do mesmo card, mantém edição
-                  } else {
-                    onStopEdit?.(emp.id);
-                  }
-
-                  setTimeout(() => {
-                    setShowLineDropdown(false);
-                    setLineRect(null);
-                  }, 150);
-                }}
-                onChange={(e) => {
-                  if (!isAdmin) return;
-                  setLocalLine(e.target.value);
-                  setShowLineDropdown(true);
-                  setLineRect(e.currentTarget.getBoundingClientRect());
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                readOnly={!isAdmin}
-                data-emp-id={emp.id}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
-              />
-              <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
-                Linha
-              </span>
-            </div>
-            <div className="flex flex-col items-center">
-              <input
-                type="text"
-                value={localMachine}
-                onFocus={(e) => {
-                  if (!isAdmin) return;
-                  handleStartEditLocal();
-                }}
-                onBlur={(e) => {
-                  if (!isAdmin) return;
-                  if (localMachine !== (emp.machine || "")) {
-                    handleUpdateEmployeeFieldLocal("machine", localMachine);
-                  }
-
-                  const related = e.relatedTarget as HTMLElement | null;
-                  if (related && related.dataset.empId === emp.id) {
-                    // movendo foco dentro do mesmo card, mantém edição
-                  } else {
-                    onStopEdit?.(emp.id);
-                  }
-                }}
-                onChange={(e) => {
-                  if (!isAdmin) return;
-                  setLocalMachine(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                readOnly={!isAdmin}
-                data-emp-id={emp.id}
-                className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
-              />
-              <span className="text-[14px] text-[#a0aec0] uppercase font-bold tracking-wider mt-1">
-                Loco
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* === PORTALS: renderizados fora do overflow-hidden === */}
 
