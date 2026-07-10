@@ -58,7 +58,15 @@ export function useViewportStyles(isOpen: boolean): {
             };
           });
         } else {
-          setViewportStyles({ backdrop: {}, card: {} });
+          setViewportStyles((prev) => {
+            if (
+              Object.keys(prev.backdrop).length === 0 &&
+              Object.keys(prev.card).length === 0
+            ) {
+              return prev;
+            }
+            return { backdrop: {}, card: {} };
+          });
         }
       }
     };
