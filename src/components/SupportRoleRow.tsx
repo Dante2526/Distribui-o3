@@ -101,7 +101,7 @@ export const SupportRoleRow = React.memo(
     });
 
     const style: React.CSSProperties = {
-      transform: CSS.Transform.toString(transform),
+      transform: CSS.Translate.toString(transform),
       transition: isDragging ? "none" : transition,
       touchAction: isAdmin ? "pan-y" : "auto",
       ...(activeEdit

@@ -54,9 +54,9 @@ export const SpecialShiftSlot = React.memo(
     });
 
     const style: React.CSSProperties = {
-      transform: CSS.Transform.toString(transform),
+      transform: CSS.Translate.toString(transform),
       transition: isDragging ? "none" : transition,
-      touchAction: "none",
+      touchAction: isAdmin ? "pan-y" : "auto",
       ...(activeEdit
         ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: "1.5px" }
         : {}),
