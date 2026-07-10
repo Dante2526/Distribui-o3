@@ -126,23 +126,27 @@ const deduplicateAnnotationItems = (
   });
 };
 
-const deduplicateEmployees = (employees: Employee[]): Employee[] => {
-  const seen = new Set<string>();
+const deduplicateEmployees = (
+  employees: Employee[],
+  globalSeen: Set<string>,
+): Employee[] => {
   return employees.filter((emp) => {
     const key = emp.id;
-    if (seen.has(key)) return false;
-    seen.add(key);
+    if (globalSeen.has(key)) return false;
+    globalSeen.add(key);
     return true;
   });
 };
 
-const deduplicateSupportRoles = (groups: SupportRole[][]): SupportRole[][] => {
+const deduplicateSupportRoles = (
+  groups: SupportRole[][],
+  globalSeen: Set<string>,
+): SupportRole[][] => {
   return groups.map((group) => {
-    const seen = new Set<string>();
     return group.filter((emp) => {
       const key = emp.id;
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (globalSeen.has(key)) return false;
+      globalSeen.add(key);
       return true;
     });
   });
@@ -341,11 +345,14 @@ function AppContent() {
             return emp;
           };
 
-          // Bug 8 e Correção de Duplicatas: normaliza e deduplica
+          const globalSeen = new Set<string>();
+
+          // Bug 8 e Correção de Duplicatas: normaliza e deduplica globalmente
           setDepartmentsData(
             state.departmentsData.map((d) => {
               const healedAndDeduped = deduplicateEmployees(
                 (d.data || []).map(healEmployee),
+                globalSeen,
               );
               return {
                 ...d,
@@ -356,7 +363,7 @@ function AppContent() {
           );
           if (state.supportRolesData && state.supportRolesData.length > 0) {
             setSupportRolesData(
-              deduplicateSupportRoles(state.supportRolesData),
+              deduplicateSupportRoles(state.supportRolesData, globalSeen),
             );
           }
           if (state.annotationsLeft && state.annotationsLeft.length > 0) {
@@ -375,7 +382,10 @@ function AppContent() {
           }
           if (state.specialShiftData) {
             setSpecialShiftData(
-              deduplicateEmployees(state.specialShiftData.map(healEmployee)),
+              deduplicateEmployees(
+                state.specialShiftData.map(healEmployee),
+                globalSeen,
+              ),
             );
           }
           setIsLoadingData(false);
