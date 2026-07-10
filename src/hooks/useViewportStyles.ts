@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type React from 'react';
+import { useState, useEffect } from "react";
+import type React from "react";
 
 /**
  * Hook reutilizável para tracking do Visual Viewport em mobile.
@@ -15,7 +15,7 @@ export function useViewportStyles(isOpen: boolean): {
     card: React.CSSProperties;
   }>({
     backdrop: {},
-    card: {}
+    card: {},
   });
 
   useEffect(() => {
@@ -26,23 +26,36 @@ export function useViewportStyles(isOpen: boolean): {
 
     const updatePosition = () => {
       if (window.visualViewport) {
-        const { width, height, offsetLeft, offsetTop, scale } = window.visualViewport;
+        const { width, height, offsetLeft, offsetTop, scale } =
+          window.visualViewport;
         const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
 
         if (isMobile) {
-          setViewportStyles({
-            backdrop: {
-              position: 'absolute',
-              left: `${offsetLeft}px`,
-              top: `${offsetTop}px`,
-              width: `${width}px`,
-              height: `${height}px`,
-            },
-            card: {
-              transform: `scale(${1 / scale})`,
-              transformOrigin: 'center center',
-              maxHeight: `${height * 0.95}px`,
+          setViewportStyles((prev) => {
+            const prevBackdrop = prev.backdrop as any;
+            // Evita re-render desnecessário se valores não mudaram (quebra loop infinito)
+            if (
+              prevBackdrop.left === `${offsetLeft}px` &&
+              prevBackdrop.top === `${offsetTop}px` &&
+              prevBackdrop.width === `${width}px` &&
+              prevBackdrop.height === `${height}px`
+            ) {
+              return prev;
             }
+            return {
+              backdrop: {
+                position: "absolute",
+                left: `${offsetLeft}px`,
+                top: `${offsetTop}px`,
+                width: `${width}px`,
+                height: `${height}px`,
+              },
+              card: {
+                transform: `scale(${1 / scale})`,
+                transformOrigin: "center center",
+                maxHeight: `${height * 0.95}px`,
+              },
+            };
           });
         } else {
           setViewportStyles({ backdrop: {}, card: {} });
@@ -50,14 +63,19 @@ export function useViewportStyles(isOpen: boolean): {
       }
     };
 
-    const handler = () => requestAnimationFrame(updatePosition);
-    window.visualViewport?.addEventListener('resize', handler);
-    window.visualViewport?.addEventListener('scroll', handler);
-    updatePosition(); 
+    let rafId: number;
+    const handler = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updatePosition);
+    };
+    window.visualViewport?.addEventListener("resize", handler);
+    window.visualViewport?.addEventListener("scroll", handler);
+    updatePosition();
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', handler);
-      window.visualViewport?.removeEventListener('scroll', handler);
+      cancelAnimationFrame(rafId);
+      window.visualViewport?.removeEventListener("resize", handler);
+      window.visualViewport?.removeEventListener("scroll", handler);
     };
   }, [isOpen]);
 
