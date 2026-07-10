@@ -1656,11 +1656,7 @@ function AppContent() {
             newData.splice(targetIdx, 0, movedItem);
             return { ...d, data: newData, count: newData.length };
           }
-          return {
-            ...d,
-            data: d.data.filter((e) => e.id !== activeId),
-            count: Math.max(0, d.data.filter((e) => e.id !== activeId).length),
-          };
+          return d;
         });
       });
     }
@@ -1692,7 +1688,7 @@ function AppContent() {
               newData.splice(targetIdx, 0, activeItem);
               return newData;
             }
-            return group.filter((e) => e.id !== activeId);
+            return group;
           });
         });
       }

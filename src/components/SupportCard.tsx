@@ -95,9 +95,18 @@ export const SupportCard = React.memo(
       id: `support-group-${groupIndex}`,
     });
 
+    const uniqueData = React.useMemo(() => {
+      const seen = new Set();
+      return roles.filter((e) => {
+        if (seen.has(e.id || e.name)) return false;
+        seen.add(e.id || e.name);
+        return true;
+      });
+    }, [roles]);
+
     const sortableItems = React.useMemo(
-      () => roles.map((e) => e.id || e.name),
-      [roles],
+      () => uniqueData.map((e) => e.id || e.name),
+      [uniqueData],
     );
 
     return (
@@ -138,7 +147,7 @@ export const SupportCard = React.memo(
             items={sortableItems}
             strategy={verticalListSortingStrategy}
           >
-            {roles.map((emp, i) => (
+            {uniqueData.map((emp, i) => (
               <SupportRoleRow
                 key={emp.id}
                 emp={emp}
