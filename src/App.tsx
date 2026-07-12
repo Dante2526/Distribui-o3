@@ -268,19 +268,20 @@ function AppContent() {
       return pointerCollisions;
     }
 
-    // 2. Se o mouse não estiver no Turno 6H, calcula interseção de área (bom para colunas grandes)
-    let rectCollisions = rectIntersection(args);
+    // 2. Se o mouse não estiver no Turno 6H, usamos a distância do centro (closestCenter)
+    // Isso é mais natural que rectIntersection para arrastar entre listas
+    let centerCollisions = closestCenter(args);
 
-    // Remove o Turno 6H das colisões de área, para ele não "roubar" os cartões de longe
-    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
+    // Remove o Turno 6H das colisões, para ele não "roubar" os cartões de longe
+    centerCollisions = centerCollisions.filter((c) => c.id !== "special-shift");
 
-    if (rectCollisions.length > 0) {
-      return rectCollisions;
+    if (centerCollisions.length > 0) {
+      return centerCollisions;
     }
 
-    // 3. Fallback final (se soltou meio fora)
+    // 3. Fallback final
     if (pointerCollisions.length > 0) return pointerCollisions;
-    return closestCenter(args);
+    return centerCollisions;
   }, []);
 
   // Configurações e estados do painel
