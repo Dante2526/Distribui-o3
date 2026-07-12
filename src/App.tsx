@@ -258,31 +258,49 @@ function AppContent() {
   const customCollisionDetection = useCallback((args: any) => {
     // 1. Tenta achar colisão exata do mouse (ótimo para precisão e para o Turno 6H)
     const pointerCollisions = pointerWithin(args);
-    const isPointerInSpecialShift = pointerCollisions.some(
-      (c) => c.id === "special-shift",
-    );
-
-    // Se o mouse estiver exatamente sobre uma área válida e NÃO for uma das colunas grandes, usa ela.
-    // (Isso garante que o Turno 6H só pega se o mouse estiver DENTRO dele).
-    if (isPointerInSpecialShift) {
+    if (pointerCollisions.some((c) => c.id === "special-shift")) {
       return pointerCollisions;
     }
 
-    // 2. Se o mouse não estiver no Turno 6H, calcula interseção de área (rectIntersection)
-    // Isso é perfeito porque as colunas têm alturas muito diferentes (ex: Classificação tem 37 e Formação 1).
-    // O rectIntersection usa a área de sobreposição, enquanto o closestCenter enlouquece com centros desalinhados.
-    let rectCollisions = rectIntersection(args);
+    // 2. Colisão pelo Centro Geométrico do Cartão
+    // Resolve o bug do rectIntersection (exigir 51% de área) e o bug do closestCenter (alturas de colunas diferentes).
+    const { collisionRect, droppableRects, droppableContainers } = args;
+    const centerX = collisionRect.left + collisionRect.width / 2;
+    const centerY = collisionRect.top + collisionRect.height / 2;
 
-    // Remove o Turno 6H das colisões, para ele não "roubar" os cartões de longe
-    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
+    const centerCollisions: any[] = [];
 
-    if (rectCollisions.length > 0) {
-      return rectCollisions;
+    for (const container of droppableContainers) {
+      if (container.id === "special-shift") continue;
+
+      const rect = droppableRects.get(container.id);
+      if (rect) {
+        if (
+          centerX >= rect.left &&
+          centerX <= rect.right &&
+          centerY >= rect.top &&
+          centerY <= rect.bottom
+        ) {
+          centerCollisions.push({
+            id: container.id,
+            data: { droppableContainer: container, value: 1 },
+          });
+        }
+      }
     }
 
-    // 3. Fallback final
-    if (pointerCollisions.length > 0) return pointerCollisions;
-    return rectCollisions;
+    if (centerCollisions.length > 0) {
+      return centerCollisions;
+    }
+
+    // 3. Fallback: Se o centro estiver fora da tela, tenta área (rectIntersection)
+    let rectCollisions = rectIntersection(args);
+    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
+
+    if (rectCollisions.length > 0) return rectCollisions;
+
+    // 4. Último fallback
+    return pointerCollisions;
   }, []);
 
   // Configurações e estados do painel
