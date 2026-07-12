@@ -829,56 +829,63 @@ export function useDragAndDrop({
           newRole,
         );
 
-        // Atualizar a ORDEM de todos os elementos da coluna de destino
-        const updates: { id: string; ordem: number }[] = [];
+        // Atualizar a ORDEM de todos os elementos da coluna de destino usando o estado mais atual
         const localLower = newLocal.toLowerCase();
 
-        if (localLower === "classificacao" || localLower === "classificação") {
-          const dept = departmentsDataRef.current.find(
-            (d) => d.id === "classificacao",
-          );
-          dept?.data.forEach((emp, i) =>
-            updates.push({ id: emp.id, ordem: i }),
-          );
-        } else if (localLower === "formacao" || localLower === "formação") {
-          const dept = departmentsDataRef.current.find(
-            (d) => d.id === "formacao",
-          );
-          dept?.data.forEach((emp, i) =>
-            updates.push({ id: emp.id, ordem: i }),
-          );
-        } else if (
+        if (
+          localLower === "classificacao" ||
+          localLower === "classificação" ||
+          localLower === "formacao" ||
+          localLower === "formação" ||
           localLower.startsWith("recepcao") ||
           localLower.startsWith("recepção")
         ) {
-          const dept = departmentsDataRef.current.find(
-            (d) => d.id === "recepcao",
-          );
-          dept?.data.forEach((emp, i) =>
-            updates.push({ id: emp.id, ordem: i }),
-          );
-        } else if (localLower === "turno 6h") {
-          specialShiftDataRef.current.forEach((emp, i) =>
-            updates.push({ id: emp.id, ordem: i }),
-          );
-        } else if (localLower.startsWith("apoio ")) {
-          const suffix = localLower.replace("apoio ", "").trim();
-          let idx = -1;
-          if (suffix === "recepcao" || suffix === "recepção") idx = 0;
-          else if (suffix === "classificacao" || suffix === "classificação")
-            idx = 1;
-          else if (suffix === "formacao" || suffix === "formação") idx = 2;
-          else idx = parseInt(suffix, 10);
-
-          if (!isNaN(idx) && supportRolesDataRef.current[idx]) {
-            supportRolesDataRef.current[idx].forEach((emp, i) =>
+          setDepartmentsData((prev) => {
+            const updates: { id: string; ordem: number }[] = [];
+            const deptId = localLower.includes("classifica")
+              ? "classificacao"
+              : localLower.includes("formacao")
+                ? "formacao"
+                : "recepcao";
+            const dept = prev.find((d) => d.id === deptId);
+            dept?.data.forEach((emp, i) =>
               updates.push({ id: emp.id, ordem: i }),
             );
-          }
-        }
+            if (updates.length > 0)
+              firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+            return prev;
+          });
+        } else if (localLower === "turno 6h") {
+          setSpecialShiftData((prev) => {
+            const updates: { id: string; ordem: number }[] = [];
+            prev.forEach((emp, i) => updates.push({ id: emp.id, ordem: i }));
+            if (updates.length > 0)
+              firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+            return prev;
+          });
+        } else if (localLower.startsWith("apoio ")) {
+          setSupportRolesData((prev) => {
+            const updates: { id: string; ordem: number }[] = [];
+            const suffix = localLower.replace("apoio ", "").trim();
+            let idx = -1;
+            if (suffix === "recepcao" || suffix === "recepção") idx = 0;
+            else if (suffix === "classificacao" || suffix === "classificação")
+              idx = 1;
+            else if (suffix === "formacao" || suffix === "formação") idx = 2;
+            else idx = parseInt(suffix, 10);
 
-        if (updates.length > 0) {
-          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+            if (!isNaN(idx) && prev[idx]) {
+              prev[idx].forEach((emp, i) =>
+                updates.push({ id: emp.id, ordem: i }),
+              );
+              if (updates.length > 0)
+                firestoreService.updateEmployeeOrdersDSS(
+                  selectedTurma,
+                  updates,
+                );
+            }
+            return prev;
+          });
         }
       } else {
         // Fallback: se não conseguiu determinar um novo local válido, reverte!
