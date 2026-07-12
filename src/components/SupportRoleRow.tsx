@@ -13,7 +13,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { SupportRole, StatusType, ActiveEdit } from "../types";
 import { STATUS_METADATA } from "../types";
 import { getDeptTheme, SUPPORT_ROLES_OPTIONS } from "../constants/data";
-import { PortalMenu } from "./PortalMenu";
+import { useRowPortalsDispatch } from "../contexts/RowPortalsContext";
 import { DeptIcon } from "./DeptIcon";
 
 export const SupportRoleRow = React.memo(
@@ -78,10 +78,8 @@ export const SupportRoleRow = React.memo(
     onStartEdit?: (empId: string) => void;
     onStopEdit?: (empId: string) => void;
   }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [isTransferOpen, setIsTransferOpen] = useState(false);
-    const [showAbsentMenu, setShowAbsentMenu] = useState(false);
-    const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+    const { openPortal } = useRowPortalsDispatch();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const {
       attributes,
@@ -130,11 +128,6 @@ export const SupportRoleRow = React.memo(
     ];
     const theme = themes[groupIndex] || themes[0];
 
-    const [absentRect, setAbsentRect] = useState<DOMRect | null>(null);
-    const [transferRect, setTransferRect] = useState<DOMRect | null>(null);
-    const [roleRect, setRoleRect] = useState<DOMRect | null>(null);
-    const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
-
     const handleUpdateRoleLocal = useCallback(
       (newRole: string) => {
         onUpdateRole(groupIndex, index, newRole);
@@ -171,26 +164,36 @@ export const SupportRoleRow = React.memo(
       onDelete(groupIndex, index);
     }, [onDelete, groupIndex, index]);
 
+    const actionsRef = useRef({
+      onDelete: handleDeleteLocal,
+      onTransfer: handleMoveLocal,
+      onAbsent: handleMarkAbsentLocal,
+      onSelectRole: handleUpdateRoleLocal,
+      onClose: () => setIsMenuOpen(false)
+    });
+
+    useEffect(() => {
+      actionsRef.current = {
+        onDelete: handleDeleteLocal,
+        onTransfer: handleMoveLocal,
+        onAbsent: handleMarkAbsentLocal,
+        onSelectRole: handleUpdateRoleLocal,
+        onClose: () => setIsMenuOpen(false)
+      };
+    });
+
     const isMountedRef = useRef(false);
     useEffect(() => {
       if (!isMountedRef.current) {
         isMountedRef.current = true;
         return;
       }
-      if (isOpen || isTransferOpen || showAbsentMenu || showAvatarMenu) {
+      if (isMenuOpen) {
         if (emp.id) onStartEdit?.(emp.id);
       } else {
         if (emp.id) onStopEdit?.(emp.id);
       }
-    }, [
-      isOpen,
-      isTransferOpen,
-      showAbsentMenu,
-      showAvatarMenu,
-      emp.id,
-      onStartEdit,
-      onStopEdit,
-    ]);
+    }, [isMenuOpen, emp.id, onStartEdit, onStopEdit]);
 
     return (
       <div
@@ -215,7 +218,7 @@ export const SupportRoleRow = React.memo(
         className={`support-role-row px-4 py-3 flex items-center rounded-[12px] ${isDragActive ? "" : "transition duration-300"} relative min-h-[80px] w-full ${
           isDragging || isGhost
             ? "opacity-30 border-dashed border border-white/10 bg-white/[0.02] shadow-none pointer-events-none"
-            : showAbsentMenu
+            : isMenuOpen
               ? "bg-[#111217] opacity-40 z-[100] shadow-none"
               : `bg-[#111217] hover:bg-[#252836] ${theme.borderLeft} shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-grab`
         }`}
@@ -248,16 +251,8 @@ export const SupportRoleRow = React.memo(
           <button
             onClick={(e) => {
               e.stopPropagation();
-              const open = !showAvatarMenu;
-              setShowAvatarMenu(open);
-              setIsTransferOpen(false);
-              setIsOpen(false);
-              setShowAbsentMenu(false);
-              if (open) {
-                setAvatarRect(e.currentTarget.getBoundingClientRect());
-              } else {
-                setAvatarRect(null);
-              }
+              setIsMenuOpen(true);
+              openPortal('avatar', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
             }}
             className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2.5 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${theme.bg} ${theme.text}`}
           >
@@ -302,46 +297,8 @@ export const SupportRoleRow = React.memo(
               onClick={(e) => {
                 if (!isAdmin) return;
                 e.stopPropagation();
-                const open = !showAbsentMenu;
-                setShowAbsentMenu(open);
-                setIsTransferOpen(false);
-                setIsOpen(false);
-                if (open) {
-                  const target = e.currentTarget;
-                  const rect = target.getBoundingClientRect();
-                  const menuHeight = 350; // Altura estimada para 8 itens
-
-                  if (rect.bottom + menuHeight > window.innerHeight) {
-                    const scrollAmount =
-                      rect.bottom + menuHeight - window.innerHeight + 20;
-                    const viewport = document.querySelector(".viewport");
-                    if (viewport) {
-                      viewport.scrollBy({
-                        top: scrollAmount,
-                        behavior: "smooth",
-                      });
-                    } else {
-                      window.scrollBy({
-                        top: scrollAmount,
-                        behavior: "smooth",
-                      });
-                    }
-
-                    let frameId: number;
-                    const startTime = Date.now();
-                    const trackScroll = () => {
-                      setAbsentRect(target.getBoundingClientRect());
-                      if (Date.now() - startTime < 800) {
-                        frameId = requestAnimationFrame(trackScroll);
-                      }
-                    };
-                    frameId = requestAnimationFrame(trackScroll);
-                  } else {
-                    setAbsentRect(rect);
-                  }
-                } else {
-                  setAbsentRect(null);
-                }
+                setIsMenuOpen(true);
+                openPortal('absent', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
               }}
               className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150 shrink-0"
             >
@@ -367,15 +324,8 @@ export const SupportRoleRow = React.memo(
               <button
                 onClick={(e) => {
                   if (!isAdmin) return;
-                  const open = !isTransferOpen;
-                  setIsTransferOpen(open);
-                  setIsOpen(false);
-                  setShowAbsentMenu(false);
-                  if (open) {
-                    setTransferRect(e.currentTarget.getBoundingClientRect());
-                  } else {
-                    setTransferRect(null);
-                  }
+                  setIsMenuOpen(true);
+                  openPortal('transfer', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, otherDepts: [{ id: "0", title: "Apoio 1", order: 0 }, { id: "1", title: "Apoio 2", order: 1 }, { id: "2", title: "Apoio 3", order: 2 }].filter(d => d.id !== groupIndex.toString()), isDarkMode });
                 }}
                 className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white cursor-pointer"
               >
@@ -388,15 +338,8 @@ export const SupportRoleRow = React.memo(
               <button
                 onClick={(e) => {
                   if (!isAdmin) return;
-                  const open = !isOpen;
-                  setIsOpen(open);
-                  setIsTransferOpen(false);
-                  setShowAbsentMenu(false);
-                  if (open) {
-                    setRoleRect(e.currentTarget.getBoundingClientRect());
-                  } else {
-                    setRoleRect(null);
-                  }
+                  setIsMenuOpen(true);
+                  openPortal('role', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, localLine: emp.role, isDarkMode });
                 }}
                 className="relative flex items-center justify-center text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 h-[34px] rounded-lg transition-colors outline-none shadow-sm w-full min-w-[130px] shrink-0 cursor-pointer"
               >
@@ -409,273 +352,6 @@ export const SupportRoleRow = React.memo(
           </div>
         </div>
 
-        {/* === PORTALS === */}
-
-        {/* Portal: Menu Deletar Apoio (Avatar) */}
-        {showAvatarMenu && avatarRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setShowAvatarMenu(false);
-                setAvatarRect(null);
-              }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -5 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -5 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                position: "fixed",
-                top: avatarRect.bottom + 6,
-                left: avatarRect.left,
-                transformOrigin: "top left",
-                transform: "scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-              className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAvatarMenu(false);
-                  setAvatarRect(null);
-                  handleDeleteLocal();
-                }}
-                className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
-              >
-                <Trash2 className="w-[16px] h-[16px] mr-2" />
-                Deletar
-              </button>
-            </motion.div>
-          </PortalMenu>
-        )}
-
-        {/* Portal: Menu Transferir Apoio */}
-        {isTransferOpen && transferRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setIsTransferOpen(false);
-                setTransferRect(null);
-              }}
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: transferRect.bottom + 6,
-                left: transferRect.right - 160,
-                transformOrigin: "top right",
-                transform: "scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className={`w-[190px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode
-                    ? "bg-slate-950/40 border border-white/10 text-white"
-                    : "bg-white/40 border border-slate-300/50 text-slate-800"
-                }`}
-              >
-                <div className="px-3 py-1 text-[9px] font-extrabold text-[#a0aec0] uppercase tracking-wider select-none">
-                  Mudar para
-                </div>
-                {groupsList.map((g) => {
-                  const names = ["Recepção", "Classificação", "Formação"];
-                  const deptId =
-                    ["recepcao", "classificacao", "formacao"][g] || "";
-                  const deptTheme = getDeptTheme(deptId);
-                  return (
-                    <button
-                      key={g}
-                      onClick={() => {
-                        handleMoveLocal(g);
-                        setIsTransferOpen(false);
-                        setTransferRect(null);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                        isDarkMode
-                          ? "text-white hover:bg-white/10 active:bg-white/15"
-                          : "text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {deptTheme && (
-                          <div
-                            className={`p-1.5 rounded-[8px] ${deptTheme.bg} ${deptTheme.color}`}
-                          >
-                            <DeptIcon
-                              iconName={deptTheme.iconName as string}
-                              className="w-3.5 h-3.5 shrink-0"
-                            />
-                          </div>
-                        )}
-                        <span>{names[g] || `Grupo ${g + 1}`}</span>
-                      </div>
-                      <ChevronRight
-                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                          isDarkMode
-                            ? "text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5"
-                            : "text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-
-        {/* Portal: Dropdown de Role Apoio */}
-        {isOpen && roleRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setIsOpen(false);
-                setRoleRect(null);
-              }}
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: roleRect.bottom + 6,
-                left: roleRect.left + roleRect.width / 2,
-                transformOrigin: "top center",
-                transform: "translateX(-50%) scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className={`w-[145px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode
-                    ? "bg-slate-950/40 border border-white/10 text-white"
-                    : "bg-white/40 border border-slate-300/50 text-slate-800"
-                }`}
-              >
-                {SUPPORT_ROLES_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      handleUpdateRoleLocal(opt);
-                      setIsOpen(false);
-                      setRoleRect(null);
-                    }}
-                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[12px] text-[11px] font-bold w-full transition-all text-center uppercase cursor-pointer border-none bg-transparent ${
-                      opt === emp.role
-                        ? isDarkMode
-                          ? "text-[#FF6B00] bg-white/5 font-extrabold"
-                          : "text-[#FF6B00] bg-slate-800/5 font-extrabold"
-                        : isDarkMode
-                          ? "text-white hover:bg-white/10 active:bg-white/15"
-                          : "text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15"
-                    }`}
-                  >
-                    <span>{opt}</span>
-                    {opt === emp.role && (
-                      <CheckCircle2 className="w-3 h-3 text-[#FF6B00] shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-
-        {/* Portal: Menu Ausente Apoio */}
-        {showAbsentMenu && absentRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setShowAbsentMenu(false);
-                setAbsentRect(null);
-              }}
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: absentRect.bottom + 10,
-                left: absentRect.left + absentRect.width / 2,
-                transform: "translateX(-50%) scale(var(--app-scale, 1))",
-                transformOrigin: "top center",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                style={{
-                  maxHeight: `max(100px, ${window.innerHeight - absentRect.bottom - 20}px)`,
-                }}
-                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-y-auto overflow-x-hidden hide-scrollbar flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                  isDarkMode
-                    ? "bg-slate-950/40 border border-white/10 text-white"
-                    : "bg-white/40 border border-slate-300/50 text-slate-800"
-                }`}
-              >
-                {[
-                  { type: "FÉRIAS" },
-                  { type: "FORA" },
-                  { type: "ATM" },
-                  { type: "RESTRIÇÃO" },
-                  { type: "INSS" },
-                  { type: "TREINAMENTO" },
-                  { type: "REVEZAMENTO" },
-                  { type: "ESTÁGIO" },
-                ].map((opt) => {
-                  const meta = STATUS_METADATA[opt.type as StatusType];
-                  const Icon = meta.icon;
-                  const colorClass = isDarkMode
-                    ? meta.colorDark
-                    : meta.colorLight;
-
-                  return (
-                    <button
-                      key={opt.type}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAbsentMenu(false);
-                        setAbsentRect(null);
-                        handleMarkAbsentLocal(opt.type as StatusType);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                        isDarkMode
-                          ? "text-white hover:bg-white/10 active:bg-white/15"
-                          : "text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
-                        <span className={colorClass}>{meta.label}</span>
-                      </div>
-                      <ChevronRight
-                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                          isDarkMode
-                            ? "text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5"
-                            : "text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
       </div>
     );
   },

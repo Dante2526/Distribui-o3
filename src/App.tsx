@@ -313,15 +313,21 @@ function AppContent() {
       (dssEmployees) => {
         dssEmployeesRef.current = dssEmployees;
 
-        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData));
-        const newSupport = JSON.parse(JSON.stringify(initialSupportData));
-        const newAnnotationsLeft = JSON.parse(
-          JSON.stringify(initialAnnotationsLeft),
-        );
-        const newAnnotationsRight = JSON.parse(
-          JSON.stringify(initialAnnotationsRight),
-        );
-        const newSpecial = [];
+        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map((d: any) => {
+          d.data = [];
+          d.count = 0;
+          return d;
+        });
+        const newSupport = initialSupportData.map(() => [] as any[]);
+        const newAnnotationsLeft = JSON.parse(JSON.stringify(initialAnnotationsLeft)).map((g: any) => {
+          g.items = [];
+          return g;
+        });
+        const newAnnotationsRight = JSON.parse(JSON.stringify(initialAnnotationsRight)).map((g: any) => {
+          g.items = [];
+          return g;
+        });
+        const newSpecial: any[] = [];
 
         dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
@@ -336,46 +342,45 @@ function AppContent() {
                   .toLowerCase()
               : "";
             if (statusNormal.includes("ferias")) {
-              newAnnotationsRight[2].employees.push(emp);
+              newAnnotationsRight[2].items.push(emp);
             } else if (statusNormal.includes("inss")) {
-              newAnnotationsRight[0].employees.push(emp);
+              newAnnotationsRight[0].items.push(emp);
             } else if (statusNormal.includes("fora")) {
-              newAnnotationsRight[1].employees.push(emp);
+              newAnnotationsRight[1].items.push(emp);
             } else if (statusNormal.includes("atestado")) {
-              newAnnotationsLeft[1].employees.push(emp);
+              newAnnotationsLeft[1].items.push(emp);
             } else {
-              newAnnotationsRight[1].employees.push(emp); // Default Fora
+              newAnnotationsRight[1].items.push(emp); // Default Fora
             }
             return; // Skip other boards if absent
           }
 
-          if (rawLocal === "Classificacao") {
-            newDepts.find((d) => d.id === "Classificacao")?.employees.push(emp);
-          } else if (rawLocal === "Formacao") {
-            newDepts.find((d) => d.id === "Formacao")?.employees.push(emp);
-          } else if (rawLocal === "Triagem") {
-            newDepts.find((d) => d.id === "Triagem")?.employees.push(emp);
-          } else if (rawLocal.startsWith("Recepcao ")) {
-            const rec = newDepts.find((d) => d.id === "Recepcao");
-            if (rec) {
-              const sub = rec.subGroups.find((g) => g.id === rawLocal);
-              if (sub) sub.employees.push(emp);
-              else rec.employees.push(emp);
-            }
-          } else if (rawLocal === "Turno 6H") {
+          const localLower = rawLocal.toLowerCase();
+
+          if (localLower === "classificacao" || localLower === "classificação") {
+            newDepts.find((d: any) => d.id === "classificacao")?.data.push(emp);
+          } else if (localLower === "formacao" || localLower === "formação") {
+            newDepts.find((d: any) => d.id === "formacao")?.data.push(emp);
+          } else if (localLower.startsWith("recepcao") || localLower.startsWith("recepção")) {
+            newDepts.find((d: any) => d.id === "recepcao")?.data.push(emp);
+          } else if (localLower === "turno 6h") {
             newSpecial.push(emp);
-          } else if (rawLocal.startsWith("Apoio ")) {
-            const suffix = rawLocal.replace("Apoio ", "");
+          } else if (localLower.startsWith("apoio ")) {
+            const suffix = localLower.replace("apoio ", "").trim();
             let idx = -1;
-            if (suffix === "Recepcao") idx = 0;
-            else if (suffix === "Classificacao") idx = 1;
-            else if (suffix === "Formacao") idx = 2;
+            if (suffix === "recepcao" || suffix === "recepção") idx = 0;
+            else if (suffix === "classificacao" || suffix === "classificação") idx = 1;
+            else if (suffix === "formacao" || suffix === "formação") idx = 2;
             else idx = parseInt(suffix, 10);
 
             if (!isNaN(idx) && newSupport[idx]) {
               newSupport[idx].push(emp);
             }
           }
+        });
+
+        newDepts.forEach((d: any) => {
+          d.count = d.data.length;
         });
 
         if (!hasInitialDataLoadedRef.current) {

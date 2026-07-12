@@ -18,7 +18,7 @@ import type {
 } from "../types";
 import { STATUS_METADATA } from "../types";
 import { getDeptTheme, PREDEFINED_LINES } from "../constants/data";
-import { PortalMenu } from "./PortalMenu";
+import { useRowPortalsDispatch } from "../contexts/RowPortalsContext";
 import { DeptIcon } from "./DeptIcon";
 
 const BORDER_LEFT_MAP: Record<string, string> = {
@@ -80,10 +80,9 @@ export const EmployeeRow = React.memo(
     isDragActive?: boolean;
     isAdmin?: boolean;
   }) => {
-    const [showLineDropdown, setShowLineDropdown] = useState(false);
-    const [showAvatarMenu, setShowAvatarMenu] = useState(false);
-    const [showTransferMenu, setShowTransferMenu] = useState(false);
-    const [showAbsentMenu, setShowAbsentMenu] = useState(false);
+    const { openPortal, closePortal } = useRowPortalsDispatch();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     const theme = getDeptTheme(department.id);
     const otherDepts = useMemo(
       () => departmentOptions.filter((d) => d.id !== department.id),
@@ -128,11 +127,6 @@ export const EmployeeRow = React.memo(
     const getSwapHoverClass = (deptId: string) => {
       return SWAP_HOVER_MAP[deptId] || DEFAULT_SWAP_HOVER;
     };
-
-    const [avatarRect, setAvatarRect] = useState<DOMRect | null>(null);
-    const [transferRect, setTransferRect] = useState<DOMRect | null>(null);
-    const [lineRect, setLineRect] = useState<DOMRect | null>(null);
-    const [absentRect, setAbsentRect] = useState<DOMRect | null>(null);
 
     const [localLine, setLocalLine] = useState(emp.line || "");
     const [localMachine, setLocalMachine] = useState(emp.machine || "");
@@ -179,6 +173,24 @@ export const EmployeeRow = React.memo(
       onStartEdit?.(emp.id);
     }, [onStartEdit, emp.id, isAdmin]);
 
+    const actionsRef = useRef({
+      onDelete: handleDeleteLocal,
+      onTransfer: handleMoveLocal,
+      onAbsent: handleMarkAbsentLocal,
+      onSelectLine: (linha: string) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); },
+      onClose: () => setIsMenuOpen(false)
+    });
+
+    useEffect(() => {
+      actionsRef.current = {
+        onDelete: handleDeleteLocal,
+        onTransfer: handleMoveLocal,
+        onAbsent: handleMarkAbsentLocal,
+        onSelectLine: (linha: string) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); },
+        onClose: () => setIsMenuOpen(false)
+      };
+    });
+
     const isMountedRef = useRef(false);
     const onStartEditRef = useRef(onStartEdit);
     const onStopEditRef = useRef(onStopEdit);
@@ -196,25 +208,12 @@ export const EmployeeRow = React.memo(
         isMountedRef.current = true;
         return;
       }
-      if (
-        showAbsentMenu ||
-        showLineDropdown ||
-        showTransferMenu ||
-        showAvatarMenu
-      ) {
+      if (isMenuOpen) {
         if (emp.id) onStartEditRef.current?.(emp.id);
       } else {
-        // Quando todos os menus estão fechados, e se não houver um input ativo dentro do cartão (o blur do input lidaria com a parte dele),
-        // nós notificamos para parar a edição originada pelos menus.
         if (emp.id) onStopEditRef.current?.(emp.id);
       }
-    }, [
-      showAbsentMenu,
-      showLineDropdown,
-      showTransferMenu,
-      showAvatarMenu,
-      emp.id,
-    ]);
+    }, [isMenuOpen, emp.id]);
 
     return (
       <motion.div
@@ -223,8 +222,6 @@ export const EmployeeRow = React.memo(
         {...attributes}
         {...(isAdmin ? listeners : {})}
         onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
-          // Força o blur do input ativo ao clicar no cartão (ex: arrastar)
-          // NÃO chama onStopEdit aqui pois o onBlur do input já cuida disso
           if (
             e.target instanceof HTMLElement &&
             e.target.tagName !== "INPUT" &&
@@ -255,12 +252,11 @@ export const EmployeeRow = React.memo(
         } ${getBorderLeftClass(department.id, emp.error)} ${
           isDragging || isGhost
             ? "opacity-30 border-dashed border-2 border-white/10 bg-white/[0.02] shadow-none pointer-events-none"
-            : showAbsentMenu
-              ? "opacity-40 z-[100] shadow-none"
+            : isMenuOpen
+              ? "bg-[#111217] opacity-40 z-[100] shadow-none"
               : "shadow-md hover:shadow-xl hover:-translate-y-1 cursor-grab"
         }`}
       >
-        {/* Active Edit Badge */}
         {activeEdit && !isDragOverlay && (
           <div
             className={`absolute -top-3 right-0 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg border flex items-center gap-2 z-50 animate-[fadeIn_0.2s_ease-out] ${
@@ -283,25 +279,15 @@ export const EmployeeRow = React.memo(
           </div>
         )}
 
-        {/* Main Row Content */}
         <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
-          {/* Top Row: Avatar, Nome e Botão de Expandir */}
           <div className="flex items-center justify-between w-full bg-gradient-to-r from-[#1E2029] to-[#2A2D3E] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
             <div className="flex items-center min-w-0">
-              {/* Avatar Container with Pop-up Menu */}
               <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const open = !showAvatarMenu;
-                    setShowAvatarMenu(open);
-                    setShowTransferMenu(false);
-                    setShowAbsentMenu(false);
-                    if (open) {
-                      setAvatarRect(e.currentTarget.getBoundingClientRect());
-                    } else {
-                      setAvatarRect(null);
-                    }
+                    setIsMenuOpen(true);
+                    openPortal('avatar', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
                   }}
                   className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
                     emp.error
@@ -325,52 +311,13 @@ export const EmployeeRow = React.memo(
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="relative flex items-center gap-2">
               <button
                 onClick={(e) => {
                   if (!isAdmin) return;
                   e.stopPropagation();
-                  const open = !showAbsentMenu;
-                  setShowAbsentMenu(open);
-                  setShowTransferMenu(false);
-                  setShowAvatarMenu(false);
-                  if (open) {
-                    const target = e.currentTarget;
-                    const rect = target.getBoundingClientRect();
-                    const menuHeight = 350; // Altura estimada para 8 itens
-
-                    if (rect.bottom + menuHeight > window.innerHeight) {
-                      const scrollAmount =
-                        rect.bottom + menuHeight - window.innerHeight + 20;
-                      const viewport = document.querySelector(".viewport");
-                      if (viewport) {
-                        viewport.scrollBy({
-                          top: scrollAmount,
-                          behavior: "smooth",
-                        });
-                      } else {
-                        window.scrollBy({
-                          top: scrollAmount,
-                          behavior: "smooth",
-                        });
-                      }
-
-                      let frameId: number;
-                      const startTime = Date.now();
-                      const trackScroll = () => {
-                        setAbsentRect(target.getBoundingClientRect());
-                        if (Date.now() - startTime < 800) {
-                          frameId = requestAnimationFrame(trackScroll);
-                        }
-                      };
-                      frameId = requestAnimationFrame(trackScroll);
-                    } else {
-                      setAbsentRect(rect);
-                    }
-                  } else {
-                    setAbsentRect(null);
-                  }
+                  setIsMenuOpen(true);
+                  openPortal('absent', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
                 }}
                 className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
               >
@@ -392,15 +339,8 @@ export const EmployeeRow = React.memo(
                 onClick={(e) => {
                   if (!isAdmin) return;
                   e.stopPropagation();
-                  const open = !showTransferMenu;
-                  setShowTransferMenu(open);
-                  setShowAvatarMenu(false);
-                  setShowAbsentMenu(false);
-                  if (open) {
-                    setTransferRect(e.currentTarget.getBoundingClientRect());
-                  } else {
-                    setTransferRect(null);
-                  }
+                  setIsMenuOpen(true);
+                  openPortal('transfer', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, otherDepts, isDarkMode });
                 }}
                 className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap cursor-pointer ${
                   emp.error
@@ -424,8 +364,8 @@ export const EmployeeRow = React.memo(
                 value={localLine}
                 onFocus={(e) => {
                   if (!isAdmin) return;
-                  setShowLineDropdown(true);
-                  setLineRect(e.currentTarget.getBoundingClientRect());
+                  setIsMenuOpen(true);
+                  openPortal('line', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, localLine, isDarkMode });
                   handleStartEditLocal();
                 }}
                 onBlur={(e) => {
@@ -442,15 +382,13 @@ export const EmployeeRow = React.memo(
                   }
 
                   setTimeout(() => {
-                    setShowLineDropdown(false);
-                    setLineRect(null);
+                    closePortal();
                   }, 150);
                 }}
                 onChange={(e) => {
                   if (!isAdmin) return;
                   setLocalLine(e.target.value);
-                  setShowLineDropdown(true);
-                  setLineRect(e.currentTarget.getBoundingClientRect());
+                  openPortal('line', e.currentTarget.getBoundingClientRect(), emp.id, { onSelectLine: (linha) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); }, localLine: e.target.value, isDarkMode });
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -505,285 +443,6 @@ export const EmployeeRow = React.memo(
             </div>
           </div>
         </div>
-
-        {/* === PORTALS: renderizados fora do overflow-hidden === */}
-
-        {/* Portal: Menu Deletar (Avatar) */}
-        {showAvatarMenu && avatarRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setShowAvatarMenu(false);
-                setAvatarRect(null);
-              }}
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: avatarRect.bottom + 6,
-                left: avatarRect.left,
-                transformOrigin: "top left",
-                transform: "scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className="w-[120px] bg-[#1E2029]/80 backdrop-blur-md border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowAvatarMenu(false);
-                    setAvatarRect(null);
-                    handleDeleteLocal();
-                  }}
-                  className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left"
-                >
-                  <Trash2 className="w-[16px] h-[16px] mr-2" />
-                  Deletar
-                </button>
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-
-        {/* Portal: Menu Transferir */}
-        {showTransferMenu && transferRect && (
-          <PortalMenu>
-            <div
-              className="fixed inset-0 z-[999]"
-              onClick={() => {
-                setShowTransferMenu(false);
-                setTransferRect(null);
-              }}
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: transferRect.bottom + 6,
-                left: transferRect.right - 190,
-                transformOrigin: "top right",
-                transform: "scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className="w-[190px] bg-[#1E2029]/80 backdrop-blur-md border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
-              >
-                <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">
-                  Transferir para
-                </div>
-                {otherDepts.map((d) => {
-                  const deptTheme = getDeptTheme(d.id);
-                  return (
-                    <button
-                      key={d.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMoveLocal(d.id);
-                        setShowTransferMenu(false);
-                        setTransferRect(null);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                        isDarkMode
-                          ? "text-white hover:bg-white/10 active:bg-white/15"
-                          : "text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-1.5 rounded-[8px] ${deptTheme.bg} ${deptTheme.color}`}
-                        >
-                          <DeptIcon
-                            iconName={deptTheme.iconName as string}
-                            className="w-3.5 h-3.5 shrink-0"
-                          />
-                        </div>
-                        <span>{d.title}</span>
-                      </div>
-                      <ChevronRight
-                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                          isDarkMode
-                            ? "text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5"
-                            : "text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </PortalMenu>
-        )}
-
-        {/* Portal: Dropdown de Linhas */}
-        <AnimatePresence>
-          {showLineDropdown &&
-            lineRect &&
-            PREDEFINED_LINES.filter((l) =>
-              l.toLowerCase().includes(localLine.toLowerCase()),
-            ).length > 0 && (
-              <PortalMenu>
-                {/* Overlay invisível para garantir fechamento ao clicar fora */}
-                <div
-                  className="fixed inset-0 z-[999]"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowLineDropdown(false);
-                    setLineRect(null);
-                    (document.activeElement as HTMLElement)?.blur();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowLineDropdown(false);
-                    setLineRect(null);
-                    (document.activeElement as HTMLElement)?.blur();
-                  }}
-                />
-                <div
-                  style={{
-                    position: "fixed",
-                    top: lineRect.bottom + 4,
-                    left: lineRect.left + lineRect.width / 2 - 65,
-                    transformOrigin: "top center",
-                    transform: "scale(var(--app-scale, 1))",
-                    zIndex: 1000,
-                  }}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className={`w-[130px] max-h-[150px] overflow-y-auto backdrop-blur-md border rounded-[12px] shadow-2xl flex flex-col p-1.5 gap-1 hide-scrollbar ${
-                      isDarkMode
-                        ? "bg-[#1E2029]/80 border-white/10"
-                        : "bg-white/90 border-slate-200"
-                    }`}
-                  >
-                    {PREDEFINED_LINES.filter((l) =>
-                      l.toLowerCase().includes(localLine.toLowerCase()),
-                    ).map((linha) => (
-                      <button
-                        key={linha}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setLocalLine(linha);
-                          handleUpdateEmployeeFieldLocal("line", linha);
-                          setShowLineDropdown(false);
-                          setLineRect(null);
-                        }}
-                        className={`text-center px-2 py-1.5 text-[12px] font-bold rounded-[8px] transition-all duration-150 outline-none ${
-                          isDarkMode
-                            ? "text-white hover:bg-white/10"
-                            : "text-slate-800 hover:bg-slate-800/10"
-                        }`}
-                      >
-                        {linha}
-                      </button>
-                    ))}
-                  </motion.div>
-                </div>
-              </PortalMenu>
-            )}
-        </AnimatePresence>
-
-        {/* Portal: Menu Ausente */}
-        <AnimatePresence>
-          {showAbsentMenu && absentRect && (
-            <PortalMenu>
-              <div
-                className="fixed inset-0 z-[999]"
-                onClick={() => {
-                  setShowAbsentMenu(false);
-                  setAbsentRect(null);
-                }}
-              />
-              <div
-                style={{
-                  position: "fixed",
-                  top: absentRect.bottom + 10,
-                  left: absentRect.left + absentRect.width / 2,
-                  transform: "translateX(-50%) scale(var(--app-scale, 1))",
-                  transformOrigin: "top center",
-                  zIndex: 1000,
-                }}
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  style={{
-                    maxHeight: `max(100px, ${window.innerHeight - absentRect.bottom - 20}px)`,
-                  }}
-                  className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-y-auto overflow-x-hidden hide-scrollbar flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-                    isDarkMode
-                      ? "bg-slate-950/40 border border-white/10"
-                      : "bg-white/40 border border-slate-300/50"
-                  }`}
-                >
-                  {[
-                    { type: "FÉRIAS" },
-                    { type: "FORA" },
-                    { type: "ATM" },
-                    { type: "RESTRIÇÃO" },
-                    { type: "INSS" },
-                    { type: "TREINAMENTO" },
-                    { type: "REVEZAMENTO" },
-                    { type: "ESTÁGIO" },
-                  ].map((opt) => {
-                    const meta = STATUS_METADATA[opt.type as StatusType];
-                    const Icon = meta.icon;
-                    const colorClass = isDarkMode
-                      ? meta.colorDark
-                      : meta.colorLight;
-
-                    return (
-                      <button
-                        key={opt.type}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAbsentMenu(false);
-                          setAbsentRect(null);
-                          handleMarkAbsentLocal(opt.type as StatusType);
-                        }}
-                        className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-                          isDarkMode
-                            ? "text-white hover:bg-white/10 active:bg-white/15"
-                            : "text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
-                          <span className={colorClass}>{meta.label}</span>
-                        </div>
-                        <ChevronRight
-                          className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-                            isDarkMode
-                              ? "text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5"
-                              : "text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5"
-                          }`}
-                        />
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              </div>
-            </PortalMenu>
-          )}
-        </AnimatePresence>
       </motion.div>
     );
   },
