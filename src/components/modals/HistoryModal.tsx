@@ -45,6 +45,7 @@ import {
   generatePdfBlob,
   PdfReportData,
 } from "../../utils/exportService";
+import { yieldToMain } from "../../utils/asyncHelpers";
 import { SearchIcon } from "./icons";
 import { jsPDF } from "jspdf";
 import ExportDropdown from "./ExportDropdown";
@@ -255,6 +256,7 @@ const HistoryModal: React.FC<{
   const [isSearching, setIsSearching] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isExportingZip, setIsExportingZip] = useState(false);
+  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
   const [selectedRecordsToExport, setSelectedRecordsToExport] = useState<
     string[]
   >([]);
@@ -562,6 +564,9 @@ const HistoryModal: React.FC<{
 
     try {
       if (format === "EXCEL" && recordsToDownload.length > 1) {
+        setExportProgress({ current: 0, total: recordsToDownload.length });
+        await yieldToMain();
+        
         const pdfDataList: PdfReportData[] = recordsToDownload.map((rec) => ({
           turma: rec.turma,
           dataFormatada: rec.data,
@@ -576,7 +581,11 @@ const HistoryModal: React.FC<{
           mainShiftLabel: rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
           shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
         }));
-        const blob = generateExcelBlob(pdfDataList);
+        
+        // Ceder o processamento durante a geração da planilha gigante será feito no utilitário se o transformarmos em async,
+        // mas só o fato de atualizar o UI já ajuda aqui antes de travar um pouco.
+        const blob = await (async () => generateExcelBlob(pdfDataList))();
+        
         const safeSearchTerm = searchTerm
           .replace(/[^a-zA-Z0-9]/g, "_")
           .substring(0, 20);
@@ -592,59 +601,57 @@ const HistoryModal: React.FC<{
         showNotification(`Planilha agrupada baixada com sucesso!`, "success");
         setIsExportingZip(false);
         setIsExportMenuOpen(false);
+        setExportProgress({ current: 0, total: 0 });
         return;
       }
 
-      const filesToZip = await Promise.all(
-        recordsToDownload.map(async (rec) => {
-          const dataStr = (rec.data || rec.dataISO || "data").replace(
-            /\//g,
-            "-",
-          );
-          const baseName = `historico-${rec.turma}-${dataStr}`;
+      setExportProgress({ current: 0, total: recordsToDownload.length });
+      const filesToZip: { name: string; content: string | Blob }[] = [];
 
-          if (format === "TXT") {
-            return {
-              name: `${baseName}.txt`,
-              content: generateRecordText(rec),
-            };
-          } else if (format === "DOC") {
-            return {
-              name: `${baseName}.doc`,
-              content: generateDocBlob(generateRecordText(rec)),
-            };
+      for (let i = 0; i < recordsToDownload.length; i++) {
+        const rec = recordsToDownload[i];
+        await yieldToMain();
+        
+        const dataStr = (rec.data || rec.dataISO || "data").replace(/\//g, "-");
+        const baseName = `historico-${rec.turma}-${dataStr}`;
+
+        if (format === "TXT") {
+          filesToZip.push({
+            name: `${baseName}.txt`,
+            content: generateRecordText(rec),
+          });
+        } else if (format === "DOC") {
+          filesToZip.push({
+            name: `${baseName}.doc`,
+            content: generateDocBlob(generateRecordText(rec)),
+          });
+        } else {
+          const pdfData: PdfReportData = {
+            turma: rec.turma,
+            dataFormatada: rec.data,
+            registros7H: rec.registros7H || [],
+            registros6H: rec.registros6H || [],
+            employees: rec.r,
+            totalFuncionarios: rec.totalFuncionarios,
+            totalPresentes: rec.totalPresentes,
+            totalAusentes: rec.totalAusentes,
+            totalMal: rec.totalMal,
+            totalPendentes: rec.totalPendentes,
+            mainShiftLabel: rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
+            shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
+          };
+
+          if (format === "PDF") {
+            const content = await generatePdfBlob(pdfData);
+            filesToZip.push({ name: `${baseName}.pdf`, content });
           } else {
-            const pdfData: PdfReportData = {
-              turma: rec.turma,
-              dataFormatada: rec.data,
-              registros7H: rec.registros7H || [],
-              registros6H: rec.registros6H || [],
-              employees: rec.r,
-              totalFuncionarios: rec.totalFuncionarios,
-              totalPresentes: rec.totalPresentes,
-              totalAusentes: rec.totalAusentes,
-              totalMal: rec.totalMal,
-              totalPendentes: rec.totalPendentes,
-              mainShiftLabel:
-                rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
-              shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
-            };
-
-            if (format === "PDF") {
-              return {
-                name: `${baseName}.pdf`,
-                content: await generatePdfBlob(pdfData),
-              };
-            } else {
-              // EXCEL
-              return {
-                name: `${baseName}.xlsx`,
-                content: generateExcelBlob(pdfData),
-              };
-            }
+            const content = await generateExcelBlob(pdfData);
+            filesToZip.push({ name: `${baseName}.xlsx`, content });
           }
-        }),
-      );
+        }
+        
+        setExportProgress({ current: i + 1, total: recordsToDownload.length });
+      }
 
       if (filesToZip.length === 1) {
         const singleFile = filesToZip[0];
@@ -673,12 +680,14 @@ const HistoryModal: React.FC<{
           `${filesToZip.length} resultados compactados em ZIP!`,
           "success",
         );
+        setExportProgress({ current: 0, total: 0 });
       }
     } catch (e) {
       console.error(e);
       showNotification("Erro ao gerar o arquivo ZIP.", "error");
     } finally {
       setIsExportingZip(false);
+      setExportProgress({ current: 0, total: 0 });
       setIsExportMenuOpen(false);
     }
   };
@@ -861,7 +870,7 @@ const HistoryModal: React.FC<{
                         disabled={
                           isExportingZip || filteredResults.length === 0
                         }
-                        className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold uppercase hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                        className="relative overflow-hidden text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold uppercase hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
                         title="Baixar resultados selecionados ou todos os encontrados"
                       >
                         {isExportingZip ? (
@@ -870,10 +879,18 @@ const HistoryModal: React.FC<{
                           <FileTextIcon className="w-3 h-3" />
                         )}
                         {isExportingZip
-                          ? "GERANDO..."
+                          ? exportProgress.total > 0
+                            ? `GERANDO ${exportProgress.current} DE ${exportProgress.total}...`
+                            : "GERANDO..."
                           : selectedRecordsToExport.length > 0
                             ? `BAIXAR ${selectedRecordsToExport.length} SELECIONADOS`
                             : "BAIXAR TODOS"}
+                        
+                        {/* Barra de progresso absoluta dentro do botão */}
+                        {isExportingZip && exportProgress.total > 0 && (
+                          <div className="absolute bottom-0 left-0 h-1 bg-indigo-500 transition-all duration-300 rounded-b-lg" 
+                               style={{ width: `${Math.max(5, (exportProgress.current / exportProgress.total) * 100)}%` }} />
+                        )}
                       </button>
 
                       {isExportMenuOpen && (

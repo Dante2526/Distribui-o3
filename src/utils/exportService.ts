@@ -1,6 +1,7 @@
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
+import { yieldToMain } from "./asyncHelpers";
 
 export interface PdfReportData {
   turma: string;
@@ -424,9 +425,10 @@ const createSheetForReport = (data: PdfReportData): XLSX.WorkSheet => {
   return ws;
 };
 
-export const generateExcelBlob = (
+export const generateExcelBlob = async (
   dataOrArray: PdfReportData | Array<any>,
-): Blob => {
+  onProgress?: (current: number) => void
+): Promise<Blob> => {
   try {
     const wb = XLSX.utils.book_new();
 
@@ -439,7 +441,8 @@ export const generateExcelBlob = (
 
     if (isPdfReportDataArray) {
       const reports = dataOrArray as PdfReportData[];
-      reports.forEach((data, index) => {
+      for (let index = 0; index < reports.length; index++) {
+        const data = reports[index];
         const ws = createSheetForReport(data);
         let safeDate = (data.dataFormatada || "")
           .replace(/\//g, "-")
@@ -449,7 +452,11 @@ export const generateExcelBlob = (
           sheetName = `${sheetName.substring(0, 27)}_${index}`;
         }
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      });
+        
+        // Pausa para renderização a cada sheet gerada
+        await yieldToMain();
+        if (onProgress) onProgress(index + 1);
+      }
     } else if (!Array.isArray(dataOrArray)) {
       const data = dataOrArray as PdfReportData;
       const ws = createSheetForReport(data);
@@ -470,12 +477,12 @@ export const generateExcelBlob = (
     throw error;
   }
 };
-export const exportToExcel = (
+export const exportToExcel = async (
   dataOrArray: PdfReportData | Array<any>,
   filename: string,
 ) => {
   try {
-    const blob = generateExcelBlob(dataOrArray);
+    const blob = await generateExcelBlob(dataOrArray);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
