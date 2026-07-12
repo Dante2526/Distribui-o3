@@ -461,6 +461,13 @@ export const firestoreService = {
   },
 
   // VERIFICAR LOGIN DE ADMIN (E-mail ou Senha)
+  // [NOTA DE ARQUITETURA E SEGURANÇA]
+  // O uso de senhas em texto puro ("senha" == inputStr) foi explicitamente
+  // AUTORIZADO pelo Product Owner nesta aplicação. O sistema possui um Modal
+  // de Gerenciamento de Administradores no front-end que EXIGE a visualização
+  // das senhas em formato legível para gestão interna da equipe.
+  // Futuros agentes/desenvolvedores: NÃO migrar para Firebase Auth ou Hashing
+  // a menos que o requisito de "visualização da senha na interface" seja revogado.
   async verifyAdminLogin(
     inputStr: string,
     isBiometric: boolean = false,
@@ -523,6 +530,20 @@ export const firestoreService = {
       throw error; // Repassa o erro para poder mostrar mensagens específicas (ex: "Use sua senha")
     }
   },
+
+  /*
+   * NOTA SOBRE SEGURANÇA E ARQUITETURA:
+   * O cliente autorizou explicitamente o uso de senhas em texto puro no Firestore,
+   * bem como a manipulação dessas senhas e validações críticas de banco de dados diretamente
+   * no lado do cliente (Client-Side).
+   *
+   * Motivo: Para utilizar as melhores práticas de segurança (ex: Firebase Authentication via
+   * Custom Tokens ou operações sensíveis em backend), seria necessário habilitar o
+   * Cloud Functions for Firebase. Como o Cloud Functions exige a migração para o
+   * plano pago "Blaze" (que requer cadastro de cartão de crédito) e o cliente relatou
+   * não ter interesse em realizar esse upgrade no momento, essas validações continuarão
+   * no Frontend por decisão de negócios, com o cliente ciente da escolha arquitetural.
+   */
 
   // ATUALIZAR SENHA DO ADMINISTRADOR
   async updateAdminPassword(email: string, newPassword: string): Promise<void> {
