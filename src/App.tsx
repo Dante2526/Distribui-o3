@@ -922,9 +922,7 @@ function AppContent() {
   }, [selectedTurma, adminUser]);
 
   // ===================== DND HANDLERS =====================
-  const [activeId, setActiveId] = useState<string | null>(null);
-  // Bug 1: ref para manter o activeId atual acessível em callbacks com dependências vazias
-  const activeIdRef = useRef<string | null>(null);
+  
 
   const handleStartEditRef = useRef(handleStartEdit);
   const handleStopEditRef = useRef(handleStopEdit);
@@ -933,30 +931,7 @@ function AppContent() {
     handleStopEditRef.current = handleStopEdit;
   }, [handleStartEdit, handleStopEdit]);
 
-  const clonedDepartmentsRef = useRef<Department[] | null>(null);
-  const clonedSupportRef = useRef<SupportRole[][] | null>(null);
-  const clonedSpecialShiftRef = useRef<Employee[] | null>(null);
-  const dragSourceRef = useRef<{
-    id: string;
-    type: "maquinista" | "apoio" | "special";
-    originalContainer: string;
-    originalRole?: string;
-  } | null>(null);
-  const [activeSupportId, setActiveSupportId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-
-  // LATEST STATE REFS
-  const departmentsDataRef = useRef(departmentsData);
-  const supportRolesDataRef = useRef(supportRolesData);
-  const specialShiftDataRef = useRef(specialShiftData);
-  const isDarkModeRef = useRef(isDarkMode);
-
-  useEffect(() => {
-    departmentsDataRef.current = departmentsData;
-    supportRolesDataRef.current = supportRolesData;
-    specialShiftDataRef.current = specialShiftData;
-    isDarkModeRef.current = isDarkMode;
-  }, [departmentsData, supportRolesData, specialShiftData, isDarkMode]);
+  
 
   const {
     sensors,
@@ -964,21 +939,16 @@ function AppContent() {
     handleDragCancel,
     handleDragOver,
     handleDragEnd,
+    activeId,
+    overId,
+    activeSupportId,
   } = useDragAndDrop({
     isAdmin,
-    activeIdRef,
-    setActiveId,
-    setOverId,
     handleStartEditRef,
     handleStopEditRef,
-    clonedDepartmentsRef,
-    clonedSupportRef,
-    clonedSpecialShiftRef,
-    departmentsDataRef,
-    supportRolesDataRef,
-    specialShiftDataRef,
-    dragSourceRef,
-    setActiveSupportId,
+    departmentsData,
+    supportRolesData,
+    specialShiftData,
     setDepartmentsData,
     setSupportRolesData,
     setSpecialShiftData,
@@ -1017,15 +987,15 @@ function AppContent() {
     activeIdRef.current = activeIdVal; // Bug 1: mantém ref atualizada
     setOverId(null);
     handleStartEditRef.current(activeIdVal as string);
-    clonedDepartmentsRef.current = departmentsDataRef.current;
-    clonedSupportRef.current = supportRolesDataRef.current;
-    clonedSpecialShiftRef.current = specialShiftDataRef.current;
+    clonedDepartmentsRef.current = departmentsData;
+    clonedSupportRef.current = supportRolesData;
+    clonedSpecialShiftRef.current = specialShiftData;
 
     let sourceContainer = "";
     let sourceType: "maquinista" | "apoio" | "special" = "maquinista";
     let sourceRole: string | undefined = undefined;
 
-    for (const dept of departmentsDataRef.current) {
+    for (const dept of departmentsData) {
       if (dept.data.some((e) => e.id === activeIdVal)) {
         sourceContainer = dept.id;
         sourceType = "maquinista";
@@ -1034,8 +1004,8 @@ function AppContent() {
     }
 
     if (!sourceContainer) {
-      for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-        const emp = supportRolesDataRef.current[idx].find(
+      for (let idx = 0; idx < supportRolesData.length; idx++) {
+        const emp = supportRolesData[idx].find(
           (e) => e.id === activeIdVal,
         );
         if (emp) {
@@ -1048,7 +1018,7 @@ function AppContent() {
     }
 
     if (!sourceContainer) {
-      if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+      if (specialShiftData.some((e) => e.id === activeIdVal)) {
         sourceContainer = "special-shift";
         sourceType = "special";
       }
@@ -1101,7 +1071,7 @@ function AppContent() {
     let activeItem: any = null;
     let activeIdx = -1;
 
-    for (const dept of departmentsDataRef.current) {
+    for (const dept of departmentsData) {
       const idx = dept.data.findIndex((e) => e.id === activeId);
       if (idx !== -1) {
         activeContainer = dept.id;
@@ -1113,14 +1083,14 @@ function AppContent() {
     }
 
     if (!activeType) {
-      for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-        const supportIdx = supportRolesDataRef.current[idx].findIndex(
+      for (let idx = 0; idx < supportRolesData.length; idx++) {
+        const supportIdx = supportRolesData[idx].findIndex(
           (e) => e.id === activeId,
         );
         if (supportIdx !== -1) {
           activeContainer = `support-group-${idx}`;
           activeType = "apoio";
-          activeItem = supportRolesDataRef.current[idx][supportIdx];
+          activeItem = supportRolesData[idx][supportIdx];
           activeIdx = supportIdx;
           break;
         }
@@ -1128,13 +1098,13 @@ function AppContent() {
     }
 
     if (!activeType) {
-      const idx = specialShiftDataRef.current.findIndex(
+      const idx = specialShiftData.findIndex(
         (e) => e.id === activeId,
       );
       if (idx !== -1) {
         activeContainer = "special-shift";
         activeType = "special";
-        activeItem = specialShiftDataRef.current[idx];
+        activeItem = specialShiftData[idx];
         activeIdx = idx;
       }
     }
@@ -1159,12 +1129,12 @@ function AppContent() {
       overContainer = "special-shift";
       overType = "special";
     } else {
-      const dept = departmentsDataRef.current.find((d) => d.id === overId);
+      const dept = departmentsData.find((d) => d.id === overId);
       if (dept) {
         overContainer = dept.id;
         overType = "maquinista";
       } else {
-        for (const d of departmentsDataRef.current) {
+        for (const d of departmentsData) {
           const idx = d.data.findIndex((e) => e.id === overId);
           if (idx !== -1) {
             overContainer = d.id;
@@ -1183,13 +1153,13 @@ function AppContent() {
         if (
           !isNaN(groupIdx) &&
           groupIdx >= 0 &&
-          groupIdx < supportRolesDataRef.current.length
+          groupIdx < supportRolesData.length
         ) {
           overContainer = `support-group-${groupIdx}`;
           overType = "apoio";
         } else {
-          for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-            const supportIdx = supportRolesDataRef.current[idx].findIndex(
+          for (let idx = 0; idx < supportRolesData.length; idx++) {
+            const supportIdx = supportRolesData[idx].findIndex(
               (e) => e.id === overId,
             );
             if (supportIdx !== -1) {
@@ -1203,7 +1173,7 @@ function AppContent() {
       }
 
       if (!overContainer) {
-        const specialIdx = specialShiftDataRef.current.findIndex(
+        const specialIdx = specialShiftData.findIndex(
           (e) => e.id === overId,
         );
         if (specialIdx !== -1) {
@@ -1218,7 +1188,7 @@ function AppContent() {
 
     if (activeContainer === overContainer) {
       if (activeType === "maquinista") {
-        const dept = departmentsDataRef.current.find(
+        const dept = departmentsData.find(
           (d) => d.id === activeContainer,
         );
         if (dept) {
@@ -1251,13 +1221,13 @@ function AppContent() {
           10,
         );
         if (!isNaN(groupIdx)) {
-          const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(
+          const activeIndex = supportRolesData[groupIdx].findIndex(
             (e) => e.id === activeId,
           );
           const overIndex =
             overIdx >= 0
               ? overIdx
-              : supportRolesDataRef.current[groupIdx].length - 1;
+              : supportRolesData[groupIdx].length - 1;
           if (activeIndex !== overIndex && activeIndex !== -1) {
             setSupportRolesData((prev) =>
               prev.map((g, idx) => {
@@ -1269,11 +1239,11 @@ function AppContent() {
           }
         }
       } else if (activeType === "special") {
-        const activeIndex = specialShiftDataRef.current.findIndex(
+        const activeIndex = specialShiftData.findIndex(
           (e) => e.id === activeId,
         );
         const overIndex =
-          overIdx >= 0 ? overIdx : specialShiftDataRef.current.length - 1;
+          overIdx >= 0 ? overIdx : specialShiftData.length - 1;
         if (activeIndex !== overIndex && activeIndex !== -1) {
           setSpecialShiftData((prev) =>
             arrayMove(prev, activeIndex, overIndex),
@@ -1620,9 +1590,9 @@ function AppContent() {
     // Identificar a origem (para logging se necessário)
     let employeeName = "";
     const allEmployees = [
-      ...departmentsDataRef.current.flatMap((d) => d.data),
-      ...supportRolesDataRef.current.flatMap((g) => g),
-      ...specialShiftDataRef.current,
+      ...departmentsData.flatMap((d) => d.data),
+      ...supportRolesData.flatMap((g) => g),
+      ...specialShiftData,
     ];
     const emp = allEmployees.find((e) => e.id === activeIdVal);
     if (emp) employeeName = emp.name;
@@ -1814,7 +1784,7 @@ function AppContent() {
       return;
     }
 
-    const isSwitchingToDark = !isDarkModeRef.current;
+    const isSwitchingToDark = !isDarkMode;
 
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
@@ -1992,7 +1962,7 @@ function AppContent() {
 
   const handleTransferToSpecialShift = useCallback(
     (sourceDeptId: string, sourceEmpIndex: number) => {
-      const sourceDept = departmentsDataRef.current.find(
+      const sourceDept = departmentsData.find(
         (d) => d.id === sourceDeptId,
       );
       if (!sourceDept) return;
@@ -2028,7 +1998,7 @@ function AppContent() {
 
   const handleTransferSupportToSpecialShift = useCallback(
     (sourceGroupIndex: number, sourceEmpIndex: number) => {
-      const sourceGroup = supportRolesDataRef.current[sourceGroupIndex];
+      const sourceGroup = supportRolesData[sourceGroupIndex];
       if (!sourceGroup) return;
 
       const movedRole = sourceGroup[sourceEmpIndex];
@@ -2067,7 +2037,7 @@ function AppContent() {
 
   const handleTransferFromSpecialShift = useCallback(
     (empIndex: number, targetDeptId: string) => {
-      const movedEmployee = specialShiftDataRef.current[empIndex];
+      const movedEmployee = specialShiftData[empIndex];
       if (!movedEmployee.name.trim()) return;
 
       setSpecialShiftData((prev) => {
@@ -2619,7 +2589,7 @@ function AppContent() {
 
   const handleDeleteSupport = useCallback(
     (groupIndex: number, empIndex: number) => {
-      const empId = supportRolesDataRef.current[groupIndex]?.[empIndex]?.id;
+      const empId = supportRolesData[groupIndex]?.[empIndex]?.id;
       if (empId) {
         firestoreService
           .deleteEmployeeDSS(selectedTurma, empId)
@@ -2755,7 +2725,7 @@ function AppContent() {
 
   const handleDelete = useCallback(
     (deptId: string, empIndex: number) => {
-      const dept = departmentsDataRef.current.find((d) => d.id === deptId);
+      const dept = departmentsData.find((d) => d.id === deptId);
       if (dept && dept.data[empIndex]) {
         const empId = dept.data[empIndex].id;
         firestoreService
@@ -2781,7 +2751,7 @@ function AppContent() {
 
   const handleMarkEmployeeAbsent = useCallback(
     (deptId: string, empIndex: number, absenceType: StatusType) => {
-      const dept = departmentsDataRef.current.find((d) => d.id === deptId);
+      const dept = departmentsData.find((d) => d.id === deptId);
       if (!dept) return;
       const emp = dept.data[empIndex];
       if (!emp) return;
@@ -2895,7 +2865,7 @@ function AppContent() {
 
   const handleMarkSupportAbsent = useCallback(
     (groupIndex: number, empIndex: number, absenceType: StatusType) => {
-      const group = supportRolesDataRef.current[groupIndex];
+      const group = supportRolesData[groupIndex];
       if (!group) return;
       const emp = group[empIndex];
       if (!emp) return;
@@ -3043,7 +3013,7 @@ function AppContent() {
         });
       } else if (item.originalDeptId) {
         let deptName = item.originalDeptId;
-        const dept = departmentsDataRef.current?.find(
+        const dept = departmentsData?.find(
           (d) => d.id === item.originalDeptId,
         );
         if (dept) deptName = dept.title;

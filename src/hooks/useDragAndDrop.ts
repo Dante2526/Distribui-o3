@@ -1,24 +1,16 @@
-import React, { useCallback, useMemo } from 'react';
-import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { MouseSensor, TouchSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Department, SupportRole, Employee, TurmaType } from '../types';
 import { firestoreService } from '../services/firestoreService';
 
 export interface UseDragAndDropProps {
   isAdmin: boolean;
-  activeIdRef: React.MutableRefObject<string | null>;
-  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
-  setOverId: React.Dispatch<React.SetStateAction<string | null>>;
   handleStartEditRef: React.MutableRefObject<(id: string) => void>;
   handleStopEditRef: React.MutableRefObject<(id: string) => void>;
-  clonedDepartmentsRef: React.MutableRefObject<Department[] | null>;
-  clonedSupportRef: React.MutableRefObject<SupportRole[][] | null>;
-  clonedSpecialShiftRef: React.MutableRefObject<Employee[] | null>;
-  departmentsDataRef: React.MutableRefObject<Department[]>;
-  supportRolesDataRef: React.MutableRefObject<SupportRole[][]>;
-  specialShiftDataRef: React.MutableRefObject<Employee[]>;
-  dragSourceRef: React.MutableRefObject<any>;
-  setActiveSupportId: React.Dispatch<React.SetStateAction<string | null>>;
+  departmentsData: Department[];
+  supportRolesData: SupportRole[][];
+  specialShiftData: Employee[];
   setDepartmentsData: React.Dispatch<React.SetStateAction<Department[]>>;
   setSupportRolesData: React.Dispatch<React.SetStateAction<SupportRole[][]>>;
   setSpecialShiftData: React.Dispatch<React.SetStateAction<Employee[]>>;
@@ -27,24 +19,35 @@ export interface UseDragAndDropProps {
 
 export function useDragAndDrop({
   isAdmin,
-  activeIdRef,
-  setActiveId,
-  setOverId,
   handleStartEditRef,
   handleStopEditRef,
-  clonedDepartmentsRef,
-  clonedSupportRef,
-  clonedSpecialShiftRef,
-  departmentsDataRef,
-  supportRolesDataRef,
-  specialShiftDataRef,
-  dragSourceRef,
-  setActiveSupportId,
+  departmentsData,
+  supportRolesData,
+  specialShiftData,
   setDepartmentsData,
   setSupportRolesData,
   setSpecialShiftData,
   selectedTurma,
 }: UseDragAndDropProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [activeSupportId, setActiveSupportId] = useState<string | null>(null);
+
+  const activeIdRef = useRef<string | null>(null);
+  const clonedDepartmentsRef = useRef<Department[] | null>(null);
+  const clonedSupportRef = useRef<SupportRole[][] | null>(null);
+  const clonedSpecialShiftRef = useRef<Employee[] | null>(null);
+  const dragSourceRef = useRef<any>(null);
+
+  const departmentsDataRef = useRef(departmentsData);
+  const supportRolesDataRef = useRef(supportRolesData);
+  const specialShiftDataRef = useRef(specialShiftData);
+
+  useEffect(() => {
+    departmentsDataRef.current = departmentsData;
+    supportRolesDataRef.current = supportRolesData;
+    specialShiftDataRef.current = specialShiftData;
+  }, [departmentsData, supportRolesData, specialShiftData]);
   const mouseSensor = useSensor(
     MouseSensor,
     useMemo(
@@ -71,8 +74,8 @@ export function useDragAndDrop({
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const handleDragStart = useCallback(
-    (event: any) => {
-      const activeIdVal = event.active.id;
+    (event: DragStartEvent) => {
+      const activeIdVal = event.active.id as string;
       setActiveId(activeIdVal);
       activeIdRef.current = activeIdVal;
       setOverId(null);
@@ -172,15 +175,15 @@ export function useDragAndDrop({
   ]);
 
   const handleDragOver = useCallback(
-    (event: any) => {
+    (event: DragOverEvent) => {
       const { active, over } = event;
       if (!over) {
         setOverId(null);
         return;
       }
 
-      const activeId = active.id;
-      const overId = over.id;
+      const activeId = active.id as string;
+      const overId = over.id as string;
       setOverId(overId);
 
       if (activeId === overId) return;
@@ -701,7 +704,7 @@ export function useDragAndDrop({
   );
 
   const handleDragEnd = useCallback(
-    (event: any) => {
+    (event: DragEndEvent) => {
       const { active, over } = event;
       const activeIdVal = active?.id;
       if (activeIdVal) handleStopEditRef.current(activeIdVal);
@@ -715,7 +718,7 @@ export function useDragAndDrop({
         return;
       }
 
-      const overId = over.id;
+      const overId = over.id as string;
       if (activeIdVal === overId) {
         setActiveId(null);
         activeIdRef.current = null;
@@ -774,14 +777,14 @@ export function useDragAndDrop({
       if (newLocal && selectedTurma) {
         firestoreService.updateEmployeeLocationAndRoleDSS(
           selectedTurma,
-          activeIdVal,
+          activeIdVal as string,
           newLocal,
           newRole
         );
         if (newRole) {
           firestoreService.updateEmployeeRoleDSS(
             selectedTurma,
-            activeIdVal,
+            activeIdVal as string,
             newRole
           );
         }
@@ -813,5 +816,8 @@ export function useDragAndDrop({
     handleDragCancel,
     handleDragOver,
     handleDragEnd,
+    activeId,
+    overId,
+    activeSupportId,
   };
 }
