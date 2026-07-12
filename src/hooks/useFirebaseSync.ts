@@ -18,10 +18,14 @@ export function useFirebaseSync({
 }: UseFirebaseSyncProps) {
   // Inicialização / Login Anônimo ao montar o app
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("mock") === "true") return;
     signInToFirebase();
   }, []);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("mock") === "true") return;
     if (!selectedTurma || isDemoMode || !isTabVisible) return;
 
     // Escuta edições ativas em tempo real

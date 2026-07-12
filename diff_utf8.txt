@@ -1,1972 +1,2819 @@
-﻿diff --git a/src/App.tsx b/src/App.tsx
-index 69ff187..6be2a56 100644
+﻿diff --git a/package-lock.json b/package-lock.json
+index 7c02ddc..daf5e7e 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -30,18 +30,80 @@
+         "xlsx": "^0.18.5"
+       },
+       "devDependencies": {
++        "@testing-library/jest-dom": "^6.9.1",
++        "@testing-library/react": "^16.3.2",
+         "@types/express": "^4.17.21",
+         "@types/node": "^22.14.0",
+         "autoprefixer": "^10.4.21",
+         "husky": "^9.1.7",
++        "jsdom": "^29.1.1",
+         "lint-staged": "^17.0.8",
+         "prettier": "^3.9.4",
+         "tailwindcss": "^4.1.14",
+         "tsx": "^4.21.0",
+         "typescript": "~5.8.2",
+-        "vite": "^6.2.3"
++        "vite": "^6.2.3",
++        "vitest": "^4.1.10"
++      }
++    },
++    "node_modules/@adobe/css-tools": {
++      "version": "4.5.0",
++      "resolved": "https://registry.npmjs.org/@adobe/css-tools/-/css-tools-4.5.0.tgz",
++      "integrity": "sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==",
++      "dev": true,
++      "license": "MIT"
++    },
++    "node_modules/@asamuzakjp/css-color": {
++      "version": "5.1.11",
++      "resolved": "https://registry.npmjs.org/@asamuzakjp/css-color/-/css-color-5.1.11.tgz",
++      "integrity": "sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@asamuzakjp/generational-cache": "^1.0.1",
++        "@csstools/css-calc": "^3.2.0",
++        "@csstools/css-color-parser": "^4.1.0",
++        "@csstools/css-parser-algorithms": "^4.0.0",
++        "@csstools/css-tokenizer": "^4.0.0"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      }
++    },
++    "node_modules/@asamuzakjp/dom-selector": {
++      "version": "7.1.1",
++      "resolved": "https://registry.npmjs.org/@asamuzakjp/dom-selector/-/dom-selector-7.1.1.tgz",
++      "integrity": "sha512-67RZDnYRc8H/8MLDgQCDE//zoqVFwajkepHZgmXrbwybzXOEwOWGPYGmALYl9J2DOLfFPPs6kKCqmbzV895hTQ==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@asamuzakjp/generational-cache": "^1.0.1",
++        "@asamuzakjp/nwsapi": "^2.3.9",
++        "bidi-js": "^1.0.3",
++        "css-tree": "^3.2.1",
++        "is-potential-custom-element-name": "^1.0.1"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      }
++    },
++    "node_modules/@asamuzakjp/generational-cache": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/@asamuzakjp/generational-cache/-/generational-cache-1.0.1.tgz",
++      "integrity": "sha512-wajfB8KqzMCN2KGNFdLkReeHncd0AslUSrvHVvvYWuU8ghncRJoA50kT3zP9MVL0+9g4/67H+cdvBskj9THPzg==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+       }
+     },
++    "node_modules/@asamuzakjp/nwsapi": {
++      "version": "2.3.9",
++      "resolved": "https://registry.npmjs.org/@asamuzakjp/nwsapi/-/nwsapi-2.3.9.tgz",
++      "integrity": "sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/@babel/code-frame": {
+       "version": "7.29.0",
+       "resolved": "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.0.tgz",
+@@ -314,6 +376,159 @@
+         "node": ">=6.9.0"
+       }
+     },
++    "node_modules/@bramus/specificity": {
++      "version": "2.4.2",
++      "resolved": "https://registry.npmjs.org/@bramus/specificity/-/specificity-2.4.2.tgz",
++      "integrity": "sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "css-tree": "^3.0.0"
++      },
++      "bin": {
++        "specificity": "bin/cli.js"
++      }
++    },
++    "node_modules/@csstools/color-helpers": {
++      "version": "6.1.0",
++      "resolved": "https://registry.npmjs.org/@csstools/color-helpers/-/color-helpers-6.1.0.tgz",
++      "integrity": "sha512-064IFJdjTfUqnjpCVpMOdbr8FLQBhinbZj6yRv2An2E41O/pLEXqfFRWqGq/SxlE5PEUYTlvWsG2r8MswAVvkg==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT-0",
++      "engines": {
++        "node": ">=20.19.0"
++      }
++    },
++    "node_modules/@csstools/css-calc": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@csstools/css-calc/-/css-calc-3.2.1.tgz",
++      "integrity": "sha512-DtdHlgXh5ZkA43cwBcAm+huzgJiwx3ZTWVjBs94kwz2xKqSimDA3lBgCjphYgwgVUMWatSM0pDd8TILB1yrVVg==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT",
++      "engines": {
++        "node": ">=20.19.0"
++      },
++      "peerDependencies": {
++        "@csstools/css-parser-algorithms": "^4.0.0",
++        "@csstools/css-tokenizer": "^4.0.0"
++      }
++    },
++    "node_modules/@csstools/css-color-parser": {
++      "version": "4.1.9",
++      "resolved": "https://registry.npmjs.org/@csstools/css-color-parser/-/css-color-parser-4.1.9.tgz",
++      "integrity": "sha512-paQcIaOO53Rk5+YrBaBjm/SgrV4INImjo2BT1DtQRYr+XeTRbeAYlS+jxXp9drqvKmtFnWRJKIalDLhZZDu42A==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT",
++      "dependencies": {
++        "@csstools/color-helpers": "^6.1.0",
++        "@csstools/css-calc": "^3.2.1"
++      },
++      "engines": {
++        "node": ">=20.19.0"
++      },
++      "peerDependencies": {
++        "@csstools/css-parser-algorithms": "^4.0.0",
++        "@csstools/css-tokenizer": "^4.0.0"
++      }
++    },
++    "node_modules/@csstools/css-parser-algorithms": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/@csstools/css-parser-algorithms/-/css-parser-algorithms-4.0.0.tgz",
++      "integrity": "sha512-+B87qS7fIG3L5h3qwJ/IFbjoVoOe/bpOdh9hAjXbvx0o8ImEmUsGXN0inFOnk2ChCFgqkkGFQ+TpM5rbhkKe4w==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT",
++      "engines": {
++        "node": ">=20.19.0"
++      },
++      "peerDependencies": {
++        "@csstools/css-tokenizer": "^4.0.0"
++      }
++    },
++    "node_modules/@csstools/css-syntax-patches-for-csstree": {
++      "version": "1.1.6",
++      "resolved": "https://registry.npmjs.org/@csstools/css-syntax-patches-for-csstree/-/css-syntax-patches-for-csstree-1.1.6.tgz",
++      "integrity": "sha512-TcJCWFbXLPpJYq6z7bfOyjWYJDiDg2/I4gyUC9pqPNqHFRIey0EB0q0L5cSnQDfWJg8Jd6VadakxdIez/3zkqQ==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT-0",
++      "peerDependencies": {
++        "css-tree": "^3.2.1"
++      },
++      "peerDependenciesMeta": {
++        "css-tree": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@csstools/css-tokenizer": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/@csstools/css-tokenizer/-/css-tokenizer-4.0.0.tgz",
++      "integrity": "sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/csstools"
++        },
++        {
++          "type": "opencollective",
++          "url": "https://opencollective.com/csstools"
++        }
++      ],
++      "license": "MIT",
++      "engines": {
++        "node": ">=20.19.0"
++      }
++    },
+     "node_modules/@dnd-kit/accessibility": {
+       "version": "3.1.1",
+       "resolved": "https://registry.npmjs.org/@dnd-kit/accessibility/-/accessibility-3.1.1.tgz",
+@@ -797,6 +1012,24 @@
+         "node": ">=18"
+       }
+     },
++    "node_modules/@exodus/bytes": {
++      "version": "1.15.1",
++      "resolved": "https://registry.npmjs.org/@exodus/bytes/-/bytes-1.15.1.tgz",
++      "integrity": "sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      },
++      "peerDependencies": {
++        "@noble/hashes": "^1.8.0 || ^2.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@noble/hashes": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/@firebase/ai": {
+       "version": "2.13.1",
+       "resolved": "https://registry.npmjs.org/@firebase/ai/-/ai-2.13.1.tgz",
+@@ -1904,6 +2137,13 @@
+         "win32"
+       ]
+     },
++    "node_modules/@standard-schema/spec": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/@standard-schema/spec/-/spec-1.1.0.tgz",
++      "integrity": "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/@tailwindcss/node": {
+       "version": "4.3.0",
+       "resolved": "https://registry.npmjs.org/@tailwindcss/node/-/node-4.3.0.tgz",
+@@ -2161,6 +2401,90 @@
+         "vite": "^5.2.0 || ^6 || ^7 || ^8"
+       }
+     },
++    "node_modules/@testing-library/dom": {
++      "version": "10.4.1",
++      "resolved": "https://registry.npmjs.org/@testing-library/dom/-/dom-10.4.1.tgz",
++      "integrity": "sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true,
++      "dependencies": {
++        "@babel/code-frame": "^7.10.4",
++        "@babel/runtime": "^7.12.5",
++        "@types/aria-query": "^5.0.1",
++        "aria-query": "5.3.0",
++        "dom-accessibility-api": "^0.5.9",
++        "lz-string": "^1.5.0",
++        "picocolors": "1.1.1",
++        "pretty-format": "^27.0.2"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
++    "node_modules/@testing-library/jest-dom": {
++      "version": "6.9.1",
++      "resolved": "https://registry.npmjs.org/@testing-library/jest-dom/-/jest-dom-6.9.1.tgz",
++      "integrity": "sha512-zIcONa+hVtVSSep9UT3jZ5rizo2BsxgyDYU7WFD5eICBE7no3881HGeb/QkGfsJs6JTkY1aQhT7rIPC7e+0nnA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@adobe/css-tools": "^4.4.0",
++        "aria-query": "^5.0.0",
++        "css.escape": "^1.5.1",
++        "dom-accessibility-api": "^0.6.3",
++        "picocolors": "^1.1.1",
++        "redent": "^3.0.0"
++      },
++      "engines": {
++        "node": ">=14",
++        "npm": ">=6",
++        "yarn": ">=1"
++      }
++    },
++    "node_modules/@testing-library/jest-dom/node_modules/dom-accessibility-api": {
++      "version": "0.6.3",
++      "resolved": "https://registry.npmjs.org/dom-accessibility-api/-/dom-accessibility-api-0.6.3.tgz",
++      "integrity": "sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==",
++      "dev": true,
++      "license": "MIT"
++    },
++    "node_modules/@testing-library/react": {
++      "version": "16.3.2",
++      "resolved": "https://registry.npmjs.org/@testing-library/react/-/react-16.3.2.tgz",
++      "integrity": "sha512-XU5/SytQM+ykqMnAnvB2umaJNIOsLF3PVv//1Ew4CTcpz0/BRyy/af40qqrt7SjKpDdT1saBMc42CUok5gaw+g==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@babel/runtime": "^7.12.5"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "peerDependencies": {
++        "@testing-library/dom": "^10.0.0",
++        "@types/react": "^18.0.0 || ^19.0.0",
++        "@types/react-dom": "^18.0.0 || ^19.0.0",
++        "react": "^18.0.0 || ^19.0.0",
++        "react-dom": "^18.0.0 || ^19.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@types/aria-query": {
++      "version": "5.0.4",
++      "resolved": "https://registry.npmjs.org/@types/aria-query/-/aria-query-5.0.4.tgz",
++      "integrity": "sha512-rfT93uj5s0PRL7EzccGMs3brplhcrghnDoV26NqKhCAS1hVo+WdNsPvE/yb6ilfr5hi2MEk6d5EWJTKdxg8jVw==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true
++    },
+     "node_modules/@types/babel__core": {
+       "version": "7.20.5",
+       "resolved": "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.20.5.tgz",
+@@ -2213,6 +2537,17 @@
+         "@types/node": "*"
+       }
+     },
++    "node_modules/@types/chai": {
++      "version": "5.2.3",
++      "resolved": "https://registry.npmjs.org/@types/chai/-/chai-5.2.3.tgz",
++      "integrity": "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@types/deep-eql": "*",
++        "assertion-error": "^2.0.1"
++      }
++    },
+     "node_modules/@types/connect": {
+       "version": "3.4.38",
+       "resolved": "https://registry.npmjs.org/@types/connect/-/connect-3.4.38.tgz",
+@@ -2223,6 +2558,13 @@
+         "@types/node": "*"
+       }
+     },
++    "node_modules/@types/deep-eql": {
++      "version": "4.0.2",
++      "resolved": "https://registry.npmjs.org/@types/deep-eql/-/deep-eql-4.0.2.tgz",
++      "integrity": "sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/@types/estree": {
+       "version": "1.0.8",
+       "resolved": "https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz",
+@@ -2371,6 +2713,119 @@
+         "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+       }
+     },
++    "node_modules/@vitest/expect": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/expect/-/expect-4.1.10.tgz",
++      "integrity": "sha512-YsCn+qAk1GWjQOWFEsEcL2gNQ0zmVmQu3T03qP6UyjhtmdtwtbuI+DASn/7iQB3HGTXkdBwGddzxPlmiql5vlA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@standard-schema/spec": "^1.1.0",
++        "@types/chai": "^5.2.2",
++        "@vitest/spy": "4.1.10",
++        "@vitest/utils": "4.1.10",
++        "chai": "^6.2.2",
++        "tinyrainbow": "^3.1.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
++    "node_modules/@vitest/mocker": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/mocker/-/mocker-4.1.10.tgz",
++      "integrity": "sha512-v0xaezt+DKEmKfaxg133ldzADrwLGd7Ze1MfQQTYfvs8OqZIwbxyxaYURivwV7sWy5fqn3rH5uOrSp07bp44Ow==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@vitest/spy": "4.1.10",
++        "estree-walker": "^3.0.3",
++        "magic-string": "^0.30.21"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      },
++      "peerDependencies": {
++        "msw": "^2.4.9",
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
++      },
++      "peerDependenciesMeta": {
++        "msw": {
++          "optional": true
++        },
++        "vite": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@vitest/pretty-format": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/pretty-format/-/pretty-format-4.1.10.tgz",
++      "integrity": "sha512-W1HsjSH4MXQ9YfmmhLAoIYf1HRfekQCGngeIgcei6MP5QQGWUe0gkopdZQaVCFO+JDJMrAJGwa5pRpNpvy4P8Q==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "tinyrainbow": "^3.1.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
++    "node_modules/@vitest/runner": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/runner/-/runner-4.1.10.tgz",
++      "integrity": "sha512-IKI6kpIH+LmpROplyLwBBaCfMgOZOMsygVa6BARD6ahA04VRuJSa6OaVG7kRvSEMD870Vd91rSSw0eegtWyLGg==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@vitest/utils": "4.1.10",
++        "pathe": "^2.0.3"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
++    "node_modules/@vitest/snapshot": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/snapshot/-/snapshot-4.1.10.tgz",
++      "integrity": "sha512-xRkfOT1qpTAi/Ti4Y1LtfRc3kEuqxGw59eN2jN9pRWMtS/XDevekhcFSqvQqjUNGksfjMJu3Y+oJ+4Ypn2OaJw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@vitest/pretty-format": "4.1.10",
++        "@vitest/utils": "4.1.10",
++        "magic-string": "^0.30.21",
++        "pathe": "^2.0.3"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
++    "node_modules/@vitest/spy": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/spy/-/spy-4.1.10.tgz",
++      "integrity": "sha512-PLf/Ugvoq5wO/b4rwYCR1h2PSIdXz7wnkQFMiUpLdtM7l6pqVFcQIBEHyT1+l+cj7mNwAfZHzqXqDyjvOuwbDw==",
++      "dev": true,
++      "license": "MIT",
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
++    "node_modules/@vitest/utils": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/@vitest/utils/-/utils-4.1.10.tgz",
++      "integrity": "sha512-fy9am/HWxbaGt/Sawrp90vt6Y6jQwf1RX77cz3uwoJwJVMli/e1IEwRPnMNJ7vKfPTwo0diXifkpPvwH9v7nGA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@vitest/pretty-format": "4.1.10",
++        "convert-source-map": "^2.0.0",
++        "tinyrainbow": "^3.1.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      }
++    },
+     "node_modules/accepts": {
+       "version": "1.3.8",
+       "resolved": "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",
+@@ -2442,12 +2897,32 @@
+         "url": "https://github.com/chalk/ansi-styles?sponsor=1"
+       }
+     },
++    "node_modules/aria-query": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/aria-query/-/aria-query-5.3.0.tgz",
++      "integrity": "sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "dependencies": {
++        "dequal": "^2.0.3"
++      }
++    },
+     "node_modules/array-flatten": {
+       "version": "1.1.1",
+       "resolved": "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz",
+       "integrity": "sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==",
+       "license": "MIT"
+     },
++    "node_modules/assertion-error": {
++      "version": "2.0.1",
++      "resolved": "https://registry.npmjs.org/assertion-error/-/assertion-error-2.0.1.tgz",
++      "integrity": "sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=12"
++      }
++    },
+     "node_modules/autoprefixer": {
+       "version": "10.5.0",
+       "resolved": "https://registry.npmjs.org/autoprefixer/-/autoprefixer-10.5.0.tgz",
+@@ -2527,6 +3002,16 @@
+         "node": ">=6.0.0"
+       }
+     },
++    "node_modules/bidi-js": {
++      "version": "1.0.3",
++      "resolved": "https://registry.npmjs.org/bidi-js/-/bidi-js-1.0.3.tgz",
++      "integrity": "sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "require-from-string": "^2.0.2"
++      }
++    },
+     "node_modules/bignumber.js": {
+       "version": "9.3.1",
+       "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-9.3.1.tgz",
+@@ -2705,6 +3190,16 @@
+         "node": ">=0.8"
+       }
+     },
++    "node_modules/chai": {
++      "version": "6.2.2",
++      "resolved": "https://registry.npmjs.org/chai/-/chai-6.2.2.tgz",
++      "integrity": "sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=18"
++      }
++    },
+     "node_modules/cli-cursor": {
+       "version": "5.0.0",
+       "resolved": "https://registry.npmjs.org/cli-cursor/-/cli-cursor-5.0.0.tgz",
+@@ -2907,6 +3402,27 @@
+         "utrie": "^1.0.2"
+       }
+     },
++    "node_modules/css-tree": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/css-tree/-/css-tree-3.2.1.tgz",
++      "integrity": "sha512-X7sjQzceUhu1u7Y/ylrRZFU2FS6LRiFVp6rKLPg23y3x3c3DOKAwuXGDp+PAGjh6CSnCjYeAul8pcT8bAl+lSA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "mdn-data": "2.27.1",
++        "source-map-js": "^1.2.1"
++      },
++      "engines": {
++        "node": "^10 || ^12.20.0 || ^14.13.0 || >=15.0.0"
++      }
++    },
++    "node_modules/css.escape": {
++      "version": "1.5.1",
++      "resolved": "https://registry.npmjs.org/css.escape/-/css.escape-1.5.1.tgz",
++      "integrity": "sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/data-uri-to-buffer": {
+       "version": "4.0.1",
+       "resolved": "https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz",
+@@ -2916,6 +3432,20 @@
+         "node": ">= 12"
+       }
+     },
++    "node_modules/data-urls": {
++      "version": "7.0.0",
++      "resolved": "https://registry.npmjs.org/data-urls/-/data-urls-7.0.0.tgz",
++      "integrity": "sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "whatwg-mimetype": "^5.0.0",
++        "whatwg-url": "^16.0.0"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      }
++    },
+     "node_modules/debug": {
+       "version": "4.4.3",
+       "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
+@@ -2933,6 +3463,13 @@
+         }
+       }
+     },
++    "node_modules/decimal.js": {
++      "version": "10.6.0",
++      "resolved": "https://registry.npmjs.org/decimal.js/-/decimal.js-10.6.0.tgz",
++      "integrity": "sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/depd": {
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/depd/-/depd-2.0.0.tgz",
+@@ -2942,6 +3479,16 @@
+         "node": ">= 0.8"
+       }
+     },
++    "node_modules/dequal": {
++      "version": "2.0.3",
++      "resolved": "https://registry.npmjs.org/dequal/-/dequal-2.0.3.tgz",
++      "integrity": "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=6"
++      }
++    },
+     "node_modules/destroy": {
+       "version": "1.2.0",
+       "resolved": "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz",
+@@ -2961,6 +3508,14 @@
+         "node": ">=8"
+       }
+     },
++    "node_modules/dom-accessibility-api": {
++      "version": "0.5.16",
++      "resolved": "https://registry.npmjs.org/dom-accessibility-api/-/dom-accessibility-api-0.5.16.tgz",
++      "integrity": "sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true
++    },
+     "node_modules/dompurify": {
+       "version": "3.4.11",
+       "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.11.tgz",
+@@ -3046,6 +3601,19 @@
+         "node": ">=10.13.0"
+       }
+     },
++    "node_modules/entities": {
++      "version": "8.0.0",
++      "resolved": "https://registry.npmjs.org/entities/-/entities-8.0.0.tgz",
++      "integrity": "sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==",
++      "dev": true,
++      "license": "BSD-2-Clause",
++      "engines": {
++        "node": ">=20.19.0"
++      },
++      "funding": {
++        "url": "https://github.com/fb55/entities?sponsor=1"
++      }
++    },
+     "node_modules/environment": {
+       "version": "1.1.0",
+       "resolved": "https://registry.npmjs.org/environment/-/environment-1.1.0.tgz",
+@@ -3077,6 +3645,13 @@
+         "node": ">= 0.4"
+       }
+     },
++    "node_modules/es-module-lexer": {
++      "version": "2.3.1",
++      "resolved": "https://registry.npmjs.org/es-module-lexer/-/es-module-lexer-2.3.1.tgz",
++      "integrity": "sha512-shc1dbU90Yl/xq1QrC7QRtfcwURZuVRfPhZbDoldJ1cn1gzDvBaBWlv0eFolj5+0znnPJz5TXLxsN77X/12KTA==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/es-object-atoms": {
+       "version": "1.1.1",
+       "resolved": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.1.tgz",
+@@ -3146,6 +3721,16 @@
+       "integrity": "sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==",
+       "license": "MIT"
+     },
++    "node_modules/estree-walker": {
++      "version": "3.0.3",
++      "resolved": "https://registry.npmjs.org/estree-walker/-/estree-walker-3.0.3.tgz",
++      "integrity": "sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@types/estree": "^1.0.0"
++      }
++    },
+     "node_modules/etag": {
+       "version": "1.8.1",
+       "resolved": "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz",
+@@ -3162,6 +3747,16 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/expect-type": {
++      "version": "1.4.0",
++      "resolved": "https://registry.npmjs.org/expect-type/-/expect-type-1.4.0.tgz",
++      "integrity": "sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=12.0.0"
++      }
++    },
+     "node_modules/express": {
+       "version": "4.22.2",
+       "resolved": "https://registry.npmjs.org/express/-/express-4.22.2.tgz",
+@@ -3647,6 +4242,19 @@
+         "node": ">= 0.4"
+       }
+     },
++    "node_modules/html-encoding-sniffer": {
++      "version": "6.0.0",
++      "resolved": "https://registry.npmjs.org/html-encoding-sniffer/-/html-encoding-sniffer-6.0.0.tgz",
++      "integrity": "sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@exodus/bytes": "^1.6.0"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      }
++    },
+     "node_modules/html-to-image": {
+       "version": "1.11.13",
+       "resolved": "https://registry.npmjs.org/html-to-image/-/html-to-image-1.11.13.tgz",
+@@ -3746,6 +4354,16 @@
+       "integrity": "sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==",
+       "license": "MIT"
+     },
++    "node_modules/indent-string": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz",
++      "integrity": "sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=8"
++      }
++    },
+     "node_modules/inherits": {
+       "version": "2.0.4",
+       "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+@@ -3776,6 +4394,13 @@
+         "node": ">=8"
+       }
+     },
++    "node_modules/is-potential-custom-element-name": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/is-potential-custom-element-name/-/is-potential-custom-element-name-1.0.1.tgz",
++      "integrity": "sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/isarray": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
+@@ -3797,6 +4422,57 @@
+       "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==",
+       "license": "MIT"
+     },
++    "node_modules/jsdom": {
++      "version": "29.1.1",
++      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-29.1.1.tgz",
++      "integrity": "sha512-ECi4Fi2f7BdJtUKTflYRTiaMxIB0O6zfR1fX0GXpUrf6flp8QIYn1UT20YQqdSOfk2dfkCwS8LAFoJDEppNK5Q==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@asamuzakjp/css-color": "^5.1.11",
++        "@asamuzakjp/dom-selector": "^7.1.1",
++        "@bramus/specificity": "^2.4.2",
++        "@csstools/css-syntax-patches-for-csstree": "^1.1.3",
++        "@exodus/bytes": "^1.15.0",
++        "css-tree": "^3.2.1",
++        "data-urls": "^7.0.0",
++        "decimal.js": "^10.6.0",
++        "html-encoding-sniffer": "^6.0.0",
++        "is-potential-custom-element-name": "^1.0.1",
++        "lru-cache": "^11.3.5",
++        "parse5": "^8.0.1",
++        "saxes": "^6.0.0",
++        "symbol-tree": "^3.2.4",
++        "tough-cookie": "^6.0.1",
++        "undici": "^7.25.0",
++        "w3c-xmlserializer": "^5.0.0",
++        "webidl-conversions": "^8.0.1",
++        "whatwg-mimetype": "^5.0.0",
++        "whatwg-url": "^16.0.1",
++        "xml-name-validator": "^5.0.0"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
++      },
++      "peerDependencies": {
++        "canvas": "^3.0.0"
++      },
++      "peerDependenciesMeta": {
++        "canvas": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/jsdom/node_modules/lru-cache": {
++      "version": "11.5.2",
++      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-11.5.2.tgz",
++      "integrity": "sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==",
++      "dev": true,
++      "license": "BlueOak-1.0.0",
++      "engines": {
++        "node": "20 || >=22"
++      }
++    },
+     "node_modules/jsesc": {
+       "version": "3.1.0",
+       "resolved": "https://registry.npmjs.org/jsesc/-/jsesc-3.1.0.tgz",
+@@ -4440,6 +5116,17 @@
+         "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+       }
+     },
++    "node_modules/lz-string": {
++      "version": "1.5.0",
++      "resolved": "https://registry.npmjs.org/lz-string/-/lz-string-1.5.0.tgz",
++      "integrity": "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true,
++      "bin": {
++        "lz-string": "bin/bin.js"
++      }
++    },
+     "node_modules/magic-string": {
+       "version": "0.30.21",
+       "resolved": "https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz",
+@@ -4458,6 +5145,13 @@
+         "node": ">= 0.4"
+       }
+     },
++    "node_modules/mdn-data": {
++      "version": "2.27.1",
++      "resolved": "https://registry.npmjs.org/mdn-data/-/mdn-data-2.27.1.tgz",
++      "integrity": "sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==",
++      "dev": true,
++      "license": "CC0-1.0"
++    },
+     "node_modules/media-typer": {
+       "version": "0.3.0",
+       "resolved": "https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz",
+@@ -4531,6 +5225,16 @@
+         "url": "https://github.com/sponsors/sindresorhus"
+       }
+     },
++    "node_modules/min-indent": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/min-indent/-/min-indent-1.0.1.tgz",
++      "integrity": "sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=4"
++      }
++    },
+     "node_modules/motion": {
+       "version": "12.38.0",
+       "resolved": "https://registry.npmjs.org/motion/-/motion-12.38.0.tgz",
+@@ -4661,6 +5365,20 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/obug": {
++      "version": "2.1.3",
++      "resolved": "https://registry.npmjs.org/obug/-/obug-2.1.3.tgz",
++      "integrity": "sha512-9miFgM2OFba7hB+pRgvtV84pYTBaoTHohvmIgiRt6dRIzbwEOIaNaP+dIlGs2fNFoB0SeISs0Jz5WFVRid6Xyg==",
++      "dev": true,
++      "funding": [
++        "https://github.com/sponsors/sxzz",
++        "https://opencollective.com/debug"
++      ],
++      "license": "MIT",
++      "engines": {
++        "node": ">=12.20.0"
++      }
++    },
+     "node_modules/on-finished": {
+       "version": "2.4.1",
+       "resolved": "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz",
+@@ -4718,6 +5436,19 @@
+       ],
+       "license": "(MIT AND Zlib)"
+     },
++    "node_modules/parse5": {
++      "version": "8.0.1",
++      "resolved": "https://registry.npmjs.org/parse5/-/parse5-8.0.1.tgz",
++      "integrity": "sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "entities": "^8.0.0"
++      },
++      "funding": {
++        "url": "https://github.com/inikulin/parse5?sponsor=1"
++      }
++    },
+     "node_modules/parseurl": {
+       "version": "1.3.3",
+       "resolved": "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz",
+@@ -4733,6 +5464,13 @@
+       "integrity": "sha512-A/AGNMFN3c8bOlvV9RreMdrv7jsmF9XIfDeCd87+I8RNg6s78BhJxMu69NEMHBSJFxKidViTEdruRwEk/WIKqA==",
+       "license": "MIT"
+     },
++    "node_modules/pathe": {
++      "version": "2.0.3",
++      "resolved": "https://registry.npmjs.org/pathe/-/pathe-2.0.3.tgz",
++      "integrity": "sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/performance-now": {
+       "version": "2.1.0",
+       "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz",
+@@ -4809,6 +5547,36 @@
+         "url": "https://github.com/prettier/prettier?sponsor=1"
+       }
+     },
++    "node_modules/pretty-format": {
++      "version": "27.5.1",
++      "resolved": "https://registry.npmjs.org/pretty-format/-/pretty-format-27.5.1.tgz",
++      "integrity": "sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true,
++      "dependencies": {
++        "ansi-regex": "^5.0.1",
++        "ansi-styles": "^5.0.0",
++        "react-is": "^17.0.1"
++      },
++      "engines": {
++        "node": "^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0"
++      }
++    },
++    "node_modules/pretty-format/node_modules/ansi-styles": {
++      "version": "5.2.0",
++      "resolved": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-5.2.0.tgz",
++      "integrity": "sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true,
++      "engines": {
++        "node": ">=10"
++      },
++      "funding": {
++        "url": "https://github.com/chalk/ansi-styles?sponsor=1"
++      }
++    },
+     "node_modules/process-nextick-args": {
+       "version": "2.0.1",
+       "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-2.0.1.tgz",
+@@ -4852,6 +5620,16 @@
+         "node": ">= 0.10"
+       }
+     },
++    "node_modules/punycode": {
++      "version": "2.3.1",
++      "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz",
++      "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=6"
++      }
++    },
+     "node_modules/qs": {
+       "version": "6.15.1",
+       "resolved": "https://registry.npmjs.org/qs/-/qs-6.15.1.tgz",
+@@ -4928,6 +5706,14 @@
+         "react": "^19.2.6"
+       }
+     },
++    "node_modules/react-is": {
++      "version": "17.0.2",
++      "resolved": "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz",
++      "integrity": "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==",
++      "dev": true,
++      "license": "MIT",
++      "peer": true
++    },
+     "node_modules/react-refresh": {
+       "version": "0.18.0",
+       "resolved": "https://registry.npmjs.org/react-refresh/-/react-refresh-0.18.0.tgz",
+@@ -4958,6 +5744,20 @@
+       "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==",
+       "license": "MIT"
+     },
++    "node_modules/redent": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/redent/-/redent-3.0.0.tgz",
++      "integrity": "sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "indent-string": "^4.0.0",
++        "strip-indent": "^3.0.0"
++      },
++      "engines": {
++        "node": ">=8"
++      }
++    },
+     "node_modules/regenerator-runtime": {
+       "version": "0.13.11",
+       "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz",
+@@ -4974,6 +5774,16 @@
+         "node": ">=0.10.0"
+       }
+     },
++    "node_modules/require-from-string": {
++      "version": "2.0.2",
++      "resolved": "https://registry.npmjs.org/require-from-string/-/require-from-string-2.0.2.tgz",
++      "integrity": "sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=0.10.0"
++      }
++    },
+     "node_modules/resolve-pkg-maps": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/resolve-pkg-maps/-/resolve-pkg-maps-1.0.0.tgz",
+@@ -5097,6 +5907,19 @@
+       "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
+       "license": "MIT"
+     },
++    "node_modules/saxes": {
++      "version": "6.0.0",
++      "resolved": "https://registry.npmjs.org/saxes/-/saxes-6.0.0.tgz",
++      "integrity": "sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==",
++      "dev": true,
++      "license": "ISC",
++      "dependencies": {
++        "xmlchars": "^2.2.0"
++      },
++      "engines": {
++        "node": ">=v12.22.7"
++      }
++    },
+     "node_modules/scheduler": {
+       "version": "0.27.0",
+       "resolved": "https://registry.npmjs.org/scheduler/-/scheduler-0.27.0.tgz",
+@@ -5250,6 +6073,13 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/siginfo": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/siginfo/-/siginfo-2.0.0.tgz",
++      "integrity": "sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==",
++      "dev": true,
++      "license": "ISC"
++    },
+     "node_modules/signal-exit": {
+       "version": "4.1.0",
+       "resolved": "https://registry.npmjs.org/signal-exit/-/signal-exit-4.1.0.tgz",
+@@ -5330,6 +6160,13 @@
+         "node": ">=0.8"
+       }
+     },
++    "node_modules/stackback": {
++      "version": "0.0.2",
++      "resolved": "https://registry.npmjs.org/stackback/-/stackback-0.0.2.tgz",
++      "integrity": "sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/stackblur-canvas": {
+       "version": "2.7.0",
+       "resolved": "https://registry.npmjs.org/stackblur-canvas/-/stackblur-canvas-2.7.0.tgz",
+@@ -5349,6 +6186,13 @@
+         "node": ">= 0.8"
+       }
+     },
++    "node_modules/std-env": {
++      "version": "4.2.0",
++      "resolved": "https://registry.npmjs.org/std-env/-/std-env-4.2.0.tgz",
++      "integrity": "sha512-oCUKSupKTHX53EyjDtuZQ64pjLJ6yYCtpmEw0goYxtjG9KpbRe8KAsl2tBUGU9DyMcJ0RwJ8GqJAFzMXcXW1Rw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/string_decoder": {
+       "version": "1.1.1",
+       "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
+@@ -5400,6 +6244,19 @@
+         "node": ">=8"
+       }
+     },
++    "node_modules/strip-indent": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/strip-indent/-/strip-indent-3.0.0.tgz",
++      "integrity": "sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "min-indent": "^1.0.0"
++      },
++      "engines": {
++        "node": ">=8"
++      }
++    },
+     "node_modules/svg-pathdata": {
+       "version": "6.0.3",
+       "resolved": "https://registry.npmjs.org/svg-pathdata/-/svg-pathdata-6.0.3.tgz",
+@@ -5410,6 +6267,13 @@
+         "node": ">=12.0.0"
+       }
+     },
++    "node_modules/symbol-tree": {
++      "version": "3.2.4",
++      "resolved": "https://registry.npmjs.org/symbol-tree/-/symbol-tree-3.2.4.tgz",
++      "integrity": "sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/tailwindcss": {
+       "version": "4.3.0",
+       "resolved": "https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.3.0.tgz",
+@@ -5439,6 +6303,13 @@
+         "utrie": "^1.0.2"
+       }
+     },
++    "node_modules/tinybench": {
++      "version": "2.9.0",
++      "resolved": "https://registry.npmjs.org/tinybench/-/tinybench-2.9.0.tgz",
++      "integrity": "sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/tinyexec": {
+       "version": "1.2.4",
+       "resolved": "https://registry.npmjs.org/tinyexec/-/tinyexec-1.2.4.tgz",
+@@ -5465,6 +6336,36 @@
+         "url": "https://github.com/sponsors/SuperchupuDev"
+       }
+     },
++    "node_modules/tinyrainbow": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/tinyrainbow/-/tinyrainbow-3.1.0.tgz",
++      "integrity": "sha512-Bf+ILmBgretUrdJxzXM0SgXLZ3XfiaUuOj/IKQHuTXip+05Xn+uyEYdVg0kYDipTBcLrCVyUzAPz7QmArb0mmw==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=14.0.0"
++      }
++    },
++    "node_modules/tldts": {
++      "version": "7.4.8",
++      "resolved": "https://registry.npmjs.org/tldts/-/tldts-7.4.8.tgz",
++      "integrity": "sha512-htwgN/8KRB3z3vnC0BOETVh2m499g5GmyTK9Wq5JBLX3FNz6tSBveAd+fQhzy9hkjif8vy2jwDMR1sGhLtZl2A==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "tldts-core": "^7.4.8"
++      },
++      "bin": {
++        "tldts": "bin/cli.js"
++      }
++    },
++    "node_modules/tldts-core": {
++      "version": "7.4.8",
++      "resolved": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.8.tgz",
++      "integrity": "sha512-c1P7u0EhACHj7lPy4MJm8iTFEU8+nB0LCtddH0fhP7noaVoXAqafMtOOeX+ulpuPBqnrRgRhw494RICT3mbhnw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/toidentifier": {
+       "version": "1.0.1",
+       "resolved": "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz",
+@@ -5474,6 +6375,32 @@
+         "node": ">=0.6"
+       }
+     },
++    "node_modules/tough-cookie": {
++      "version": "6.0.2",
++      "resolved": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-6.0.2.tgz",
++      "integrity": "sha512-exgYmnmL/sJpR3upZfXG5PoatXQii55xAiXGXzY+sROLZ/Y+SLcp9PgJNI9Vz37HpQ74WvDcLT8eqm+kV3FzrA==",
++      "dev": true,
++      "license": "BSD-3-Clause",
++      "dependencies": {
++        "tldts": "^7.0.5"
++      },
++      "engines": {
++        "node": ">=16"
++      }
++    },
++    "node_modules/tr46": {
++      "version": "6.0.0",
++      "resolved": "https://registry.npmjs.org/tr46/-/tr46-6.0.0.tgz",
++      "integrity": "sha512-bLVMLPtstlZ4iMQHpFHTR7GAGj2jxi8Dg0s2h2MafAE4uSWF98FC/3MomU51iQAMf8/qDUbKWf5GxuvvVcXEhw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "punycode": "^2.3.1"
++      },
++      "engines": {
++        "node": ">=20"
++      }
++    },
+     "node_modules/tslib": {
+       "version": "2.8.1",
+       "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+@@ -5527,6 +6454,16 @@
+         "node": ">=14.17"
+       }
+     },
++    "node_modules/undici": {
++      "version": "7.28.0",
++      "resolved": "https://registry.npmjs.org/undici/-/undici-7.28.0.tgz",
++      "integrity": "sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=20.18.1"
++      }
++    },
+     "node_modules/undici-types": {
+       "version": "6.21.0",
+       "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz",
+@@ -6137,6 +7074,109 @@
+         "@esbuild/win32-x64": "0.25.12"
+       }
+     },
++    "node_modules/vitest": {
++      "version": "4.1.10",
++      "resolved": "https://registry.npmjs.org/vitest/-/vitest-4.1.10.tgz",
++      "integrity": "sha512-R9jUTe5S4Qb0HCd4TNqpC7oGcrMssMRGXLW80ubjWsW9VH5GF8y1Y0SFLY9AbqSk6nt0PnOx4H4WNJYZ13GUPw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@vitest/expect": "4.1.10",
++        "@vitest/mocker": "4.1.10",
++        "@vitest/pretty-format": "4.1.10",
++        "@vitest/runner": "4.1.10",
++        "@vitest/snapshot": "4.1.10",
++        "@vitest/spy": "4.1.10",
++        "@vitest/utils": "4.1.10",
++        "es-module-lexer": "^2.0.0",
++        "expect-type": "^1.3.0",
++        "magic-string": "^0.30.21",
++        "obug": "^2.1.1",
++        "pathe": "^2.0.3",
++        "picomatch": "^4.0.3",
++        "std-env": "^4.0.0-rc.1",
++        "tinybench": "^2.9.0",
++        "tinyexec": "^1.0.2",
++        "tinyglobby": "^0.2.15",
++        "tinyrainbow": "^3.1.0",
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0",
++        "why-is-node-running": "^2.3.0"
++      },
++      "bin": {
++        "vitest": "vitest.mjs"
++      },
++      "engines": {
++        "node": "^20.0.0 || ^22.0.0 || >=24.0.0"
++      },
++      "funding": {
++        "url": "https://opencollective.com/vitest"
++      },
++      "peerDependencies": {
++        "@edge-runtime/vm": "*",
++        "@opentelemetry/api": "^1.9.0",
++        "@types/node": "^20.0.0 || ^22.0.0 || >=24.0.0",
++        "@vitest/browser-playwright": "4.1.10",
++        "@vitest/browser-preview": "4.1.10",
++        "@vitest/browser-webdriverio": "4.1.10",
++        "@vitest/coverage-istanbul": "4.1.10",
++        "@vitest/coverage-v8": "4.1.10",
++        "@vitest/ui": "4.1.10",
++        "happy-dom": "*",
++        "jsdom": "*",
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@edge-runtime/vm": {
++          "optional": true
++        },
++        "@opentelemetry/api": {
++          "optional": true
++        },
++        "@types/node": {
++          "optional": true
++        },
++        "@vitest/browser-playwright": {
++          "optional": true
++        },
++        "@vitest/browser-preview": {
++          "optional": true
++        },
++        "@vitest/browser-webdriverio": {
++          "optional": true
++        },
++        "@vitest/coverage-istanbul": {
++          "optional": true
++        },
++        "@vitest/coverage-v8": {
++          "optional": true
++        },
++        "@vitest/ui": {
++          "optional": true
++        },
++        "happy-dom": {
++          "optional": true
++        },
++        "jsdom": {
++          "optional": true
++        },
++        "vite": {
++          "optional": false
++        }
++      }
++    },
++    "node_modules/w3c-xmlserializer": {
++      "version": "5.0.0",
++      "resolved": "https://registry.npmjs.org/w3c-xmlserializer/-/w3c-xmlserializer-5.0.0.tgz",
++      "integrity": "sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "xml-name-validator": "^5.0.0"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
+     "node_modules/web-streams-polyfill": {
+       "version": "3.3.3",
+       "resolved": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-3.3.3.tgz",
+@@ -6152,6 +7192,16 @@
+       "integrity": "sha512-r4DIlprAGwJ7YM11VZp4R884m0Vmgr6EAKe3P+kO0PPj3Unqyvv59rczf6UiGcb9Z8QxZVcqKNwv/g0WNdWwsw==",
+       "license": "Apache-2.0"
+     },
++    "node_modules/webidl-conversions": {
++      "version": "8.0.1",
++      "resolved": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-8.0.1.tgz",
++      "integrity": "sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==",
++      "dev": true,
++      "license": "BSD-2-Clause",
++      "engines": {
++        "node": ">=20"
++      }
++    },
+     "node_modules/websocket-driver": {
+       "version": "0.7.5",
+       "resolved": "https://registry.npmjs.org/websocket-driver/-/websocket-driver-0.7.5.tgz",
+@@ -6175,6 +7225,48 @@
+         "node": ">=0.8.0"
+       }
+     },
++    "node_modules/whatwg-mimetype": {
++      "version": "5.0.0",
++      "resolved": "https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-5.0.0.tgz",
++      "integrity": "sha512-sXcNcHOC51uPGF0P/D4NVtrkjSU2fNsm9iog4ZvZJsL3rjoDAzXZhkm2MWt1y+PUdggKAYVoMAIYcs78wJ51Cw==",
++      "dev": true,
++      "license": "MIT",
++      "engines": {
++        "node": ">=20"
++      }
++    },
++    "node_modules/whatwg-url": {
++      "version": "16.0.1",
++      "resolved": "https://registry.npmjs.org/whatwg-url/-/whatwg-url-16.0.1.tgz",
++      "integrity": "sha512-1to4zXBxmXHV3IiSSEInrreIlu02vUOvrhxJJH5vcxYTBDAx51cqZiKdyTxlecdKNSjj8EcxGBxNf6Vg+945gw==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@exodus/bytes": "^1.11.0",
++        "tr46": "^6.0.0",
++        "webidl-conversions": "^8.0.1"
++      },
++      "engines": {
++        "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
++      }
++    },
++    "node_modules/why-is-node-running": {
++      "version": "2.3.0",
++      "resolved": "https://registry.npmjs.org/why-is-node-running/-/why-is-node-running-2.3.0.tgz",
++      "integrity": "sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "siginfo": "^2.0.0",
++        "stackback": "0.0.2"
++      },
++      "bin": {
++        "why-is-node-running": "cli.js"
++      },
++      "engines": {
++        "node": ">=8"
++      }
++    },
+     "node_modules/wmf": {
+       "version": "1.0.2",
+       "resolved": "https://registry.npmjs.org/wmf/-/wmf-1.0.2.tgz",
+@@ -6252,6 +7344,23 @@
+         "node": ">=0.8"
+       }
+     },
++    "node_modules/xml-name-validator": {
++      "version": "5.0.0",
++      "resolved": "https://registry.npmjs.org/xml-name-validator/-/xml-name-validator-5.0.0.tgz",
++      "integrity": "sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=18"
++      }
++    },
++    "node_modules/xmlchars": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz",
++      "integrity": "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==",
++      "dev": true,
++      "license": "MIT"
++    },
+     "node_modules/y18n": {
+       "version": "5.0.8",
+       "resolved": "https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz",
+diff --git a/package.json b/package.json
+index 20aa831..af2480b 100644
+--- a/package.json
++++ b/package.json
+@@ -34,16 +34,20 @@
+     "xlsx": "^0.18.5"
+   },
+   "devDependencies": {
++    "@testing-library/jest-dom": "^6.9.1",
++    "@testing-library/react": "^16.3.2",
+     "@types/express": "^4.17.21",
+     "@types/node": "^22.14.0",
+     "autoprefixer": "^10.4.21",
+     "husky": "^9.1.7",
++    "jsdom": "^29.1.1",
+     "lint-staged": "^17.0.8",
+     "prettier": "^3.9.4",
+     "tailwindcss": "^4.1.14",
+     "tsx": "^4.21.0",
+     "typescript": "~5.8.2",
+-    "vite": "^6.2.3"
++    "vite": "^6.2.3",
++    "vitest": "^4.1.10"
+   },
+   "lint-staged": {
+     "*.{ts,tsx,js,jsx,css,md,html,json}": "prettier --write"
+diff --git a/src/App.tsx b/src/App.tsx
+index 46edc9d..3f420f5 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
-@@ -1,8 +1,102 @@
- import React, { useState, useRef, useCallback, useEffect } from 'react';
- import { createPortal } from 'react-dom';
--import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock } from 'lucide-react';
-+import { Users, LayoutGrid, CheckCircle2, ChevronRight, ChevronDown, Inbox, Layers, UserCog, Trash2, Zap, User, ArrowRightLeft, Palmtree, Shield, Clock, LogOut, Activity, ShieldAlert, FileText, Palette, Eye, EyeOff } from 'lucide-react';
- import { motion, AnimatePresence } from 'motion/react';
+@@ -48,7 +48,6 @@ import {
+   hasRegisteredBiometrics,
+   clearBiometricData,
+ } from "./services/biometricService";
+-import { signInToFirebase } from "./lib/firebase";
+ import { TurmaSelectionScreen } from "./components/TurmaSelectionScreen";
+ import ThemeSelectionScreen from "./components/ThemeSelectionScreen";
+ import type { TurmaType } from "./types";
+@@ -78,6 +77,9 @@ import { EmployeeRow } from "./components/EmployeeRow";
+ import { SupportRoleRow } from "./components/SupportRoleRow";
+ import { ModalsContainer } from "./components/modals/ModalsContainer";
+ import { useDashboardData } from "./hooks/useDashboardData";
++import { useFirebaseSync } from "./hooks/useFirebaseSync";
++import { useMovementLog } from "./hooks/useMovementLog";
++import { useDragAndDrop } from "./hooks/useDragAndDrop";
  
-+// --- Status Types and Predefined Styles ---
-+export type StatusType = 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS';
+ // Componente Wrapper Droppable para o Turno 6H
+ const SpecialShiftContainer = ({
+@@ -257,10 +259,6 @@ function AppContent() {
+   }, [activePage]);
+ 
+   // Hist├│rico de Movimenta├º├Áes
+-  // Faz o login an├┤nimo ao montar o app (se as vars existirem)
+-  useEffect(() => {
+-    signInToFirebase();
+-  }, []);
+ 
+   const isReceivingSnapshotRef = useRef(false);
+   const isDemoModeRef = useRef(isDemoMode);
+@@ -279,47 +277,13 @@ function AppContent() {
+     annotationsRightRef.current = annotationsRight;
+   }, [adminUser, isDemoMode, selectedTurma, annotationsLeft, annotationsRight]);
+ 
+-  // Efeito principal de sincroniza├º├úo de dados (Firebase vs Mock)
+-  useEffect(() => {
+-    if (!selectedTurma || isDemoMode || !isTabVisible) return;
+-
+-    // Escuta edi├º├Áes ativas em tempo real
+-    const unsubscribeEdits = firestoreService.subscribeToActiveEdits(
+-      selectedTurma,
+-      (edits) => {
+-        const now = Date.now();
+-        const cleanedEdits: Record<string, ActiveEdit> = {};
+-        Object.keys(edits).forEach((key) => {
+-          // Ignora edi├º├Áes mais antigas que 15s que ficaram presas
+-          if (now - edits[key].timestamp < 15000) {
+-            cleanedEdits[key] = edits[key];
+-          }
+-        });
+-        setActiveEdits(cleanedEdits);
+-      },
+-    );
+-
+-    const cleanupInterval = setInterval(() => {
+-      setActiveEdits((prev) => {
+-        const now = Date.now();
+-        const cleaned: Record<string, ActiveEdit> = {};
+-        let changed = false;
+-        Object.keys(prev).forEach((key) => {
+-          if (now - prev[key].timestamp < 15000) {
+-            cleaned[key] = prev[key];
+-          } else {
+-            changed = true;
+-          }
+-        });
+-        return changed ? cleaned : prev;
+-      });
+-    }, 5000);
+-
+-    return () => {
+-      unsubscribeEdits();
+-      clearInterval(cleanupInterval);
+-    };
+-  }, [isDemoMode, selectedTurma, isTabVisible]);
++  // Efeito principal de sincroniza├º├úo de dados (Firebase vs Mock) extra├¡do para Hook
++  useFirebaseSync({
++    selectedTurma,
++    isDemoMode,
++    isTabVisible,
++    setActiveEdits,
++  });
+ 
+   // Efeito para carregar o hist├│rico de logs apenas quando o modal for aberto
+   useEffect(() => {
+@@ -470,60 +434,12 @@ function AppContent() {
+     }
+   }, [toast]);
+ 
+-  const logMovement = useCallback(
+-    (
+-      employeeName: string,
+-      from: string,
+-      to: string,
+-      line?: string,
+-      machine?: string,
+-    ) => {
+-      const logId =
+-        Date.now().toString() + Math.random().toString(36).substring(2, 7);
+-      const currentAdmin = adminUserRef.current
+-        ? adminUserRef.current.funcao
+-          ? `${adminUserRef.current.name} (${adminUserRef.current.funcao})`
+-          : adminUserRef.current.name
+-        : "Sistema";
+-      const adminName = isDemoModeRef.current
+-        ? [
+-            "Lucas (Admin)",
+-            "Mariana (Super)",
+-            "Roberto (Gestor)",
+-            "Fernanda (Coord)",
+-          ][Math.floor(Math.random() * 4)]
+-        : currentAdmin;
+-
+-      setMovementLogs((prev) => {
+-        const newLog: MovementLog = {
+-          id: logId,
+-          adminName: adminName,
+-          employeeName,
+-          from,
+-          to,
+-          line,
+-          machine,
+-          timestamp: new Date(),
+-        };
+-        return [newLog, ...prev].slice(0, 500);
+-      });
+-
+-      // Bug 3/17: usa selectedTurmaRef para evitar stale closure
+-      if (!isDemoModeRef.current && selectedTurmaRef.current) {
+-        firestoreService.saveMovementLog(selectedTurmaRef.current, {
+-          id: logId,
+-          adminName: adminName,
+-          employeeName,
+-          from,
+-          to,
+-          line,
+-          machine,
+-          timestamp: new Date(),
+-        });
+-      }
+-    },
+-    [],
+-  );
++  const { logMovement } = useMovementLog({
++    adminUser,
++    isDemoMode,
++    selectedTurma,
++    setMovementLogs,
++  });
+ 
+   const handleClearAll = useCallback(() => {
+     setDepartmentsData((prev) =>
+@@ -1042,6 +958,34 @@ function AppContent() {
+     isDarkModeRef.current = isDarkMode;
+   }, [departmentsData, supportRolesData, specialShiftData, isDarkMode]);
+ 
++  const {
++    sensors,
++    handleDragStart,
++    handleDragCancel,
++    handleDragOver,
++    handleDragEnd,
++  } = useDragAndDrop({
++    isAdmin,
++    activeIdRef,
++    setActiveId,
++    setOverId,
++    handleStartEditRef,
++    handleStopEditRef,
++    clonedDepartmentsRef,
++    clonedSupportRef,
++    clonedSpecialShiftRef,
++    departmentsDataRef,
++    supportRolesDataRef,
++    specialShiftDataRef,
++    dragSourceRef,
++    setActiveSupportId,
++    setDepartmentsData,
++    setSupportRolesData,
++    setSpecialShiftData,
++    selectedTurma,
++  });
 +
-+export const STATUS_METADATA: Record<StatusType, {
-+  label: string;
-+  colorDark: string;    // cor para modo escuro
-+  colorLight: string;   // cor com mais contraste/escura para modo claro
-+  dotColor: string;
-+  icon: React.ComponentType<{ className?: string }>;
-+}> = {
-+  'F├ëRIAS': {
-+    label: 'F├ëRIAS',
-+    colorDark: 'text-[#30D158]',      // Verde vibrante no escuro (iOS Green)
-+    colorLight: 'text-[#16A34A]',     // Verde forte de ├│timo contraste no claro (Tailwind green-600)
-+    dotColor: 'bg-[#30D158]',
-+    icon: Palmtree,
-+  },
-+  'FORA': {
-+    label: 'FORA',
-+    colorDark: 'text-[#FF453A]',
-+    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro (Tailwind red-500)
-+    dotColor: 'bg-[#FF453A]',
-+    icon: LogOut,
-+  },
-+  'ATM': {
-+    label: 'ATM',
-+    colorDark: 'text-[#FFD60A]',      // Amarelo no escuro
-+    colorLight: 'text-[#D97706]',     // ├émbar/Dourado equilibrado no claro (Tailwind amber-600)
-+    dotColor: 'bg-[#FFD60A]',
-+    icon: Activity,
-+  },
-+  'RESTRI├ç├âO': {
-+    label: 'RESTRI├ç├âO',
-+    colorDark: 'text-[#BF5AF2]',
-+    colorLight: 'text-[#8B5CF6]',     // Violeta vibrante no claro (Tailwind violet-500)
-+    dotColor: 'bg-[#BF5AF2]',
-+    icon: ShieldAlert,
-+  },
-+  'INSS': {
-+    label: 'INSS',
-+    colorDark: 'text-[#FF453A]',
-+    colorLight: 'text-[#EF4444]',     // Vermelho vivo no claro
-+    dotColor: 'bg-[#FF453A]',
-+    icon: FileText,
++  /*
+   const mouseSensor = useSensor(
+     MouseSensor,
+     React.useMemo(
+@@ -1741,6 +1685,7 @@ function AppContent() {
+     setOverId(null);
+     dragSourceRef.current = null;
+   }, []);
++  */
+ 
+   const {
+     activeEmployee,
+diff --git a/src/hooks/__tests__/useDragAndDrop.test.ts b/src/hooks/__tests__/useDragAndDrop.test.ts
+new file mode 100644
+index 0000000..0215aae
+--- /dev/null
++++ b/src/hooks/__tests__/useDragAndDrop.test.ts
+@@ -0,0 +1,42 @@
++import { renderHook, act } from "@testing-library/react";
++import { expect, test, describe, vi } from "vitest";
++import { useDragAndDrop } from "../useDragAndDrop";
++
++describe("useDragAndDrop", () => {
++  test("initializes correctly and handles drag start", () => {
++    const setActiveId = vi.fn();
++    const setOverId = vi.fn();
++    const setActiveSupportId = vi.fn();
++    
++    const { result } = renderHook(() => useDragAndDrop({
++      isAdmin: false,
++      activeIdRef: { current: null },
++      setActiveId,
++      setOverId,
++      handleStartEditRef: { current: vi.fn() },
++      handleStopEditRef: { current: vi.fn() },
++      clonedDepartmentsRef: { current: null },
++      clonedSupportRef: { current: null },
++      clonedSpecialShiftRef: { current: null },
++      departmentsDataRef: { current: [] },
++      supportRolesDataRef: { current: [] },
++      specialShiftDataRef: { current: [] },
++      dragSourceRef: { current: null },
++      setActiveSupportId,
++      setDepartmentsData: vi.fn(),
++      setSupportRolesData: vi.fn(),
++      setSpecialShiftData: vi.fn(),
++      selectedTurma: 'A',
++    }));
++
++    expect(result.current.sensors).toBeDefined();
++    
++    // Simulate drag start
++    act(() => {
++      result.current.handleDragStart({ active: { id: "emp-1" } } as any);
++    });
++
++    expect(setActiveId).toHaveBeenCalledWith("emp-1");
++    expect(setOverId).toHaveBeenCalledWith(null);
++  });
++});
+diff --git a/src/hooks/__tests__/useFirebaseSync.test.ts b/src/hooks/__tests__/useFirebaseSync.test.ts
+new file mode 100644
+index 0000000..cea4220
+--- /dev/null
++++ b/src/hooks/__tests__/useFirebaseSync.test.ts
+@@ -0,0 +1,77 @@
++import { renderHook } from '@testing-library/react';
++import { describe, it, expect, vi, beforeEach } from 'vitest';
++import { useFirebaseSync } from '../useFirebaseSync';
++import { firestoreService } from '../../services/firestoreService';
++
++// Mock do firestoreService
++vi.mock('../../services/firestoreService', () => ({
++  firestoreService: {
++    subscribeToActiveEdits: vi.fn(),
 +  }
-+};
++}));
 +
-+export function StatusIndicator({
-+  type,
-+  isDarkMode
-+}: {
-+  type: StatusType;
-+  isDarkMode: boolean;
-+}) {
-+  const meta = STATUS_METADATA[type];
-+  if (!meta) return <span>{type}</span>;
++describe('useFirebaseSync', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
 +
-+  const Icon = meta.icon;
-+  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
++  it('n├úo deve fazer subscribe se isDemoMode for true', () => {
++    renderHook(() => useFirebaseSync({ 
++      selectedTurma: 'A' as any, 
++      isDemoMode: true, 
++      isTabVisible: true,
++      setActiveEdits: vi.fn()
++    }));
 +
-+  return (
-+    <span className={`flex items-center gap-1.5 font-bold text-[11px] ${colorClass}`}>
-+      <Icon className="w-3.5 h-3.5" />
-+      <span className="status-icon-text">{meta.label}</span>
-+    </span>
-+  );
++    expect(firestoreService.subscribeToActiveEdits).not.toHaveBeenCalled();
++  });
++
++  it('deve fazer subscribe e limpar activeEdits expirados (>15s)', () => {
++    const mockUnsubscribe = vi.fn();
++    (firestoreService.subscribeToActiveEdits as any).mockReturnValue(mockUnsubscribe);
++
++    const setActiveEditsMock = vi.fn();
++
++    renderHook(() => useFirebaseSync({ 
++      selectedTurma: 'A' as any, 
++      isDemoMode: false, 
++      isTabVisible: true,
++      setActiveEdits: setActiveEditsMock
++    }));
++
++    expect(firestoreService.subscribeToActiveEdits).toHaveBeenCalledWith(
++      'A',
++      expect.any(Function)
++    );
++
++    // Simulando chamada de retorno do Firebase
++    const callback = (firestoreService.subscribeToActiveEdits as any).mock.calls[0][1];
++    
++    const now = Date.now();
++    const editsFromFirebase = {
++      'user1': { timestamp: now - 5000 }, // V├ílido (5s atr├ís)
++      'user2': { timestamp: now - 20000 } // Expirado (20s atr├ís)
++    };
++
++    callback(editsFromFirebase);
++
++    expect(setActiveEditsMock).toHaveBeenCalledWith({
++      'user1': { timestamp: now - 5000 }
++    });
++  });
++
++  it('deve chamar unsubscribe quando o componente desmontar', () => {
++    const mockUnsubscribe = vi.fn();
++    (firestoreService.subscribeToActiveEdits as any).mockReturnValue(mockUnsubscribe);
++
++    const { unmount } = renderHook(() => useFirebaseSync({ 
++      selectedTurma: 'A' as any, 
++      isDemoMode: false, 
++      isTabVisible: true,
++      setActiveEdits: vi.fn()
++    }));
++
++    unmount();
++    expect(mockUnsubscribe).toHaveBeenCalled();
++  });
++});
+diff --git a/src/hooks/useDragAndDrop.ts b/src/hooks/useDragAndDrop.ts
+index 7dedf25..1b3072b 100644
+--- a/src/hooks/useDragAndDrop.ts
++++ b/src/hooks/useDragAndDrop.ts
+@@ -1,17 +1,817 @@
+-import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
++import React, { useCallback, useMemo } from 'react';
++import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
++import { arrayMove } from '@dnd-kit/sortable';
++import { Department, SupportRole, Employee, TurmaType } from '../types';
++import { firestoreService } from '../services/firestoreService';
+ 
+-export function useDragAndDrop() {
+-  const handleDragStart = (event: DragStartEvent) => {
+-    // Logic will be extracted here
+-  };
+-  
+-  const handleDragOver = (event: DragOverEvent) => {
+-    // Logic will be extracted here
+-  };
+-  
+-  const handleDragEnd = (event: DragEndEvent) => {
+-    // Logic will be extracted here
+-  };
++export interface UseDragAndDropProps {
++  isAdmin: boolean;
++  activeIdRef: React.MutableRefObject<string | null>;
++  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
++  setOverId: React.Dispatch<React.SetStateAction<string | null>>;
++  handleStartEditRef: React.MutableRefObject<(id: string) => void>;
++  handleStopEditRef: React.MutableRefObject<(id: string) => void>;
++  clonedDepartmentsRef: React.MutableRefObject<Department[] | null>;
++  clonedSupportRef: React.MutableRefObject<SupportRole[][] | null>;
++  clonedSpecialShiftRef: React.MutableRefObject<Employee[] | null>;
++  departmentsDataRef: React.MutableRefObject<Department[]>;
++  supportRolesDataRef: React.MutableRefObject<SupportRole[][]>;
++  specialShiftDataRef: React.MutableRefObject<Employee[]>;
++  dragSourceRef: React.MutableRefObject<any>;
++  setActiveSupportId: React.Dispatch<React.SetStateAction<string | null>>;
++  setDepartmentsData: React.Dispatch<React.SetStateAction<Department[]>>;
++  setSupportRolesData: React.Dispatch<React.SetStateAction<SupportRole[][]>>;
++  setSpecialShiftData: React.Dispatch<React.SetStateAction<Employee[]>>;
++  selectedTurma: TurmaType | null;
 +}
 +
++export function useDragAndDrop({
++  isAdmin,
++  activeIdRef,
++  setActiveId,
++  setOverId,
++  handleStartEditRef,
++  handleStopEditRef,
++  clonedDepartmentsRef,
++  clonedSupportRef,
++  clonedSpecialShiftRef,
++  departmentsDataRef,
++  supportRolesDataRef,
++  specialShiftDataRef,
++  dragSourceRef,
++  setActiveSupportId,
++  setDepartmentsData,
++  setSupportRolesData,
++  setSpecialShiftData,
++  selectedTurma,
++}: UseDragAndDropProps) {
++  const mouseSensor = useSensor(
++    MouseSensor,
++    useMemo(
++      () => ({
++        activationConstraint: { distance: isAdmin ? 5 : 999999 },
++      }),
++      [isAdmin]
++    )
++  );
 +
-+// --- Custom Icons from PAINEL-DSS ---
-+const ExchangeIcon: React.FC<{ className?: string }> = ({ className }) => (
-+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-+    <path d="M17 1l4 4-4 4"></path>
-+    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-+    <path d="M7 23l-4-4 4-4"></path>
-+    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-+  </svg>
-+);
++  const touchSensor = useSensor(
++    TouchSensor,
++    useMemo(
++      () => ({
++        activationConstraint: {
++          delay: isAdmin ? 250 : 999999,
++          tolerance: isAdmin ? 5 : 0,
++        },
++      }),
++      [isAdmin]
++    )
++  );
 +
-+const HelpIcon: React.FC<{ className?: string }> = ({ className }) => (
-+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-+    <circle cx="12" cy="12" r="10"></circle>
-+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-+  </svg>
-+);
++  const sensors = useSensors(mouseSensor, touchSensor);
 +
-+const StatCard = ({ label, value, colorClass, bgClass }: { label: string; value: number; colorClass: string; bgClass: string }) => (
-+  <div className={`text-center py-2 px-3.5 rounded-xl min-w-[95px] border border-white/5 transition-all shadow-sm ${bgClass}`}>
-+    <div className={`text-[24px] font-black mb-0.5 tracking-tight ${colorClass}`}>{value}</div>
-+    <div className="text-[10px] text-[#a0aec0] uppercase font-bold tracking-wider">{label}</div>
-+  </div>
-+);
++  const handleDragStart = useCallback(
++    (event: any) => {
++      const activeIdVal = event.active.id;
++      setActiveId(activeIdVal);
++      activeIdRef.current = activeIdVal;
++      setOverId(null);
++      handleStartEditRef.current(activeIdVal as string);
++      clonedDepartmentsRef.current = departmentsDataRef.current;
++      clonedSupportRef.current = supportRolesDataRef.current;
++      clonedSpecialShiftRef.current = specialShiftDataRef.current;
 +
- // --- Portal Popup Anchor: calcula posi├º├úo real na tela para renderizar fora do overflow-hidden ---
- function useAnchoredRect(triggerRef: React.RefObject<HTMLElement | null>, open: boolean) {
-   const [rect, setRect] = useState<DOMRect | null>(null);
-@@ -20,9 +114,46 @@ function PortalMenu({ children }: { children: React.ReactNode }) {
-   return createPortal(children, document.body);
- }
- 
-+const radialMenuVariants = {
-+  hidden: { scale: 0, x: 0, y: 0, opacity: 0 },
-+  visible: (i: number) => {
-+    const radius = 65; // Raio One UI ÔÇö espa├ºamento confort├ível entre ├¡cones de 38px
-+    // 5 posi├º├Áes de 90 a -90 graus para abrir pela direita:
-+    // i = 0 -> 90deg, i = 1 -> 45deg, i = 2 -> 0deg, i = 3 -> -45deg, i = 4 -> -90deg
-+    const angleRad = (90 - i * 45) * (Math.PI / 180);
-+    const x = Math.round(radius * Math.cos(angleRad));
-+    const y = Math.round(-radius * Math.sin(angleRad)); // inverte Y para coordenadas de tela
-+    return {
-+      scale: 1,
-+      x,
-+      y,
-+      opacity: 1,
-+      transition: {
-+        type: 'spring',
-+        stiffness: 300,
-+        damping: 22,
-+        delay: i * 0.03
++      let sourceContainer = "";
++      let sourceType: "maquinista" | "apoio" | "special" = "maquinista";
++      let sourceRole: string | undefined = undefined;
++
++      for (const dept of departmentsDataRef.current) {
++        if (dept.data.some((e) => e.id === activeIdVal)) {
++          sourceContainer = dept.id;
++          sourceType = "maquinista";
++          break;
++        }
 +      }
-+    };
-+  },
-+  exit: (i: number) => ({
-+    scale: 0,
-+    x: 0,
-+    y: 0,
-+    opacity: 0,
-+    transition: {
-+      type: 'spring',
-+      stiffness: 400,
-+      damping: 25,
-+      delay: (4 - i) * 0.02
-+    }
-+  })
-+};
 +
- // --- Data Models ---
- type Employee = {
-   name: string;
-+  matricula?: string;
-   line: string;
-   machine: string;
-   error?: boolean;
-@@ -41,11 +172,14 @@ type Department = {
- 
- type SupportRole = {
-   name: string;
-+  matricula?: string;
-   role: string;
-+  error?: boolean;
- };
- 
- type AnnotationItem = {
-   name: string;
-+  matricula?: string;
-   status: string;
- };
- 
-@@ -66,12 +200,12 @@ const initialDepartmentsData: Department[] = [
-     title: 'Recep├º├úo',
-     count: 6,
-     data: [
--      { name: 'LUCIANO ALVES', line: 'X3', machine: '238' },
--      { name: 'RUFINO SANTOS', line: 'X2', machine: '231' },
--      { name: 'GERALDO COSTA', line: 'X2', machine: '220' },
--      { name: 'RAFAEL LIMA', line: 'X1', machine: '848' },
--      { name: 'ARTHUR SOUZA', line: 'X1', machine: '819' },
--      { name: 'WALTERILSON SILVA', line: '1┬║ CORTE', machine: '253' },
-+      { name: 'LUCIANO ALVES', matricula: '73849102', line: 'X3', machine: '238' },
-+      { name: 'RUFINO SANTOS', matricula: '58201934', line: 'X2', machine: '231' },
-+      { name: 'GERALDO COSTA', matricula: '91028374', line: 'X2', machine: '220' },
-+      { name: 'RAFAEL LIMA', matricula: '34910285', line: 'X1', machine: '848' },
-+      { name: 'ARTHUR SOUZA', matricula: '85920193', line: 'X1', machine: '819' },
-+      { name: 'WALTERILSON SILVA', matricula: '29384756', line: '1┬║ CORTE', machine: '253' },
-     ],
-   },
-   {
-@@ -79,14 +213,14 @@ const initialDepartmentsData: Department[] = [
-     title: 'Classifica├º├úo',
-     count: 8,
-     data: [
--      { name: 'NAIMARA MENDES', line: 'X04', machine: '805', error: true },
--      { name: 'DANIELLE OLIVEIRA', line: 'X04', machine: '257' },
--      { name: 'CID PINTO', line: 'X04', machine: '259' },
--      { name: 'IGOR RABELO', line: 'X04', machine: '3949' },
--      { name: 'NAYLAN ROCHA', line: 'X05', machine: '847' },
--      { name: 'HUMBERTO NUNES', line: 'X05', machine: '743' },
--      { name: 'PEDRO JUNIOR', line: 'X05', machine: '712' },
--      { name: 'NAYRON DIAS', line: 'X05', machine: '284' },
-+      { name: 'NAIMARA MENDES', matricula: '48572910', line: 'X04', machine: '805', error: true },
-+      { name: 'DANIELLE OLIVEIRA', matricula: '19283746', line: 'X04', machine: '257' },
-+      { name: 'CID PINTO', matricula: '56473829', line: 'X04', machine: '259' },
-+      { name: 'IGOR RABELO', matricula: '30495867', line: 'X04', machine: '3949' },
-+      { name: 'NAYLAN ROCHA', matricula: '82736450', line: 'X05', machine: '847' },
-+      { name: 'HUMBERTO NUNES', matricula: '61524389', line: 'X05', machine: '743' },
-+      { name: 'PEDRO JUNIOR', matricula: '94857102', line: 'X05', machine: '712' },
-+      { name: 'NAYRON DIAS', matricula: '20394857', line: 'X05', machine: '284' },
-     ],
-   },
-   {
-@@ -94,11 +228,11 @@ const initialDepartmentsData: Department[] = [
-     title: 'Forma├º├úo',
-     count: 5,
-     data: [
--      { name: 'JESSICA BARROS', line: 'CTR2', machine: '2003' },
--      { name: 'DANIEL ALMEIDA', line: 'CTR3', machine: '270' },
--      { name: 'GABRIEL CARVALHO', line: '4C', machine: '288' },
--      { name: 'PEDRO CARDOSO', line: '4C', machine: '260' },
--      { name: 'ROSANA TEIXEIRA', line: '201 B', machine: '277' },
-+      { name: 'JESSICA BARROS', matricula: '47582910', line: 'CTR2', machine: '2003' },
-+      { name: 'DANIEL ALMEIDA', matricula: '83920157', line: 'CTR3', machine: '270' },
-+      { name: 'GABRIEL CARVALHO', matricula: '10293847', line: '4C', machine: '288' },
-+      { name: 'PEDRO CARDOSO', matricula: '56473829', line: '4C', machine: '260' },
-+      { name: 'ROSANA TEIXEIRA', matricula: '92837465', line: '201 B', machine: '277' },
-     ],
-   },
- ];
-@@ -108,37 +242,48 @@ const SUPPORT_ROLES_OPTIONS = [
-   'VIRADOR',
-   'MIKE 03',
-   'AUX X5',
--  'AUX GIROFLEX',
-+  'GIROFLEX',
-   'MIKE 06',
-   'AUX X6'
- ];
- 
- const initialSupportData: SupportRole[][] = [
-   [
--    { name: 'BEATRIZ SILVA', role: 'MIKE 02' },
--    { name: 'AM├ëRICO SANTOS', role: 'VIRADOR' },
--    { name: 'ESDRAS SOUZA', role: 'VIRADOR' },
--    { name: 'LARISSA COSTA', role: 'VIRADOR' },
-+    { name: 'BEATRIZ SILVA', matricula: '48573920', role: 'MIKE 02' },
-+    { name: 'AM├ëRICO SANTOS', matricula: '10293847', role: 'VIRADOR' },
-+    { name: 'ESDRAS SOUZA', matricula: '56473829', role: 'VIRADOR' },
-+    { name: 'LARISSA COSTA', matricula: '92837465', role: 'VIRADOR' },
-   ],
-   [
--    { name: 'CAMILE BARROS', role: 'MIKE 03' },
--    { name: 'ALBERTO LIMA', role: 'AUX GIROFLEX' },
--    { name: 'RICARDO ROCHA', role: 'AUX GIROFLEX' },
-+    { name: 'CAMILE BARROS', matricula: '38475610', role: 'MIKE 03' },
-+    { name: 'ALBERTO LIMA', matricula: '72839405', role: 'GIROFLEX' },
-+    { name: 'RICARDO ROCHA', matricula: '19283746', role: 'GIROFLEX' },
-   ],
-   [
--    { name: 'LUANA ALVES', role: 'MIKE 06' },
--    { name: 'ROSA MENDES', role: 'AUX X6' },
-+    { name: 'LUANA ALVES', matricula: '50694837', role: 'MIKE 06' },
-+    { name: 'ROSA MENDES', matricula: '28374650', role: 'AUX X6' },
-   ],
- ];
- 
- const initialAnnotationsLeft: AnnotationGroup[] = [
-+  {
-+    title: 'MAQUINISTA / EST├üGIO',
-+    items: [
-+      { name: 'WEBERTH SILVA', matricula: '39485761', status: 'EST├üGIO' },
-+      { name: 'RAFAEL SOUZA', matricula: '20394857', status: 'EST├üGIO' },
-+      { name: 'ARTHUR COSTA', matricula: '94857612', status: 'EST├üGIO' },
-+      { name: 'GERALDO SANTOS', matricula: '48576192', status: 'EST├üGIO' },
-+      { name: '', status: '' },
-+      { name: '', status: '' },
-+    ]
-+  },
-   {
-     title: 'F├ëRIAS/ATM/TE/TREIN./REVEZA',
-     items: [
--      { name: 'WEBERTH SILVA', status: 'TREINAMENTO' },
--      { name: 'RAFAEL SOUZA', status: 'TREINAMENTO' },
--      { name: 'ARTHUR COSTA', status: 'TREINAMENTO' },
--      { name: 'GERALDO SANTOS', status: 'TREINAMENTO' },
-+      { name: 'WEBERTH SILVA', matricula: '39485761', status: 'TREINAMENTO' },
-+      { name: 'RAFAEL SOUZA', matricula: '20394857', status: 'TREINAMENTO' },
-+      { name: 'ARTHUR COSTA', matricula: '94857612', status: 'TREINAMENTO' },
-+      { name: 'GERALDO SANTOS', matricula: '48576192', status: 'TREINAMENTO' },
-       { name: '', status: '' },
-       { name: '', status: '' },
-     ]
-@@ -146,9 +291,9 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
-   {
-     title: 'AUSENTES/FORA/F├ëRIAS',
-     items: [
--      { name: 'ALDO RIBEIRO', status: 'F├ëRIAS' },
--      { name: 'KEYLSON LIMA', status: 'F├ëRIAS' },
--      { name: 'JOANDERSON ALVES', status: 'F├ëRIAS' },
-+      { name: 'ALDO RIBEIRO', matricula: '19283746', status: 'F├ëRIAS' },
-+      { name: 'KEYLSON LIMA', matricula: '56473829', status: 'F├ëRIAS' },
-+      { name: 'JOANDERSON ALVES', matricula: '30495867', status: 'F├ëRIAS' },
-       { name: '', status: '' },
-       { name: '', status: '' },
-       { name: '', status: '' },
-@@ -158,35 +303,35 @@ const initialAnnotationsLeft: AnnotationGroup[] = [
- 
- const initialAnnotationsRight: AnnotationGroup[] = [
-   {
--    title: 'MAQ/OFF - EST├üGIO',
-+    title: 'OFF / EST├üGIO',
-     items: [
--      { name: 'THAIS OLIVEIRA', status: 'EST├üGIO' },
--      { name: 'ELIAS PEREIRA', status: 'EST├üGIO' },
--      { name: 'JESSICA RODRIGUES', status: 'EST├üGIO' },
--      { name: 'GIANFRANCO NUNES', status: 'EST├üGIO' },
--      { name: 'THAIS GOMES', status: 'EST├üGIO' },
--      { name: 'BEATRIZ BARBOSA', status: 'EST├üGIO' },
--      { name: 'DENISSON MARTINS', status: '' },
-+      { name: 'THAIS OLIVEIRA', matricula: '82736450', status: 'EST├üGIO' },
-+      { name: 'ELIAS PEREIRA', matricula: '61524389', status: 'EST├üGIO' },
-+      { name: 'JESSICA RODRIGUES', matricula: '94857102', status: 'EST├üGIO' },
-+      { name: 'GIANFRANCO NUNES', matricula: '20394857', status: 'EST├üGIO' },
-+      { name: 'THAIS GOMES', matricula: '47582910', status: 'EST├üGIO' },
-+      { name: 'BEATRIZ BARBOSA', matricula: '83920157', status: 'EST├üGIO' },
-+      { name: 'DENISSON MARTINS', matricula: '10293847', status: 'EST├üGIO' },
-     ]
-   },
-   {
-     title: 'TREINAMENTO / F├ëRIAS/ ATM / TE',
-     items: [
--      { name: 'ANA PAULA SILVA', status: 'RESTRI├ç├âO' },
--      { name: 'JONH CARDOSO', status: 'RESTRI├ç├âO' },
--      { name: 'ANA BEATRIZ LIMA', status: 'INSS' },
--      { name: 'CAMILE MOREIRA', status: 'ATM' },
-+      { name: 'ANA PAULA SILVA', matricula: '56473829', status: 'RESTRI├ç├âO' },
-+      { name: 'JONH CARDOSO', matricula: '92837465', status: 'RESTRI├ç├âO' },
-+      { name: 'ANA BEATRIZ LIMA', matricula: '38475610', status: 'INSS' },
-+      { name: 'CAMILE MOREIRA', matricula: '72839405', status: 'ATM' },
-       { name: '', status: '' },
--      { name: 'MARCO POLO SOUZA', status: 'F├ëRIAS' },
--      { name: 'ADRYELLEN VIEIRA', status: 'F├ëRIAS' },
--      { name: 'LARISSA DIAS', status: 'FORA' },
-+      { name: 'MARCO POLO SOUZA', matricula: '19283746', status: 'F├ëRIAS' },
-+      { name: 'ADRYELLEN VIEIRA', matricula: '50694837', status: 'F├ëRIAS' },
-+      { name: 'LARISSA DIAS', matricula: '28374650', status: 'FORA' },
-       { name: '', status: '' },
-     ]
-   },
-   {
-     title: 'F├ëRIAS/IN SP/LICEN├çA',
-     items: [
--      { name: 'EDNELSON MELO', status: 'INSS' },
-+      { name: 'EDNELSON MELO', matricula: '39485761', status: 'INSS' },
-       { name: '', status: '' },
-       { name: '', status: '' },
-     ]
-@@ -218,14 +363,14 @@ function AnnotationsBoard({
-   onUpdateRight: (groupIndex: number, itemIndex: number, field: keyof AnnotationItem, value: string) => void;
- }) {
-   return (
--    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
-+    <div className="bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
-       {/* Header */}
--      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-center bg-[#15171E]">
-+      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-center bg-[#2D3748]">
-         <h3 className="text-[22px] font-bold text-white tracking-tight uppercase">ANOTA├ç├òES MIN├ëRIO</h3>
-       </div>
- 
-       {/* Body */}
--      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-row gap-6">
-+      <div className="flex-1 p-5 bg-[#1A202C]/30 flex flex-row gap-6">
-         {/* Left Column */}
-         <div className="flex-1 flex flex-col gap-6">
-           {leftGroups.map((group, groupIdx) => (
-@@ -235,7 +380,7 @@ function AnnotationsBoard({
-               </div>
-               <div className="flex flex-col gap-1 mt-1">
-                 {group.items.map((item, itemIdx) => (
--                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
-+                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#1A202C] rounded-[8px] border border-white/[0.03]">
-                     <input 
-                       type="text" 
-                       value={item.name} 
-@@ -266,7 +411,7 @@ function AnnotationsBoard({
-               </div>
-               <div className="flex flex-col gap-1 mt-1">
-                 {group.items.map((item, itemIdx) => (
--                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#111217] rounded-[8px] border border-white/[0.03]">
-+                  <div key={itemIdx} className="flex items-center justify-between px-2 py-1.5 bg-[#1A202C] rounded-[8px] border border-white/[0.03]">
-                     <input 
-                       type="text" 
-                       value={item.name} 
-@@ -304,6 +449,16 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
- }) {
-   const [password, setPassword] = useState('');
-   const [error, setError] = useState('');
-+  const [showPassword, setShowPassword] = useState(false);
-+
-+  // Resetar estados ao fechar/abrir modal
-+  useEffect(() => {
-+    if (!isOpen) {
-+      setPassword('');
-+      setError('');
-+      setShowPassword(false);
-+    }
-+  }, [isOpen]);
- 
-   const handleSubmit = (e: React.FormEvent) => {
-     e.preventDefault();
-@@ -324,7 +479,7 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
-       onClick={onClose}
-     >
-       <div
--        className="bg-[#1E2029] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4 animate-[fadeInScale_0.25s_ease-out_forwards]"
-+        className="bg-[#2D3748] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4 animate-[fadeInScale_0.25s_ease-out_forwards]"
-         onClick={(e) => e.stopPropagation()}
-         style={{ animation: 'fadeInScale 0.25s ease-out forwards' }}
-       >
-@@ -348,7 +503,7 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
-             <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Painel do Administrador</h2>
-             <p className="text-sm text-[#a0aec0] mb-6">Voc├¬ est├í logado como administrador</p>
-             <div className="flex flex-col gap-3">
--              <div className="bg-[#111217] rounded-xl p-4 border border-white/5 text-left">
-+              <div className="bg-[#1A202C] rounded-xl p-4 border border-white/5 text-left">
-                 <p className="text-xs text-[#a0aec0] uppercase tracking-wider font-bold mb-2">Sess├úo Ativa</p>
-                 <p className="text-white font-semibold flex items-center gap-2">
-                   <span className="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span>
-@@ -375,14 +530,29 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
-             <h2 className="text-xl font-bold text-white mb-1 uppercase tracking-wide">Acesso Administrativo</h2>
-             <p className="text-sm text-[#a0aec0] mb-6">Digite a senha para continuar</p>
-             <form onSubmit={handleSubmit} className="space-y-4">
--              <input
--                type="password"
--                placeholder="Senha do Administrador"
--                value={password}
--                onChange={(e) => setPassword(e.target.value)}
--                className="w-full p-4 bg-[#111217] border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/30 transition-all"
--                autoFocus
--              />
-+              <div className="relative">
-+                <input
-+                  type={showPassword ? "text" : "password"}
-+                  placeholder="Senha do Administrador"
-+                  value={password}
-+                  onChange={(e) => setPassword(e.target.value)}
-+                  className="w-full p-4 pr-12 bg-[#1A202C] border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/30 transition-all text-left"
-+                  autoFocus
-+                />
-+                <button
-+                  type="button"
-+                  onClick={() => setShowPassword(!showPassword)}
-+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a0aec0] hover:text-white transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center p-1 rounded-md hover:bg-white/5 active:scale-95 transition-all"
-+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-+                  title={showPassword ? "Ocultar senha" : "Mostrar senha"}
-+                >
-+                  {showPassword ? (
-+                    <EyeOff className="w-5 h-5" />
-+                  ) : (
-+                    <Eye className="w-5 h-5" />
-+                  )}
-+                </button>
-+              </div>
-               {error && (
-                 <p className="text-sm text-red-400 font-semibold text-left px-1">{error}</p>
-               )}
-@@ -400,6 +570,12 @@ function AdminModal({ isOpen, onClose, isAdmin, onLogin, onLogout }: {
-   );
- }
- 
-+export type ActiveEditor = {
-+  employeeName: string;
-+  editorName: string;
-+  color: string;
-+};
-+
- export default function App() {
-   const [departmentsData, setDepartmentsData] = useState<Department[]>(initialDepartmentsData);
-   const [supportRolesData, setSupportRolesData] = useState<SupportRole[][]>(initialSupportData);
-@@ -416,6 +592,43 @@ export default function App() {
-   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-   const [isAdmin, setIsAdmin] = useState(false);
- 
-+  const [activeEditors, setActiveEditors] = useState<ActiveEditor[]>([]);
-+
-+  // Simula├º├úo de altera├º├úo simult├ónea por m├║ltiplos usu├írios em tempo real
-+  useEffect(() => {
-+    const editorsPool = [
-+      { name: 'LUCAS M.', color: '#0A84FF' }, // Azul (antes Roxo)
-+      { name: 'ANA K.', color: '#FF375F' }    // Rosa
-+    ];
-+
-+    const interval = setInterval(() => {
-+      // 1 ou 2 editores ativos concorrentemente
-+      const numActive = Math.floor(Math.random() * 2) + 1;
-+      const newEditors: ActiveEditor[] = [];
-+      
-+      const allNames: string[] = [];
-+      departmentsData.forEach(d => d.data.forEach(e => { if (e.name) allNames.push(e.name); }));
-+      supportRolesData.forEach(g => g.forEach(s => { if (s.name) allNames.push(s.name); }));
-+      
-+      if (allNames.length > 0) {
-+        for (let i = 0; i < numActive; i++) {
-+          const randName = allNames[Math.floor(Math.random() * allNames.length)];
-+          const editor = editorsPool[i % editorsPool.length];
-+          if (!newEditors.some(e => e.employeeName === randName)) {
-+            newEditors.push({
-+              employeeName: randName,
-+              editorName: editor.name,
-+              color: editor.color
-+            });
++      if (!sourceContainer) {
++        for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
++          const emp = supportRolesDataRef.current[idx].find(
++            (e) => e.id === activeIdVal
++          );
++          if (emp) {
++            sourceContainer = `support-group-${idx}`;
++            sourceType = "apoio";
++            sourceRole = emp.role;
++            break;
 +          }
 +        }
-+        setActiveEditors(newEditors);
 +      }
-+    }, 12000); // Rotaciona a cada 12 segundos para a simula├º├úo org├ónica
 +
-+    return () => clearInterval(interval);
-+  }, [departmentsData, supportRolesData]);
-+
-   const handleAdminLogin = useCallback(() => {
-     setIsAdmin(true);
-   }, []);
-@@ -428,7 +641,14 @@ export default function App() {
-   useEffect(() => {
-     localStorage.setItem('distribui-theme', isDarkMode ? 'dark' : 'light');
-     // Atualiza o background do body para evitar flash branco no overscroll
--    document.body.style.backgroundColor = isDarkMode ? '#111217' : '#eef2f7';
-+    document.body.style.backgroundColor = isDarkMode ? '#1A202C' : '#eef2f7';
-+    
-+    // Aplica a classe light-mode ao body para que os portais herdem os estilos corretos
-+    if (!isDarkMode) {
-+      document.body.classList.add('light-mode');
-+    } else {
-+      document.body.classList.remove('light-mode');
-+    }
-   }, [isDarkMode]);
- 
-   const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
-@@ -606,14 +826,18 @@ export default function App() {
-     const scalableContainer = scalableContainerRef.current;
-     if (!viewport || !scalableContainer) return;
- 
--    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366;
-+    const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 768;
- 
-     if (isMobileView) {
-       const oneColumnScale = viewport.clientWidth / 920;
-       const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
-       setScale(finalScale, 0, 0);
-     } else {
--      setScale(1.0, 0, 0);
-+      // Desktop/Laptop: Calcula o zoom exato para caber as 3 colunas principais (1590px de largura alvo)
-+      const targetWidth = 1590;
-+      const calculatedScale = viewport.clientWidth / targetWidth;
-+      const finalScale = Math.min(Math.max(calculatedScale, 0.35), 1.0);
-+      setScale(finalScale, 0, 0);
-     }
-   }, [setScale]);
- 
-@@ -798,6 +1022,16 @@ export default function App() {
-     });
-   };
- 
-+  const handleDeleteSupport = (groupIndex: number, empIndex: number) => {
-+    setSupportRolesData(prev => {
-+      const newGroups = [...prev];
-+      const newGroup = [...newGroups[groupIndex]];
-+      newGroup.splice(empIndex, 1);
-+      newGroups[groupIndex] = newGroup;
-+      return newGroups;
-+    });
-+  };
-+
-   const handleMoveSupport = (sourceGroupIndex: number, targetGroupIndex: number, sourceEmpIndex: number) => {
-     setSupportRolesData(prev => {
-       const newGroups = [...prev];
-@@ -811,6 +1045,114 @@ export default function App() {
-     });
-   };
- 
-+  const handleMarkEmployeeAbsent = (
-+    sourceType: 'dept' | 'support' | 'special',
-+    sourceIndex1: string | number, // deptId ou groupIndex
-+    sourceIndex2: number, // empIndex
-+    absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS'
-+  ) => {
-+    let empName = '';
-+    let empMatricula = '';
-+
-+    // 1. Obter os dados do funcion├írio e remov├¬-lo da origem
-+    if (sourceType === 'dept') {
-+      const deptId = sourceIndex1 as string;
-+      const dept = departmentsData.find(d => d.id === deptId);
-+      if (!dept) return;
-+      const emp = dept.data[sourceIndex2];
-+      if (!emp) return;
-+      empName = emp.name;
-+      empMatricula = emp.matricula || '';
-+
-+      setDepartmentsData(prev => {
-+        const newDepts = [...prev];
-+        const idx = newDepts.findIndex(d => d.id === deptId);
-+        if (idx === -1) return prev;
-+        const newData = [...newDepts[idx].data];
-+        newData.splice(sourceIndex2, 1);
-+        newDepts[idx] = { ...newDepts[idx], data: newData, count: newData.length };
-+        return newDepts;
-+      });
-+    } else if (sourceType === 'support') {
-+      const groupIdx = sourceIndex1 as number;
-+      const group = supportRolesData[groupIdx];
-+      if (!group) return;
-+      const emp = group[sourceIndex2];
-+      if (!emp) return;
-+      empName = emp.name;
-+      empMatricula = emp.matricula || '';
-+
-+      setSupportRolesData(prev => {
-+        const newSupport = prev.map(g => [...g]);
-+        newSupport[groupIdx].splice(sourceIndex2, 1);
-+        return newSupport;
-+      });
-+    } else if (sourceType === 'special') {
-+      const emp = specialShiftData[sourceIndex2];
-+      if (!emp) return;
-+      empName = emp.name;
-+      empMatricula = emp.matricula || '';
-+
-+      setSpecialShiftData(prev => {
-+        const newSpecial = [...prev];
-+        newSpecial.splice(sourceIndex2, 1);
-+        return newSpecial;
-+      });
-+    }
-+
-+    if (!empName.trim()) return;
-+
-+    // 2. Direcionar para a tabela de anota├º├Áes adequada
-+    let targetLeftGroupIndex = -1;
-+    let targetRightGroupIndex = -1;
-+
-+    if (absenceType === 'F├ëRIAS') {
-+      targetLeftGroupIndex = 1; // "AUSENTES/FORA/F├ëRIAS"
-+    } else if (absenceType === 'FORA') {
-+      targetLeftGroupIndex = 1; // "AUSENTES/FORA/F├ëRIAS"
-+    } else if (absenceType === 'ATM') {
-+      targetLeftGroupIndex = 0; // "F├ëRIAS/ATM/TE/TREIN./REVEZA"
-+    } else if (absenceType === 'RESTRI├ç├âO') {
-+      targetRightGroupIndex = 1; // "TREINAMENTO / F├ëRIAS/ ATM / TE"
-+    } else if (absenceType === 'INSS') {
-+      targetRightGroupIndex = 2; // "F├ëRIAS/IN SP/LICEN├çA"
-+    }
-+
-+    if (targetLeftGroupIndex !== -1) {
-+      setAnnotationsLeft(prev => {
-+        const newGroups = [...prev];
-+        const group = newGroups[targetLeftGroupIndex];
-+        const items = [...group.items];
-+        
-+        // Achar o primeiro slot vazio (name sem texto)
-+        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
-+        if (emptyIdx !== -1) {
-+          items[emptyIdx] = { name: empName, matricula: empMatricula, status: absenceType };
-+        } else {
-+          // Se n├úo houver slot vazio, faz push
-+          items.push({ name: empName, matricula: empMatricula, status: absenceType });
++      if (!sourceContainer) {
++        if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
++          sourceContainer = "special-shift";
++          sourceType = "special";
 +        }
-+        newGroups[targetLeftGroupIndex] = { ...group, items };
-+        return newGroups;
-+      });
-+    } else if (targetRightGroupIndex !== -1) {
-+      setAnnotationsRight(prev => {
-+        const newGroups = [...prev];
-+        const group = newGroups[targetRightGroupIndex];
-+        const items = [...group.items];
-+        
-+        const emptyIdx = items.findIndex(item => !item.name || !item.name.trim());
-+        if (emptyIdx !== -1) {
-+          items[emptyIdx] = { name: empName, matricula: empMatricula, status: absenceType };
-+        } else {
-+          items.push({ name: empName, matricula: empMatricula, status: absenceType });
++      }
++
++      dragSourceRef.current = {
++        id: activeIdVal,
++        type: sourceType,
++        originalContainer: sourceContainer,
++        originalRole: sourceRole,
++      };
++
++      const isSupport = sourceType === "apoio";
++      if (isSupport) {
++        setActiveSupportId(activeIdVal);
++      }
++    },
++    [
++      setActiveId,
++      activeIdRef,
++      setOverId,
++      handleStartEditRef,
++      clonedDepartmentsRef,
++      departmentsDataRef,
++      clonedSupportRef,
++      supportRolesDataRef,
++      clonedSpecialShiftRef,
++      specialShiftDataRef,
++      dragSourceRef,
++      setActiveSupportId,
++    ]
++  );
++
++  const handleDragCancel = useCallback(() => {
++    const currentActiveId = activeIdRef.current;
++    if (currentActiveId) handleStopEditRef.current(currentActiveId);
++    setActiveId(null);
++    activeIdRef.current = null;
++    setActiveSupportId(null);
++    setOverId(null);
++    dragSourceRef.current = null;
++    if (clonedDepartmentsRef.current)
++      setDepartmentsData(clonedDepartmentsRef.current);
++    if (clonedSupportRef.current)
++      setSupportRolesData(clonedSupportRef.current);
++    if (clonedSpecialShiftRef.current)
++      setSpecialShiftData(clonedSpecialShiftRef.current);
++  }, [
++    activeIdRef,
++    handleStopEditRef,
++    setActiveId,
++    setActiveSupportId,
++    setOverId,
++    dragSourceRef,
++    clonedDepartmentsRef,
++    setDepartmentsData,
++    clonedSupportRef,
++    setSupportRolesData,
++    clonedSpecialShiftRef,
++    setSpecialShiftData,
++  ]);
++
++  const handleDragOver = useCallback(
++    (event: any) => {
++      const { active, over } = event;
++      if (!over) {
++        setOverId(null);
++        return;
++      }
++
++      const activeId = active.id;
++      const overId = over.id;
++      setOverId(overId);
++
++      if (activeId === overId) return;
++
++      let activeContainer: string | null = null;
++      let activeType: "maquinista" | "apoio" | "special" | null = null;
++      let activeItem: any = null;
++      let activeIdx = -1;
++
++      for (const dept of departmentsDataRef.current) {
++        const idx = dept.data.findIndex((e) => e.id === activeId);
++        if (idx !== -1) {
++          activeContainer = dept.id;
++          activeType = "maquinista";
++          activeItem = dept.data[idx];
++          activeIdx = idx;
++          break;
 +        }
-+        newGroups[targetRightGroupIndex] = { ...group, items };
-+        return newGroups;
-+      });
-+    }
-+  };
-+
-   const handleMove = (sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
-     setDepartmentsData(prev => {
-       const newDepts = [...prev];
-@@ -859,18 +1201,51 @@ export default function App() {
- 
-   const maxCount = Math.max(...departmentsData.map(d => d.data.length), 1);
- 
-+  // --- Dynamic Statistical Calculations ---
-+  const totalMaquinistas = departmentsData.reduce((acc, dept) => acc + dept.data.filter(emp => emp.name.trim() !== '').length, 0);
-+  const totalApoio = supportRolesData.reduce((acc, group) => acc + group.filter(emp => emp.name.trim() !== '').length, 0);
-+  const totalTurno6H = specialShiftData.filter(emp => emp.name.trim() !== '').length;
-+  const totalFuncionarios = totalMaquinistas + totalApoio + totalTurno6H;
-+
-+  const todasAnotacoes = [
-+    ...annotationsLeft.flatMap(g => g.items),
-+    ...annotationsRight.flatMap(g => g.items)
-+  ].filter(item => item.name && item.name.trim() !== '');
-+
-+  const totalFerias = todasAnotacoes.filter(item => item.status.toUpperCase().includes('F├ëRIA') || item.status.toUpperCase().includes('FERIA')).length;
-+  const totalFora = todasAnotacoes.filter(item => item.status.toUpperCase() === 'FORA').length;
-+  
-+  const totalATM = todasAnotacoes.filter(item => 
-+    item.status.toUpperCase().includes('ATM') || 
-+    item.status.toUpperCase().includes('ATESTADO') || 
-+    item.status.toUpperCase().includes('M├ëDICO') || 
-+    item.status.toUpperCase().includes('MEDICO')
-+  ).length;
-+
-+  const totalRestricao = todasAnotacoes.filter(item => 
-+    item.status.toUpperCase().includes('RESTRI') || 
-+    item.status.toUpperCase().includes('RESTRICAO')
-+  ).length;
-+
-+  const totalEstagio = todasAnotacoes.filter(item => 
-+    item.status.toUpperCase().includes('EST├üGIO') || 
-+    item.status.toUpperCase().includes('ESTAGIO')
-+  ).length;
-+
-+  const totalINSS = todasAnotacoes.filter(item => item.status.toUpperCase() === 'INSS').length;
-+
-   return (
-     <>
--    <div className={`bg-[#111217] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative${!isDarkMode ? ' light-mode' : ''}`}>
-+    <div className={`bg-[#1A202C] text-[#f7fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative${!isDarkMode ? ' light-mode' : ''}`}>
-       {/* Viewport - Scroll Container (Painel DSS Pattern) */}
--      <div ref={viewportRef} className={`viewport fixed inset-0${isDarkMode ? ' bg-[#111217]' : ' bg-[#eef2f7]'}`}>
-+      <div ref={viewportRef} className={`viewport fixed inset-0${isDarkMode ? ' bg-[#1A202C]' : ' bg-[#eef2f7]'}`}>
-         {/* Content Wrapper - Carries the scaled dimensions for scroll area */}
-         <div ref={contentWrapperRef} className="origin-top-left">
-           {/* Scalable Container - The actual content that gets scaled */}
--          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-[#111217]">
-+          <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 pb-40 bg-[#1A202C]">
- 
-             {/* Header Card - Painel DSS Style */}
--            <div className="bg-[#1E2029] border border-white/5 rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
-+            <div className="bg-[#2D3748] border border-white/5 rounded-3xl h-[300px] px-10 md:px-16 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
-               <div className="flex items-center gap-6">
-                 <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-[#00A8FF] to-[#0055FF] flex items-center justify-center shadow-lg shadow-[#0055FF]/30 shrink-0">
-                   <Shield className="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-md" strokeWidth={2.5} />
-@@ -884,78 +1259,115 @@ export default function App() {
-                   </p>
-                 </div>
-               </div>
--              <div className="flex items-center gap-6">
--              {/* BB-8 Dark/Light Mode Toggle */}
--                <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
--                  <input
--                    className="bb8-toggle__checkbox"
--                    type="checkbox"
--                    id="darkModeToggle"
--                    checked={isDarkMode}
--                    onChange={handleToggleDarkMode}
--                  />
--                  <div className="bb8-toggle__container">
--                    <div className="bb8-toggle__scenery">
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="bb8-toggle__star"></div>
--                      <div className="tatto-1" aria-hidden="true"></div>
--                      <div className="tatto-2" aria-hidden="true"></div>
--                      <div className="gomrassen"></div>
--                      <div className="hermes"></div>
--                      <div className="chenini"></div>
--                      <div className="bb8-toggle__cloud"></div>
--                      <div className="bb8-toggle__cloud"></div>
--                      <div className="bb8-toggle__cloud"></div>
--                    </div>
--                    <div className="bb8">
--                      <div className="bb8__head-container">
--                        <div className="bb8__antenna"></div>
--                        <div className="bb8__antenna"></div>
--                        <div className="bb8__head"></div>
-+              <div className="flex flex-col items-end gap-5">
-+                <div className="flex items-center gap-6">
-+                  {/* Bot├úo TROCAR TURMA */}
-+                  <button
-+                    id="change-turma-btn"
-+                    onClick={() => {}}
-+                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300 cursor-pointer"
-+                    aria-label="Trocar Turma"
-+                    title="Voltar para sele├º├úo de turma"
-+                  >
-+                    <ExchangeIcon className="w-7 h-7" />
-+                    <span className="tracking-wide">TROCAR TURMA</span>
-+                  </button>
-+
-+                  {/* Bot├úo TUTORIAL */}
-+                  <button
-+                    id="tutorial-btn"
-+                    onClick={() => {}}
-+                    className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 cursor-pointer"
-+                    aria-label="Iniciar Tutorial"
-+                    title="Como usar o sistema"
-+                  >
-+                    <HelpIcon className="w-7 h-7" />
-+                    <span className="tracking-wide">TUTORIAL</span>
-+                  </button>
-+
-+                {/* BB-8 Dark/Light Mode Toggle */}
-+                  <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
-+                    <input
-+                      className="bb8-toggle__checkbox"
-+                      type="checkbox"
-+                      id="darkModeToggle"
-+                      checked={isDarkMode}
-+                      onChange={handleToggleDarkMode}
-+                    />
-+                    <div className="bb8-toggle__container">
-+                      <div className="bb8-toggle__scenery">
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="bb8-toggle__star"></div>
-+                        <div className="tatto-1" aria-hidden="true"></div>
-+                        <div className="tatto-2" aria-hidden="true"></div>
-+                        <div className="gomrassen"></div>
-+                        <div className="hermes"></div>
-+                        <div className="chenini"></div>
-+                        <div className="bb8-toggle__cloud"></div>
-+                        <div className="bb8-toggle__cloud"></div>
-+                        <div className="bb8-toggle__cloud"></div>
-+                      </div>
-+                      <div className="bb8">
-+                        <div className="bb8__head-container">
-+                          <div className="bb8__antenna"></div>
-+                          <div className="bb8__antenna"></div>
-+                          <div className="bb8__head"></div>
-+                        </div>
-+                        <div className="bb8__body"></div>
-+                      </div>
-+                      <div className="artificial__hidden" aria-hidden="true">
-+                        <div className="bb8__shadow"></div>
-                       </div>
--                      <div className="bb8__body"></div>
--                    </div>
--                    <div className="artificial__hidden" aria-hidden="true">
--                      <div className="bb8__shadow"></div>
-                     </div>
--                  </div>
--                </label>
-+                  </label>
- 
--                {/* Admin Button - mesmo formato do BB-8 */}
--                <button
--                  id="admin-access-btn"
--                  onClick={() => setIsAdminModalOpen(true)}
--                  className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
--                  style={{
--                    width: '170px',
--                    height: '90px',
--                    borderRadius: '99em',
--                    margin: '10px',
--                    color: '#ffffff',
--                  }}
--                  aria-label="Acesso Administrativo"
--                >
--                  {/* Badge verde quando admin ativo */}
--                  {isAdmin && (
--                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#1E2029] rounded-full animate-pulse" />
--                  )}
--                  <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
--                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
--                  </svg>
--                  <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
--                    {isAdmin ? 'ADM Ô£ô' : 'ACESSO ADM'}
--                  </span>
--                </button>
-+                  {/* Admin Button - mesmo formato do BB-8 */}
-+                  <button
-+                    id="admin-access-btn"
-+                    onClick={() => setIsAdminModalOpen(true)}
-+                    className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300/50"
-+                    style={{
-+                      width: '190px',
-+                      height: '90px',
-+                      borderRadius: '99em',
-+                      margin: '10px',
-+                      color: '#ffffff',
-+                    }}
-+                    aria-label="Acesso Administrativo"
-+                  >
-+                    {/* Badge verde quando admin ativo */}
-+                    {isAdmin && (
-+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 border-2 border-[#2D3748] rounded-full animate-pulse" />
-+                    )}
-+                    <svg className="w-7 h-7 shrink-0" style={{ color: '#ffffff' }} viewBox="0 0 24 24" fill="currentColor">
-+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-+                    </svg>
-+                    <span style={{ color: '#ffffff' }} className="text-sm font-extrabold uppercase tracking-wider leading-tight text-center">
-+                      {isAdmin ? 'ADM Ô£ô' : 'ACESSO ADM'}
-+                    </span>
-+                  </button>
-+                </div>
-+
-+                {/* Stats Container (Painel DSS Style) */}
-+                <div className="flex gap-4 pr-[10px]">
-+                  <StatCard label="Ativos" value={totalFuncionarios} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
-+                  <StatCard label="F├®rias" value={totalFerias} colorClass="text-[#FF9F0A]" bgClass="bg-[#FF9F0A]/10" />
-+                  <StatCard label="Fora" value={totalFora} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
-+                  <StatCard label="ATM" value={totalATM} colorClass="text-[#FFD60A]" bgClass="bg-[#FFD60A]/10" />
-+                  <StatCard label="Restri├º├úo" value={totalRestricao} colorClass="text-[#BF5AF2]" bgClass="bg-[#BF5AF2]/10" />
-+                  <StatCard label="Est├ígio" value={totalEstagio} colorClass="text-[#30D158]" bgClass="bg-[#30D158]/10" />
-+                  <StatCard label="INSS" value={totalINSS} colorClass="text-[#FF453A]" bgClass="bg-[#FF453A]/10" />
-+                </div>
-               </div>
-             </div>
- 
-             {/* Special Shift Section */}
--            <div className="bg-[#1E2029] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
-+            <div className="bg-[#2D3748] border border-[#BF5AF2]/20 rounded-3xl p-6 mb-8 shadow-lg w-max relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-2 h-full bg-[#BF5AF2]" />
-               <div className="flex items-center gap-4 mb-5 ml-2">
-                 <div className="p-3 rounded-xl bg-[#BF5AF2]/15 text-[#BF5AF2]">
-@@ -989,10 +1401,13 @@ export default function App() {
-                       department={dept} 
-                       allDepartments={departmentsData}
-                       maxCount={maxCount}
--                      onMove={(targetDeptId, empIndex) => handleMove(dept.id, targetDeptId, empIndex)}
-+                      onMove={(sourceDeptId, targetDeptId, empIndex) => handleMove(sourceDeptId, targetDeptId, empIndex)}
-                       onUpdateEmployee={handleUpdateEmployeeField}
-                       onDelete={handleDelete}
-                       onTransferToSpecial={(empIndex) => handleTransferToSpecialShift(dept.id, empIndex)}
-+                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent('dept', dept.id, empIndex, absenceType)}
-+                      isDarkMode={isDarkMode}
-+                      activeEditors={activeEditors}
-                     />
-                   </div>
-                 ))}
-@@ -1015,7 +1430,7 @@ export default function App() {
-               </div>
- 
-               {/* Support Roles Grid - Always 3 columns */}
--              <div className="flex gap-6 w-max pb-[50vh]">
-+              <div className="flex gap-6 w-max pb-[450px]">
-                 {supportRolesData.map((group, index) => (
-                   <div key={index} className="w-[500px] shrink-0">
-                     <SupportCard 
-@@ -1025,6 +1440,15 @@ export default function App() {
-                       onUpdateName={handleUpdateSupportName} 
-                       onMoveSupport={handleMoveSupport}
-                       onMoveToSpecial={handleTransferSupportToSpecialShift}
-+                      onDeleteSupport={handleDeleteSupport}
-+                      onUpdateError={(gIndex, eIndex, error) => {
-+                        const newData = [...supportRolesData];
-+                        newData[gIndex][eIndex].error = error;
-+                        setSupportRolesData(newData);
-+                      }}
-+                      onMarkAbsent={(empIndex, absenceType) => handleMarkEmployeeAbsent('support', index, empIndex, absenceType)}
-+                      isDarkMode={isDarkMode}
-+                      activeEditors={activeEditors}
-                     />
-                   </div>
-                 ))}
-@@ -1056,22 +1480,65 @@ function DepartmentCard({
-   maxCount,
-   onMove,
-   onUpdateEmployee,
--  onDelete
-+  onDelete,
-+  onTransferToSpecial,
-+  onMarkAbsent,
-+  isDarkMode,
-+  activeEditors
- }: { 
-   department: Department;
-   allDepartments: Department[];
-   maxCount: number;
--  onMove: (targetDeptId: string, empIndex: number) => void;
--  onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: string) => void;
-+  onMove: (sourceDeptId: string, targetDeptId: string, empIndex: number) => void;
-+  onUpdateEmployee: (deptId: string, empIndex: number, field: keyof Employee, value: any) => void;
-   onDelete: (deptId: string, empIndex: number) => void;
-   onTransferToSpecial: (empIndex: number) => void;
-+  onMarkAbsent: (empIndex: number, absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
-+  isDarkMode: boolean;
-+  activeEditors: ActiveEditor[];
- }) {
-   const theme = getDeptTheme(department.id);
-+  const [isDragOver, setIsDragOver] = useState(false);
-+
-+  const handleDragOver = (e: React.DragEvent) => {
-+    e.preventDefault();
-+  };
-+
-+  const handleDragEnter = (e: React.DragEvent) => {
-+    e.preventDefault();
-+    setIsDragOver(true);
-+  };
-+
-+  const handleDragLeave = () => {
-+    setIsDragOver(false);
-+  };
-+
-+  const handleDrop = (e: React.DragEvent) => {
-+    setIsDragOver(false);
-+    try {
-+      const dataStr = e.dataTransfer.getData('application/json');
-+      if (!dataStr) return;
-+      const data = JSON.parse(dataStr);
-+      if (data.sourceType === 'dept') {
-+        onMove(data.sourceId, department.id, data.empIndex);
 +      }
-+    } catch (err) {
-+      console.error("Erro no drop", err);
-+    }
++
++      if (!activeType) {
++        for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
++          const supportIdx = supportRolesDataRef.current[idx].findIndex(
++            (e) => e.id === activeId
++          );
++          if (supportIdx !== -1) {
++            activeContainer = `support-group-${idx}`;
++            activeType = "apoio";
++            activeItem = supportRolesDataRef.current[idx][supportIdx];
++            activeIdx = supportIdx;
++            break;
++          }
++        }
++      }
++
++      if (!activeType) {
++        const idx = specialShiftDataRef.current.findIndex(
++          (e) => e.id === activeId
++        );
++        if (idx !== -1) {
++          activeContainer = "special-shift";
++          activeType = "special";
++          activeItem = specialShiftDataRef.current[idx];
++          activeIdx = idx;
++        }
++      }
++
++      if (!activeContainer || !activeType || !activeItem) return;
++
++      let overContainer: string | null = null;
++      let overType: "maquinista" | "apoio" | "special" | null = null;
++      let overIdx = -1;
++
++      if (
++        overId === "recepcao" ||
++        overId === "classificacao" ||
++        overId === "formacao"
++      ) {
++        overContainer = overId;
++        overType = "maquinista";
++      } else if (overId.toString().startsWith("support-group-")) {
++        overContainer = overId;
++        overType = "apoio";
++      } else if (overId === "special-shift") {
++        overContainer = "special-shift";
++        overType = "special";
++      } else {
++        const dept = departmentsDataRef.current.find((d) => d.id === overId);
++        if (dept) {
++          overContainer = dept.id;
++          overType = "maquinista";
++        } else {
++          for (const d of departmentsDataRef.current) {
++            const idx = d.data.findIndex((e) => e.id === overId);
++            if (idx !== -1) {
++              overContainer = d.id;
++              overType = "maquinista";
++              overIdx = idx;
++              break;
++            }
++          }
++        }
++
++        if (!overContainer) {
++          const groupIdx = parseInt(
++            overId.toString().replace("support-group-", ""),
++            10
++          );
++          if (
++            !isNaN(groupIdx) &&
++            groupIdx >= 0 &&
++            groupIdx < supportRolesDataRef.current.length
++          ) {
++            overContainer = `support-group-${groupIdx}`;
++            overType = "apoio";
++          } else {
++            for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
++              const supportIdx = supportRolesDataRef.current[idx].findIndex(
++                (e) => e.id === overId
++              );
++              if (supportIdx !== -1) {
++                overContainer = `support-group-${idx}`;
++                overType = "apoio";
++                overIdx = supportIdx;
++                break;
++              }
++            }
++          }
++        }
++
++        if (!overContainer) {
++          const specialIdx = specialShiftDataRef.current.findIndex(
++            (e) => e.id === overId
++          );
++          if (specialIdx !== -1) {
++            overContainer = "special-shift";
++            overType = "special";
++            overIdx = specialIdx;
++          }
++        }
++      }
++
++      if (!overContainer || !overType) return;
++
++      if (activeContainer === overContainer) {
++        if (activeType === "maquinista") {
++          const dept = departmentsDataRef.current.find(
++            (d) => d.id === activeContainer
++          );
++          if (dept) {
++            const activeIndex = dept.data.findIndex((e) => e.id === activeId);
++            const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
++            if (activeIndex !== overIndex && activeIndex !== -1) {
++              setDepartmentsData((prev) =>
++                prev.map((d) => {
++                  if (d.id === activeContainer) {
++                    return {
++                      ...d,
++                      data: arrayMove(d.data, activeIndex, overIndex),
++                    };
++                  }
++                  return {
++                    ...d,
++                    data: d.data.filter((e) => e.id !== activeId),
++                    count: Math.max(
++                      0,
++                      d.data.filter((e) => e.id !== activeId).length
++                    ),
++                  };
++                })
++              );
++            }
++          }
++        } else if (activeType === "apoio") {
++          const groupIdx = parseInt(
++            activeContainer.replace("support-group-", ""),
++            10
++          );
++          if (!isNaN(groupIdx)) {
++            const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(
++              (e) => e.id === activeId
++            );
++            const overIndex =
++              overIdx >= 0
++                ? overIdx
++                : supportRolesDataRef.current[groupIdx].length - 1;
++            if (activeIndex !== overIndex && activeIndex !== -1) {
++              setSupportRolesData((prev) =>
++                prev.map((g, idx) => {
++                  if (idx === groupIdx)
++                    return arrayMove(g, activeIndex, overIndex);
++                  return g;
++                })
++              );
++            }
++          }
++        } else if (activeType === "special") {
++          const activeIndex = specialShiftDataRef.current.findIndex(
++            (e) => e.id === activeId
++          );
++          const overIndex =
++            overIdx >= 0 ? overIdx : specialShiftDataRef.current.length - 1;
++          if (activeIndex !== overIndex && activeIndex !== -1) {
++            setSpecialShiftData((prev) =>
++              arrayMove(prev, activeIndex, overIndex)
++            );
++          }
++        }
++        return;
++      }
++
++      // A: Maquinista -> Maquinista
++      if (activeType === "maquinista" && overType === "maquinista") {
++        setDepartmentsData((prev) => {
++          const activeDept = prev.find((d) => d.id === activeContainer);
++          const overDept = prev.find((d) => d.id === overContainer);
++          if (!activeDept || !overDept) return prev;
++
++          const targetIdx = overIdx >= 0 ? overIdx : overDept.data.length;
++
++          return prev.map((d) => {
++            if (d.id === activeContainer) {
++              const newData = d.data.filter((e) => e.id !== activeId);
++              return { ...d, data: newData, count: newData.length };
++            }
++            if (d.id === overContainer) {
++              const cleaned = d.data.filter((e) => e.id !== activeId);
++              const newData = [...cleaned];
++              const movedItem = { ...activeItem, line: "", machine: "" };
++              newData.splice(targetIdx, 0, movedItem);
++              return { ...d, data: newData, count: newData.length };
++            }
++            return {
++              ...d,
++              data: d.data.filter((e) => e.id !== activeId),
++              count: Math.max(
++                0,
++                d.data.filter((e) => e.id !== activeId).length
++              ),
++            };
++          });
++        });
++      }
+ 
+-  return { handleDragStart, handleDragOver, handleDragEnd };
++      // B: Apoio -> Apoio
++      else if (activeType === "apoio" && overType === "apoio") {
++        const activeGroupIdx = parseInt(
++          activeContainer.replace("support-group-", ""),
++          10
++        );
++        const overGroupIdx = parseInt(
++          overContainer.replace("support-group-", ""),
++          10
++        );
++        if (!isNaN(activeGroupIdx) && !isNaN(overGroupIdx)) {
++          setSupportRolesData((prev) => {
++            const activeItems = prev[activeGroupIdx];
++            const overItems = prev[overGroupIdx];
++            if (!activeItems || !overItems) return prev;
++
++            const targetIdx = overIdx >= 0 ? overIdx : overItems.length;
++
++            return prev.map((group, idx) => {
++              if (idx === activeGroupIdx)
++                return group.filter((e) => e.id !== activeId);
++              if (idx === overGroupIdx) {
++                const cleaned = group.filter((e) => e.id !== activeId);
++                const newData = [...cleaned];
++                newData.splice(targetIdx, 0, activeItem);
++                return newData;
++              }
++              return group.filter((e) => e.id !== activeId);
++            });
++          });
++        }
++      }
++
++      // C: Maquinista -> Apoio
++      else if (activeType === "maquinista" && overType === "apoio") {
++        const overGroupIdx = parseInt(
++          overContainer.replace("support-group-", ""),
++          10
++        );
++        if (!isNaN(overGroupIdx)) {
++          const adaptedSupport: SupportRole = {
++            id: activeItem.id,
++            name: activeItem.name,
++            role: "VIRADOR",
++            matricula: activeItem.matricula || "",
++          };
++
++          setDepartmentsData((prev) =>
++            prev.map((d) => {
++              if (d.id === activeContainer) {
++                const newData = d.data.filter((e) => e.id !== activeId);
++                return { ...d, data: newData, count: newData.length };
++              }
++              return {
++                ...d,
++                data: d.data.filter((e) => e.id !== activeId),
++                count: Math.max(
++                  0,
++                  d.data.filter((e) => e.id !== activeId).length
++                ),
++              };
++            })
++          );
++
++          setSupportRolesData((prev) =>
++            prev.map((group, idx) => {
++              if (idx === overGroupIdx) {
++                const cleaned = group.filter((e) => e.id !== activeId);
++                const newData = [...cleaned];
++                const targetIdx = overIdx >= 0 ? overIdx : group.length;
++                newData.splice(targetIdx, 0, adaptedSupport);
++                return newData;
++              }
++              return group.filter((e) => e.id !== activeId);
++            })
++          );
++        }
++      }
++
++      // D: Apoio -> Maquinista
++      else if (activeType === "apoio" && overType === "maquinista") {
++        const activeGroupIdx = parseInt(
++          activeContainer.replace("support-group-", ""),
++          10
++        );
++        if (!isNaN(activeGroupIdx)) {
++          const adaptedEmployee: Employee = {
++            id: activeItem.id,
++            name: activeItem.name,
++            matricula: activeItem.matricula || "",
++            line: "",
++            machine: "",
++            error: false,
++          };
++
++          setSupportRolesData((prev) =>
++            prev.map((group, idx) => {
++              if (idx === activeGroupIdx)
++                return group.filter((e) => e.id !== activeId);
++              return group.filter((e) => e.id !== activeId);
++            })
++          );
++
++          setDepartmentsData((prev) =>
++            prev.map((d) => {
++              if (d.id === overContainer) {
++                const cleaned = d.data.filter((e) => e.id !== activeId);
++                const newData = [...cleaned];
++                const targetIdx = overIdx >= 0 ? overIdx : d.data.length;
++                newData.splice(targetIdx, 0, adaptedEmployee);
++                return { ...d, data: newData, count: newData.length };
++              }
++              return {
++                ...d,
++                data: d.data.filter((e) => e.id !== activeId),
++                count: Math.max(
++                  0,
++                  d.data.filter((e) => e.id !== activeId).length
++                ),
++              };
++            })
++          );
++        }
++      }
++
++      // E: Special -> Maquinista
++      else if (activeType === "special" && overType === "maquinista") {
++        const adaptedEmployee: Employee = {
++          id: activeItem.id,
++          name: activeItem.name,
++          matricula: activeItem.matricula || "",
++          line: activeItem.line || "",
++          machine: activeItem.machine || "",
++          error: activeItem.error || false,
++        };
++
++        setSpecialShiftData((prev) => prev.filter((e) => e.id !== activeId));
++
++        setDepartmentsData((prev) =>
++          prev.map((d) => {
++            if (d.id === overContainer) {
++              const cleaned = d.data.filter((e) => e.id !== activeId);
++              const newData = [...cleaned];
++              const targetIdx = overIdx >= 0 ? overIdx : d.data.length;
++              newData.splice(targetIdx, 0, adaptedEmployee);
++              return { ...d, data: newData, count: newData.length };
++            }
++            return {
++              ...d,
++              data: d.data.filter((e) => e.id !== activeId),
++              count: Math.max(
++                0,
++                d.data.filter((e) => e.id !== activeId).length
++              ),
++            };
++          })
++        );
++      }
++
++      // F: Special -> Apoio
++      else if (activeType === "special" && overType === "apoio") {
++        const overGroupIdx = parseInt(
++          overContainer.replace("support-group-", ""),
++          10
++        );
++        if (!isNaN(overGroupIdx)) {
++          const adaptedSupport: SupportRole = {
++            id: activeItem.id,
++            name: activeItem.name,
++            role: activeItem.originalSupportRole || "VIRADOR",
++            matricula: activeItem.matricula || "",
++          };
++
++          setSpecialShiftData((prev) => prev.filter((e) => e.id !== activeId));
++
++          setSupportRolesData((prev) =>
++            prev.map((group, idx) => {
++              if (idx === overGroupIdx) {
++                const cleaned = group.filter((e) => e.id !== activeId);
++                const newData = [...cleaned];
++                const targetIdx = overIdx >= 0 ? overIdx : group.length;
++                newData.splice(targetIdx, 0, adaptedSupport);
++                return newData;
++              }
++              return group.filter((e) => e.id !== activeId);
++            })
++          );
++        }
++      }
++
++      // G: Maquinista -> Special
++      else if (activeType === "maquinista" && overType === "special") {
++        const isOriginallyApoio = dragSourceRef.current?.type === "apoio";
++        const adaptedSpecial: Employee = {
++          id: activeItem.id,
++          name: activeItem.name,
++          matricula: activeItem.matricula || "",
++          line: activeItem.line || "",
++          machine: activeItem.machine || "",
++          tagType: isOriginallyApoio ? "OOF" : "MAQUINISTA",
++          originalDeptId: isOriginallyApoio
++            ? undefined
++            : dragSourceRef.current?.originalContainer || activeContainer,
++          originalSupportGroupIndex: isOriginallyApoio
++            ? parseInt(
++                dragSourceRef.current?.originalContainer.replace(
++                  "support-group-",
++                  ""
++                ) || "0",
++                10
++              )
++            : undefined,
++          originalSupportRole: isOriginallyApoio
++            ? dragSourceRef.current?.originalRole || "VIRADOR"
++            : undefined,
++        };
++
++        setDepartmentsData((prev) =>
++          prev.map((d) => {
++            if (d.id === activeContainer) {
++              const newData = d.data.filter((e) => e.id !== activeId);
++              return { ...d, data: newData, count: newData.length };
++            }
++            return {
++              ...d,
++              data: d.data.filter((e) => e.id !== activeId),
++              count: Math.max(
++                0,
++                d.data.filter((e) => e.id !== activeId).length
++              ),
++            };
++          })
++        );
++
++        setSupportRolesData((prev) =>
++          prev.map((group) => group.filter((e) => e.id !== activeId))
++        );
++
++        setSpecialShiftData((prev) => {
++          const cleaned = prev.filter((e) => e.id !== activeId);
++          const newData = [...cleaned];
++          const targetIdx = overIdx >= 0 ? overIdx : prev.length;
++          newData.splice(targetIdx, 0, adaptedSpecial);
++          return newData;
++        });
++      }
++
++      // H: Apoio -> Special
++      else if (activeType === "apoio" && overType === "special") {
++        const activeGroupIdx = parseInt(
++          activeContainer.replace("support-group-", ""),
++          10
++        );
++        if (!isNaN(activeGroupIdx)) {
++          const adaptedSpecial: Employee = {
++            id: activeItem.id,
++            name: activeItem.name,
++            matricula: activeItem.matricula || "",
++            line: "",
++            machine: activeItem.machine || "",
++            tagType: "OOF",
++            originalSupportGroupIndex: activeGroupIdx,
++            originalSupportRole: activeItem.role,
++          };
++
++          setSupportRolesData((prev) =>
++            prev.map((group, idx) => {
++              if (idx === activeGroupIdx)
++                return group.filter((e) => e.id !== activeId);
++              return group.filter((e) => e.id !== activeId);
++            })
++          );
++
++          setSpecialShiftData((prev) => {
++            const cleaned = prev.filter((e) => e.id !== activeId);
++            const newData = [...cleaned];
++            const targetIdx = overIdx >= 0 ? overIdx : prev.length;
++            newData.splice(targetIdx, 0, adaptedSpecial);
++            return newData;
++          });
++        }
++      }
++    },
++    [
++      setOverId,
++      departmentsDataRef,
++      supportRolesDataRef,
++      specialShiftDataRef,
++      setDepartmentsData,
++      setSupportRolesData,
++      setSpecialShiftData,
++      dragSourceRef,
++    ]
++  );
++
++  const handleDragEnd = useCallback(
++    (event: any) => {
++      const { active, over } = event;
++      const activeIdVal = active?.id;
++      if (activeIdVal) handleStopEditRef.current(activeIdVal);
++
++      if (!over || !activeIdVal) {
++        setActiveId(null);
++        activeIdRef.current = null;
++        setActiveSupportId(null);
++        setOverId(null);
++        dragSourceRef.current = null;
++        return;
++      }
++
++      const overId = over.id;
++      if (activeIdVal === overId) {
++        setActiveId(null);
++        activeIdRef.current = null;
++        setActiveSupportId(null);
++        setOverId(null);
++        dragSourceRef.current = null;
++        return;
++      }
++
++      // Identificar a origem (para logging se necess├írio)
++      let employeeName = "";
++      const allEmployees = [
++        ...departmentsDataRef.current.flatMap((d) => d.data),
++        ...supportRolesDataRef.current.flatMap((g) => g),
++        ...specialShiftDataRef.current,
++      ];
++      const emp = allEmployees.find((e) => e.id === activeIdVal);
++      if (emp) employeeName = emp.name;
++
++      // Determinar o formato do novo "local" no DSS
++      let newLocal = "";
++      let newRole = "";
++
++      // Mapear destinos
++      if (overId === "recepcao") {
++        newLocal = "Recepcao"; 
++        newRole = "MAQUINISTA";
++      } else if (overId === "classificacao") {
++        newLocal = "Classificacao";
++        newRole = "MAQUINISTA";
++      } else if (overId === "formacao") {
++        newLocal = "Formacao";
++        newRole = "MAQUINISTA";
++      } else if (overId.toString().startsWith("Recepcao ")) {
++        newLocal = overId.toString(); 
++        newRole = "MAQUINISTA";
++      } else if (overId === "special-shift") {
++        newLocal = "Turno 6H";
++        newRole = "MAQUINISTA";
++      } else if (overId.toString().startsWith("support-group-")) {
++        const idx = parseInt(overId.toString().split("-")[2], 10);
++        const names = ["Recepcao", "Classificacao", "Formacao"];
++        newLocal = `Apoio ${names[idx] || idx}`;
++        newRole = "OOF";
++      } else {
++        // Tentar descobrir se caiu em cima de um funcionario
++        const overEmp = allEmployees.find((e) => e.id === overId);
++        if (overEmp) {
++          // Pega o local do funcionario sobreposto
++          newLocal = overEmp.local || "";
++          newRole = overEmp.tagType || "MAQUINISTA";
++        }
++      }
++
++      // Se temos um novo local e um ID valido, enviamos pro DSS!
++      if (newLocal && selectedTurma) {
++        firestoreService.updateEmployeeLocationAndRoleDSS(
++          selectedTurma,
++          activeIdVal,
++          newLocal,
++          newRole
++        );
++        if (newRole) {
++          firestoreService.updateEmployeeRoleDSS(
++            selectedTurma,
++            activeIdVal,
++            newRole
++          );
++        }
++      }
++
++      setActiveId(null);
++      activeIdRef.current = null;
++      setActiveSupportId(null);
++      setOverId(null);
++      dragSourceRef.current = null;
++    },
++    [
++      handleStopEditRef,
++      setActiveId,
++      activeIdRef,
++      setActiveSupportId,
++      setOverId,
++      dragSourceRef,
++      departmentsDataRef,
++      supportRolesDataRef,
++      specialShiftDataRef,
++      selectedTurma,
++    ]
++  );
++
++  return {
++    sensors,
++    handleDragStart,
++    handleDragCancel,
++    handleDragOver,
++    handleDragEnd,
 +  };
- 
-   return (
--    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full">
-+    <div 
-+      onDragOver={handleDragOver}
-+      onDragEnter={handleDragEnter}
-+      onDragLeave={handleDragLeave}
-+      onDrop={handleDrop}
-+      className={`bg-[#2D3748] rounded-[24px] overflow-hidden flex flex-col shadow-lg border border-white/[0.02] min-h-full transition-all duration-300 ${
-+        isDragOver ? `drag-hover-dept drag-hover-${department.id}` : ''
-+      }`}
-+    >
-       {/* Cabe├ºalho do Setor */}
--      <div className="px-6 py-5 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
-+      <div className="px-6 py-5 border-b border-[#1A202C] flex items-center justify-between bg-[#2D3748]">
-         <div className="flex items-center gap-4">
-           <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.color}`}>
-             {React.cloneElement(theme.icon as React.ReactElement, { className: "w-6 h-6" })}
-@@ -1085,18 +1552,22 @@ function DepartmentCard({
-       </div>
- 
-       {/* ├ürea Direita (Grade de Colaboradores) */}
--      <div className="flex-1 p-5 bg-[#0D0E12]/30 flex flex-col">
-+      <div className="flex-1 p-5 bg-[#1A202C]/30 flex flex-col">
-         <div className="grid grid-cols-1 gap-4 flex-1">
-           {department.data.map((emp, i) => (
-             <EmployeeRow
-               key={`${department.id}-${i}-${emp.name}`}
-               emp={emp}
-+              empIndex={i}
-               department={department}
-               allDepartments={allDepartments}
--              onMove={(targetId) => onMove(targetId, i)}
-+              onMove={(targetId) => onMove(department.id, targetId, i)}
-               onUpdateEmployee={(field, value) => onUpdateEmployee(department.id, i, field, value)}
-               onDelete={() => onDelete(department.id, i)}
-               onTransferToSpecial={() => onTransferToSpecial(i)}
-+              onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
-+              isDarkMode={isDarkMode}
-+              activeEditors={activeEditors}
-             />
-           ))}
-           {/* Slots vazios de preenchimento para igualar a altura m├íxima */}
-@@ -1114,24 +1585,35 @@ function DepartmentCard({
- 
- function EmployeeRow({
-   emp,
-+  empIndex,
-   department,
-   allDepartments,
-   onMove,
-   onUpdateEmployee,
--  onDelete
-+  onDelete,
-+  onTransferToSpecial,
-+  onMarkAbsent,
-+  isDarkMode,
-+  activeEditors
- }: {
-   key?: string | number;
-   emp: Employee;
-+  empIndex: number;
-   department: Department;
-   allDepartments: Department[];
-   onMove: (targetId: string) => void;
--  onUpdateEmployee: (field: keyof Employee, value: string) => void;
-+  onUpdateEmployee: (field: keyof Employee, value: any) => void;
-   onDelete: () => void;
-   onTransferToSpecial: () => void;
-+  onMarkAbsent: (absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
-+  isDarkMode: boolean;
-+  activeEditors: ActiveEditor[];
- }) {
-   const [showLineDropdown, setShowLineDropdown] = useState(false);
-   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
-   const [showTransferMenu, setShowTransferMenu] = useState(false);
-+  const [showAbsentMenu, setShowAbsentMenu] = useState(false);
-+  const [isLocallyFocused, setIsLocallyFocused] = useState(false);
-   const theme = getDeptTheme(department.id);
-   const otherDepts = allDepartments.filter(d => d.id !== department.id);
- 
-@@ -1160,22 +1642,75 @@ function EmployeeRow({
-   const avatarBtnRef = useRef<HTMLButtonElement>(null);
-   const transferBtnRef = useRef<HTMLButtonElement>(null);
-   const lineInputRef = useRef<HTMLInputElement>(null);
-+  const absentBtnRef = useRef<HTMLButtonElement>(null);
- 
-   const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
-   const transferRect = useAnchoredRect(transferBtnRef, showTransferMenu);
-   const lineRect = useAnchoredRect(lineInputRef, showLineDropdown);
-+  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
-+
-+  const activeEditor = activeEditors?.find(e => e.employeeName === emp.name);
-+
-+  const handleDragStart = (e: React.DragEvent) => {
-+    e.dataTransfer.setData('application/json', JSON.stringify({
-+      sourceType: 'dept',
-+      sourceId: department.id,
-+      empIndex: empIndex
-+    }));
-+    e.dataTransfer.effectAllowed = 'move';
-+    e.currentTarget.classList.add('dragging');
-+  };
-+
-+  const handleDragEnd = (e: React.DragEvent) => {
-+    e.currentTarget.classList.remove('dragging');
-+  };
-+
-+  const getDynamicStyles = () => {
-+    if (isLocallyFocused) {
-+      return {
-+        borderColor: '#BF5AF2',
-+        boxShadow: '0 0 15px rgba(191, 90, 242, 0.25)',
-+        borderWidth: '2px',
-+        borderStyle: 'solid'
-+      };
-+    }
-+    if (activeEditor) {
-+      return {
-+        borderColor: activeEditor.color,
-+        boxShadow: `0 0 15px ${activeEditor.color}35`,
-+        borderWidth: '2px',
-+        borderStyle: 'solid'
-+      };
-+    }
-+    return {};
-+  };
- 
-   return (
-     <div
-+      draggable={true}
-+      onDragStart={handleDragStart}
-+      onDragEnd={handleDragEnd}
-       className={`relative flex flex-col min-h-[140px] justify-between rounded-[14px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 dept-${department.id} ${
--        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#111217] hover:bg-[#252836]'
--      } ${getBorderLeftClass(department.id, emp.error)}`}
-+        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#1A202C] hover:bg-[#4A5568]'
-+      } ${getBorderLeftClass(department.id, emp.error)} ${
-+        (isLocallyFocused || activeEditor) ? 'is-editing' : ''
-+      }`}
-+      style={getDynamicStyles()}
-     >
-+      {activeEditor && (
-+        <div 
-+          className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full text-[8px] font-black text-white editor-badge shadow-sm flex items-center gap-1 z-10 select-none animate-pulse tracking-wider uppercase"
-+          style={{ backgroundColor: activeEditor.color, color: '#ffffff' }}
-+        >
-+          <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-+          {activeEditor.editorName} EDITANDO
-+        </div>
-+      )}
-       {/* Main Row Content */}
-       <div className="p-3.5 flex flex-col justify-between flex-1 w-full gap-3">
-         
-         {/* Top Row: Avatar, Nome e Bot├úo de Expandir */}
--        <div className="flex items-center justify-between w-full bg-[#1E2029] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
-+        <div className="flex items-center justify-between w-full bg-[#2D3748] bg-header-dept border border-white/[0.03] p-2.5 rounded-[10px] shadow-sm">
-           <div className="flex items-center min-w-0">
-             {/* Avatar Container with Pop-up Menu */}
-             <div className="relative">
-@@ -1196,22 +1731,28 @@ function EmployeeRow({
-               </button>
-             </div>
-             
--            <div className="flex flex-col min-w-0">
-+            <div className="flex flex-col min-w-0 items-start text-left">
-               <input
-                 type="text"
-                 value={emp.name}
-                 onChange={(e) => onUpdateEmployee('name', e.target.value.toUpperCase())}
--                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name ${emp.error ? 'text-red-400' : 'text-white'}`}
-+                className={`font-bold text-[14px] tracking-wide uppercase bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none input-emp-name text-left ${emp.error ? 'text-red-400' : 'text-white'}`}
-                 placeholder="NOME SOBRENOME"
-               />
--              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 font-medium truncate span-emp-matricula">Matr├¡cula: {emp.machine || 'N/A'}</span>
-+              <span className="text-[10px] text-[#A0A0A5] -mt-0.5 ml-1 font-medium truncate span-emp-matricula text-left">Matr├¡cula: {emp.matricula || 'N/A'}</span>
-             </div>
-           </div>
-           
-           {/* Action Buttons */}
-           <div className="relative flex items-center gap-2">
-             <button
--              onClick={(e) => { e.stopPropagation(); onUpdateEmployee('error', !emp.error); }}
-+              ref={absentBtnRef}
-+              onClick={(e) => {
-+                e.stopPropagation();
-+                setShowAbsentMenu(!showAbsentMenu);
-+                setShowTransferMenu(false);
-+                setShowAvatarMenu(false);
-+              }}
-               className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
-             >
-               AUSENTE
-@@ -1247,8 +1788,8 @@ function EmployeeRow({
-               ref={lineInputRef}
-               type="text"
-               value={emp.line}
--              onFocus={() => setShowLineDropdown(true)}
--              onBlur={() => setTimeout(() => setShowLineDropdown(false), 200)}
-+              onFocus={() => { setShowLineDropdown(true); setIsLocallyFocused(true); }}
-+              onBlur={() => { setTimeout(() => setShowLineDropdown(false), 200); setIsLocallyFocused(false); }}
-               onChange={(e) => {
-                 onUpdateEmployee('line', e.target.value);
-                 setShowLineDropdown(true);
-@@ -1261,6 +1802,8 @@ function EmployeeRow({
-             <input
-               type="text"
-               value={emp.machine}
-+              onFocus={() => setIsLocallyFocused(true)}
-+              onBlur={() => setIsLocallyFocused(false)}
-               onChange={(e) => onUpdateEmployee('machine', e.target.value)}
-               className="h-[34px] px-2 rounded-[8px] text-[13px] font-bold w-[70px] sm:w-[80px] text-center uppercase placeholder-white/50 focus:outline-none bg-[#10B981] text-white shadow-sm border-none hover:bg-[#059669] transition-all"
-             />
-@@ -1287,7 +1830,7 @@ function EmployeeRow({
-                 left: avatarRect.left,
-                 zIndex: 1000,
-               }}
--              className="w-[120px] bg-[#1E2029] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
-+              className="w-[120px] bg-[#2D3748] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
-             >
-               <button
-                 onClick={(e) => {
-@@ -1305,6 +1848,76 @@ function EmployeeRow({
-         )}
-       </AnimatePresence>
- 
-+      {/* Portal: Menu Ausente em Cart├úo com Cantos Arredondados */}
-+      <AnimatePresence>
-+        {showAbsentMenu && absentRect && (
-+          <PortalMenu>
-+            <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
-+            <div
-+              style={{
-+                position: 'fixed',
-+                top: absentRect.bottom + 10, // Abaixo do bot├úo com espa├ºamento n├¡tido de 10px
-+                left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do bot├úo
-+                transform: 'translateX(-50%)', // Centraliza horizontalmente
-+                zIndex: 1000,
-+              }}
-+            >
-+              <motion.div
-+                initial={{ opacity: 0, scale: 0.95, y: -8 }}
-+                animate={{ opacity: 1, scale: 1, y: 0 }}
-+                exit={{ opacity: 0, scale: 0.95, y: -8 }}
-+                transition={{ duration: 0.15, ease: 'easeOut' }}
-+                className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-+                  isDarkMode 
-+                    ? 'bg-slate-950/40 border border-white/10' 
-+                    : 'bg-white/40 border border-slate-300/50'
-+                }`}
-+              >
-+                {[
-+                  { type: 'F├ëRIAS' },
-+                  { type: 'FORA' },
-+                  { type: 'ATM' },
-+                  { type: 'RESTRI├ç├âO' },
-+                  { type: 'INSS' }
-+                ].map((opt) => {
-+                  const meta = STATUS_METADATA[opt.type as any];
-+                  const Icon = meta.icon;
-+                  const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
-+
-+                  return (
-+                    <button
-+                      key={opt.type}
-+                      onClick={(e) => {
-+                        e.stopPropagation();
-+                        setShowAbsentMenu(false);
-+                        onMarkAbsent(opt.type as any);
-+                      }}
-+                      className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-+                        isDarkMode 
-+                          ? 'text-white hover:bg-white/10 active:bg-white/15' 
-+                          : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
-+                      }`}
-+                    >
-+                      <div className="flex items-center gap-3">
-+                        <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
-+                        <span className={colorClass}>{meta.label}</span>
-+                      </div>
-+                      <ChevronRight 
-+                        className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-+                          isDarkMode 
-+                            ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
-+                            : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
-+                        }`} 
-+                      />
-+                    </button>
-+                  );
-+                })}
-+              </motion.div>
-+            </div>
-+          </PortalMenu>
-+        )}
-+      </AnimatePresence>
-+
-       {/* Portal: Menu Transferir */}
-       <AnimatePresence>
-         {showTransferMenu && transferRect && (
-@@ -1321,7 +1934,7 @@ function EmployeeRow({
-                 left: transferRect.right - 180,
-                 zIndex: 1000,
-               }}
--              className="w-[180px] bg-[#1E2029] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
-+              className="w-[180px] bg-[#2D3748] border border-white/10 rounded-[12px] shadow-xl overflow-hidden flex flex-col py-1"
-             >
-               <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Transferir para</div>
-               {otherDepts.map(d => {
-@@ -1334,7 +1947,7 @@ function EmployeeRow({
-                       onMove(d.id); 
-                       setShowTransferMenu(false); 
-                     }}
--                    className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#252836] transition-colors w-full text-left"
-+                    className="flex items-center px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#4A5568] transition-colors w-full text-left"
-                   >
-                     <div className={`mr-2 p-1 rounded-md ${theme.bg} ${theme.color}`}>
-                       {React.cloneElement(theme.icon, { className: 'w-3 h-3' })}
-@@ -1382,7 +1995,7 @@ function EmployeeRow({
-                 left: lineRect.left + lineRect.width / 2 - 65,
-                 zIndex: 1000,
-               }}
--              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#1E2029] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
-+              className="w-[130px] max-h-[150px] overflow-y-auto bg-[#2D3748] border border-white/10 rounded-[8px] shadow-2xl flex flex-col py-1 hide-scrollbar"
-             >
-               {PREDEFINED_LINES.filter(l => l.toLowerCase().includes((emp.line || '').toLowerCase())).map((linha) => (
-                 <button
-@@ -1392,7 +2005,11 @@ function EmployeeRow({
-                     onUpdateEmployee('line', linha);
-                     setShowLineDropdown(false);
-                   }}
--                  className="text-center px-2 py-1.5 text-[12px] font-bold text-white hover:bg-[#FF6B00] transition-colors"
-+                  className={`text-center px-2 py-1.5 text-[12px] font-bold transition-colors w-full ${
-+                    isDarkMode 
-+                      ? 'text-white hover:bg-[#FF6B00]' 
-+                      : 'text-slate-800 hover:bg-[#FF6B00] hover:text-white'
-+                  }`}
-                 >
-                   {linha}
-                 </button>
-@@ -1409,13 +2026,20 @@ function EmployeeRow({
-   );
  }
- 
-+const SUPPORT_GROUP_NAMES = ["RECEP├ç├âO", "CLASSIFICA├ç├âO", "FORMA├ç├âO"];
+diff --git a/src/hooks/useFirebaseSync.ts b/src/hooks/useFirebaseSync.ts
+new file mode 100644
+index 0000000..3f76511
+--- /dev/null
++++ b/src/hooks/useFirebaseSync.ts
+@@ -0,0 +1,66 @@
++import { useEffect, Dispatch, SetStateAction } from 'react';
++import { firestoreService } from '../services/firestoreService';
++import { signInToFirebase } from '../lib/firebase';
++import { TurmaType, ActiveEdit } from '../types';
 +
- function SupportCard({ 
-   roles, 
-   groupIndex, 
-   onUpdateRole,
-   onUpdateName,
-   onMoveSupport,
--  onMoveToSpecial
-+  onMoveToSpecial,
-+  onDeleteSupport,
-+  onUpdateError,
-+  onMarkAbsent,
-+  isDarkMode,
-+  activeEditors
- }: { 
-   roles: SupportRole[]; 
-   groupIndex: number; 
-@@ -1423,6 +2047,11 @@ function SupportCard({
-   onUpdateName: (groupIndex: number, empIndex: number, newName: string) => void;
-   onMoveSupport: (sourceGroupIndex: number, targetGroupIndex: number, empIndex: number) => void;
-   onMoveToSpecial: (groupIndex: number, empIndex: number) => void;
-+  onDeleteSupport: (groupIndex: number, empIndex: number) => void;
-+  onUpdateError: (groupIndex: number, empIndex: number, error: boolean) => void;
-+  onMarkAbsent: (empIndex: number, absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
-+  isDarkMode: boolean;
-+  activeEditors: ActiveEditor[];
- }) {
-   const themes = [
-     { bg: "bg-[#0A84FF]/10", border: "border-[#0A84FF]/20", text: "text-[#0A84FF]", bar: "bg-[#0A84FF]" },
-@@ -1430,17 +2059,57 @@ function SupportCard({
-     { bg: "bg-[#30D158]/10", border: "border-[#30D158]/20", text: "text-[#30D158]", bar: "bg-[#30D158]" }
-   ];
-   const theme = themes[groupIndex] || themes[0];
-+  const [isDragOver, setIsDragOver] = useState(false);
++interface UseFirebaseSyncProps {
++  selectedTurma: TurmaType | null;
++  isDemoMode: boolean;
++  isTabVisible: boolean;
++  setActiveEdits: Dispatch<SetStateAction<Record<string, ActiveEdit>>>;
++}
 +
-+  const handleDragOver = (e: React.DragEvent) => {
-+    e.preventDefault();
-+  };
++export function useFirebaseSync({
++  selectedTurma,
++  isDemoMode,
++  isTabVisible,
++  setActiveEdits,
++}: UseFirebaseSyncProps) {
++  // Inicializa├º├úo / Login An├┤nimo ao montar o app
++  useEffect(() => {
++    signInToFirebase();
++  }, []);
 +
-+  const handleDragEnter = (e: React.DragEvent) => {
-+    e.preventDefault();
-+    setIsDragOver(true);
-+  };
++  useEffect(() => {
++    if (!selectedTurma || isDemoMode || !isTabVisible) return;
 +
-+  const handleDragLeave = () => {
-+    setIsDragOver(false);
-+  };
-+
-+  const handleDrop = (e: React.DragEvent) => {
-+    setIsDragOver(false);
-+    try {
-+      const dataStr = e.dataTransfer.getData('application/json');
-+      if (!dataStr) return;
-+      const data = JSON.parse(dataStr);
-+      if (data.sourceType === 'support') {
-+        onMoveSupport(data.sourceId, groupIndex, data.empIndex);
-+      }
-+    } catch (err) {
-+      console.error("Erro no drop", err);
-+    }
-+  };
- 
-   return (
--    <div className="bg-[#1E2029] rounded-[24px] overflow-hidden flex flex-col border border-white/[0.02] relative">
-+    <div 
-+      onDragOver={handleDragOver}
-+      onDragEnter={handleDragEnter}
-+      onDragLeave={handleDragLeave}
-+      onDrop={handleDrop}
-+      className={`bg-[#1A202C] rounded-[24px] overflow-hidden flex flex-col border border-white/5 relative transition-all duration-300 ${
-+        isDragOver 
-+          ? `drag-hover-dept ${
-+              groupIndex === 0 ? 'drag-hover-recepcao' : groupIndex === 1 ? 'drag-hover-classificacao' : 'drag-hover-formacao'
-+            }` 
-+          : ''
-+      }`}
-+    >
-       
-       {/* Support Card Header */}
--      <div className="px-5 py-4 border-b border-[#111217] flex items-center justify-between bg-[#15171E]">
-+      <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between bg-[#1E2533]">
-         <div className="flex items-center gap-3.5">
-           <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shadow-inner ${theme.bg} ${theme.text}`}>
-             <Users className="w-5 h-5" />
-           </div>
--          <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">Grupo {groupIndex + 1}</h4>
-+          <h4 className="text-[18px] font-bold text-white tracking-tight uppercase">{SUPPORT_GROUP_NAMES[groupIndex]}</h4>
-         </div>
-         <div className={`flex items-center font-semibold text-[12px] px-3.5 py-1.5 rounded-full ${theme.text} ${theme.bg}`}>
-           <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
-@@ -1454,11 +2123,17 @@ function SupportCard({
-           <SupportRoleRow 
-             key={i} 
-             emp={emp} 
-+            empIndex={i}
-             groupIndex={groupIndex}
-             onUpdateRole={(newRole) => onUpdateRole(groupIndex, i, newRole)} 
-             onUpdateName={(newName) => onUpdateName(groupIndex, i, newName)} 
-             onMove={(targetGroupIndex) => onMoveSupport(groupIndex, targetGroupIndex, i)}
-             onMoveToSpecial={() => onMoveToSpecial(groupIndex, i)}
-+            onDelete={() => onDeleteSupport(groupIndex, i)}
-+            onUpdateError={(error) => onUpdateError(groupIndex, i, error)}
-+            onMarkAbsent={(absenceType) => onMarkAbsent(i, absenceType)}
-+            isDarkMode={isDarkMode}
-+            activeEditors={activeEditors}
-           />
-         ))}
-       </div>
-@@ -1468,131 +2143,395 @@ function SupportCard({
- 
- function SupportRoleRow({ 
-   emp, 
-+  empIndex,
-   groupIndex,
-   onUpdateRole,
-   onUpdateName,
-   onMove,
--  onMoveToSpecial
-+  onMoveToSpecial,
-+  onDelete,
-+  onUpdateError,
-+  onMarkAbsent,
-+  isDarkMode,
-+  activeEditors
- }: { 
-+  key?: any;
-   emp: SupportRole; 
-+  empIndex: number;
-   groupIndex: number;
-   onUpdateRole: (newRole: string) => void;
-   onUpdateName: (newName: string) => void;
-   onMove: (targetGroupIndex: number) => void;
-   onMoveToSpecial?: () => void;
-+  onDelete?: () => void;
-+  onUpdateError: (error: boolean) => void;
-+  onMarkAbsent: (absenceType: 'F├ëRIAS' | 'FORA' | 'ATM' | 'RESTRI├ç├âO' | 'INSS') => void;
-+  isDarkMode: boolean;
-+  activeEditors: ActiveEditor[];
- }) {
-   const [isOpen, setIsOpen] = useState(false);
-   const [isTransferOpen, setIsTransferOpen] = useState(false);
-+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
-+  const [showAbsentMenu, setShowAbsentMenu] = useState(false);
-+  const [isLocallyFocused, setIsLocallyFocused] = useState(false);
-   
-   const groupsList = [0, 1, 2].filter(g => g !== groupIndex);
-   
-+  const transferBtnRef = useRef<HTMLButtonElement>(null);
-+  const roleBtnRef = useRef<HTMLButtonElement>(null);
-+  const avatarBtnRef = useRef<HTMLButtonElement>(null);
-+  const absentBtnRef = useRef<HTMLButtonElement>(null);
-+  
-+  const transferRect = useAnchoredRect(transferBtnRef, isTransferOpen);
-+  const roleRect = useAnchoredRect(roleBtnRef, isOpen);
-+  const avatarRect = useAnchoredRect(avatarBtnRef, showAvatarMenu);
-+  const absentRect = useAnchoredRect(absentBtnRef, showAbsentMenu);
-+
-+  const themes = [
-+    { bg: "bg-[#0A84FF]/15", text: "text-[#0A84FF]" },
-+    { bg: "bg-[#FF9F0A]/15", text: "text-[#FF9F0A]" },
-+    { bg: "bg-[#30D158]/15", text: "text-[#30D158]" }
-+  ];
-+  const theme = themes[groupIndex] || themes[0];
-+
-+  const activeEditor = activeEditors?.find(e => e.employeeName === emp.name);
-+
-+  const handleDragStart = (e: React.DragEvent) => {
-+    e.dataTransfer.setData('application/json', JSON.stringify({
-+      sourceType: 'support',
-+      sourceId: groupIndex,
-+      empIndex: empIndex
-+    }));
-+    e.dataTransfer.effectAllowed = 'move';
-+    e.currentTarget.classList.add('dragging');
-+  };
-+
-+  const handleDragEnd = (e: React.DragEvent) => {
-+    e.currentTarget.classList.remove('dragging');
-+  };
-+
-+  const getDynamicStyles = () => {
-+    if (isLocallyFocused) {
-+      return {
-+        borderColor: '#BF5AF2',
-+        boxShadow: '0 0 15px rgba(191, 90, 242, 0.25)',
-+        borderWidth: '2px',
-+        borderStyle: 'solid'
-+      };
-+    }
-+    if (activeEditor) {
-+      return {
-+        borderColor: activeEditor.color,
-+        boxShadow: `0 0 15px ${activeEditor.color}35`,
-+        borderWidth: '2px',
-+        borderStyle: 'solid'
-+      };
-+    }
-+    return {};
-+  };
-+  
-   return (
--    <div className="px-4 py-2.5 flex items-center justify-between rounded-[12px] bg-[#111217] hover:bg-[#252836] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative">
--      <input
--        type="text"
--        value={emp.name}
--        onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
--        className="font-bold text-[14px] text-white bg-transparent outline-none w-[180px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none"
--        placeholder="NOME SOBRENOME"
--      />
--      <div className="flex items-center gap-2 relative">
--        <button
--          onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
--          className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
-+    <div 
-+      draggable={true}
-+      onDragStart={handleDragStart}
-+      onDragEnd={handleDragEnd}
-+      className={`pl-2 pr-3 py-2 flex items-center justify-start gap-1.5 rounded-[12px] border border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative ${
-+        emp.error ? 'bg-[#3A1414] hover:bg-[#4A1818]' : 'bg-[#2D3748] hover:bg-[#3D4758]'
-+      } ${(isLocallyFocused || activeEditor) ? 'is-editing' : ''}`}
-+      style={getDynamicStyles()}
-+    >
-+      {activeEditor && (
-+        <div 
-+          className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full text-[8px] font-black text-white editor-badge shadow-sm flex items-center gap-1 z-10 select-none animate-pulse tracking-wider uppercase"
-+          style={{ backgroundColor: activeEditor.color, color: '#ffffff' }}
-         >
--          TURNO 6H
--        </button>
--        {/* Transfer Button */}
--        <div className="relative">
--          <button
--            onClick={() => setIsTransferOpen(!isTransferOpen)}
--            className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
-+          <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-+          {activeEditor.editorName} EDITANDO
-+        </div>
-+      )}
-+      <div className="flex items-center min-w-0 shrink-0">
-+        {/* Avatar Container with Pop-up Menu */}
-+        <div className="relative shrink-0 mr-2">
-+          <button 
-+            ref={avatarBtnRef}
-+            onClick={(e) => {
-+              e.stopPropagation();
-+              setShowAvatarMenu(!showAvatarMenu);
-+              setIsTransferOpen(false);
-+              setIsOpen(false);
-+            }}
-+            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
-+              emp.error 
-+                ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' 
-+                : `${theme.bg} ${theme.text} hover:opacity-80`
-+            }`}
-           >
--            <ArrowRightLeft className="w-3.5 h-3.5" />
-+            <User className="w-[15px] h-[15px]" strokeWidth={2.5} />
-           </button>
-+        </div>
-+
-+        <div className="flex flex-col min-w-0">
-+          <input
-+            type="text"
-+            value={emp.name}
-+            onFocus={() => setIsLocallyFocused(true)}
-+            onBlur={() => setIsLocallyFocused(false)}
-+            onChange={(e) => onUpdateName(e.target.value.toUpperCase())}
-+            className="font-bold text-[14px] text-white bg-transparent outline-none w-[145px] focus:border-b focus:border-white/20 placeholder:text-white/30 truncate leading-none text-left px-1 py-0.5"
-+            placeholder="NOME SOBRENOME"
-+          />
-+          <span className="text-[10px] text-[#A0A0A5] -mt-0.5 ml-1 font-medium truncate span-emp-matricula">Matr├¡cula: {emp.matricula || 'N/A'}</span>
-+        </div>
-+      </div>
-+
-+      <button
-+        ref={absentBtnRef}
-+        onClick={(e) => {
-+          e.stopPropagation();
-+          setShowAbsentMenu(!showAbsentMenu);
-+          setIsTransferOpen(false);
-+          setIsOpen(false);
-+          setShowAvatarMenu(false);
-+        }}
-+        className="h-[30px] w-[56px] shrink-0 flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] tracking-tight whitespace-nowrap cursor-pointer"
-+      >
-+        AUSENTE
-+      </button>
-+      <button
-+        onClick={(e) => { e.stopPropagation(); if (onMoveToSpecial) onMoveToSpecial(); }}
-+        className="h-[30px] w-[56px] shrink-0 flex items-center justify-center font-bold text-white bg-gradient-to-r from-[#FF9F0A] to-[#FF6B00] rounded shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-[9px] whitespace-nowrap"
-+      >
-+        TURNO 6H
-+      </button>
-+      {/* Transfer Button */}
-+      <div className="relative shrink-0">
-+        <button
-+          ref={transferBtnRef}
-+          onClick={(e) => {
-+            e.stopPropagation();
-+            setIsTransferOpen(!isTransferOpen);
-+            setIsOpen(false);
-+            setShowAvatarMenu(false);
-+          }}
-+          className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white"
-+        >
-+          <ArrowRightLeft className="w-3.5 h-3.5" />
-+        </button>
++    // Escuta edi├º├Áes ativas em tempo real
++    const unsubscribeEdits = firestoreService.subscribeToActiveEdits(
++      selectedTurma,
++      (edits) => {
++        const now = Date.now();
++        const cleanedEdits: Record<string, ActiveEdit> = {};
 +        
-+        <AnimatePresence>
-+          {isTransferOpen && transferRect && (
-+            <PortalMenu>
-+              <div className="fixed inset-0 z-[999]" onClick={(e) => { e.stopPropagation(); setIsTransferOpen(false); }} />
-+              <motion.div
-+                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-+                animate={{ opacity: 1, scale: 1, y: 0 }}
-+                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-+                transition={{ duration: 0.15 }}
-+                style={{
-+                  position: 'fixed',
-+                  top: transferRect.bottom + 6,
-+                  left: transferRect.right - 150,
-+                  zIndex: 1000,
-+                }}
-+                className="w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl overflow-hidden flex flex-col py-1"
-+              >
-+                <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
-+                {groupsList.map(g => (
-+                  <button
-+                    key={g}
-+                    onClick={(e) => {
-+                      e.stopPropagation();
-+                      onMove(g);
-+                      setIsTransferOpen(false);
-+                    }}
-+                    className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
-+                  >
-+                    {SUPPORT_GROUP_NAMES[g]}
-+                  </button>
-+                ))}
-+                <div className="h-px bg-white/5 my-0.5 mx-2" />
-+                <button
-+                  onClick={(e) => {
-+                    e.stopPropagation();
-+                    if (onMoveToSpecial) {
-+                      onMoveToSpecial();
-+                    }
-+                    setIsTransferOpen(false);
-+                  }}
-+                  className="px-3.5 py-2 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors text-left flex items-center gap-1.5 w-full"
-+                >
-+                  <Clock className="w-3.5 h-3.5 text-[#BF5AF2]" />
-+                  Turno Especial
-+                </button>
-+              </motion.div>
-+            </PortalMenu>
-+          )}
-+        </AnimatePresence>
-+      </div>
++        Object.keys(edits).forEach((key) => {
++          // Ignora edi├º├Áes mais antigas que 15s que ficaram presas
++          if (now - edits[key].timestamp < 15000) {
++            cleanedEdits[key] = edits[key];
++          }
++        });
++        
++        setActiveEdits(cleanedEdits);
++      },
++    );
 +
-+      {/* Role Tag Dropdown */}
-+      <div className="relative ml-auto shrink-0">
-+        <button
-+          ref={roleBtnRef}
-+          onClick={(e) => {
-+            e.stopPropagation();
-+            setIsOpen(!isOpen);
-+            setIsTransferOpen(false);
-+            setShowAvatarMenu(false);
-+          }}
-+          className="relative w-[90px] shrink-0 text-white hover:text-white text-xs font-bold bg-white/5 border-none hover:bg-white/10 py-1.5 rounded-lg transition-all outline-none shadow-sm flex items-center justify-center"
-+        >
-+          <span className="truncate w-full text-center pr-4 pl-0.5">{emp.role}</span>
-+          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/60 transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-+        </button>
++    const cleanupInterval = setInterval(() => {
++      setActiveEdits((prev) => {
++        const now = Date.now();
++        const cleaned: Record<string, ActiveEdit> = {};
++        let changed = false;
++        Object.keys(prev).forEach((key) => {
++          if (now - prev[key].timestamp < 15000) {
++            cleaned[key] = prev[key];
++          } else {
++            changed = true;
++          }
++        });
++        return changed ? cleaned : prev;
++      });
++    }, 5000);
 +
-+        <AnimatePresence>
-+            {isOpen && roleRect && (
-+              <PortalMenu>
-+                <div className="fixed inset-0 z-[999]" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
-+                <motion.div
-+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
-+                  animate={{ opacity: 1, scale: 1, y: 0 }}
-+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
-+                  transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-+                  style={{
-+                    position: 'fixed',
-+                    top: roleRect.bottom + 6,
-+                    left: roleRect.left + (roleRect.width / 2) - 80,
-+                    zIndex: 1000,
-+                  }}
-+                  className="w-[160px] bg-[#1A202C]/95 backdrop-blur-xl border border-white/10 rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col py-2"
-+                >
-+                  {SUPPORT_ROLES_OPTIONS.map((opt) => {
-+                    const isSelected = opt === emp.role;
-+                    return (
-+                      <button
-+                        key={opt}
-+                        onClick={(e) => {
-+                          e.stopPropagation();
-+                          onUpdateRole(opt);
-+                          setIsOpen(false);
-+                        }}
-+                        className={`mx-1.5 my-0.5 py-2 px-3 text-[12px] font-bold tracking-wide rounded-[10px] transition-all duration-200 text-center cursor-pointer active:scale-95 flex items-center justify-center relative overflow-hidden ${
-+                          isSelected
-+                            ? 'bg-[#FF6B00]/15 text-[#FF6B00] border-none'
-+                            : 'text-[#A0A0A5] hover:text-white hover:bg-white/10 hover:shadow-md'
-+                        }`}
-+                      >
-+                        {opt}
-+                      </button>
-+                    );
-+                  })}
-+                </motion.div>
-+              </PortalMenu>
-+            )}
-+          </AnimatePresence>
-           
-+          {/* Portal: Menu Deletar (Avatar) */}
-           <AnimatePresence>
--            {isTransferOpen && (
--              <>
--                <div className="fixed inset-0 z-40" onClick={() => setIsTransferOpen(false)} />
-+            {showAvatarMenu && avatarRect && (
-+              <PortalMenu>
-+                <div className="fixed inset-0 z-[999]" onClick={() => setShowAvatarMenu(false)} />
-                 <motion.div
-                   initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                   exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                   transition={{ duration: 0.15 }}
--                  className="absolute right-0 top-[115%] w-[150px] bg-[#1E2029] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
-+                  style={{
-+                    position: 'fixed',
-+                    top: avatarRect.bottom + 6,
-+                    left: avatarRect.left,
-+                    zIndex: 1000,
-+                  }}
-+                  className="w-[120px] bg-[#2D3748] border border-[#FF3B30]/30 rounded-[12px] shadow-xl overflow-hidden flex flex-col"
-                 >
--                  <div className="px-3 py-1 text-[10px] font-bold text-[#a0aec0] uppercase tracking-wider">Mudar para</div>
--                  {groupsList.map(g => (
--                    <button
--                      key={g}
--                      onClick={() => {
--                        onMove(g);
--                        setIsTransferOpen(false);
--                      }}
--                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
--                    >
--                      Grupo {g + 1}
--                    </button>
--                  ))}
--                  <div className="h-px bg-white/5 my-0.5 mx-2" />
-                   <button
--                    onClick={() => {
--                      if (onMoveToSpecial) {
--                        onMoveToSpecial();
--                      }
--                      setIsTransferOpen(false);
-+                    onClick={(e) => {
-+                      e.stopPropagation();
-+                      setShowAvatarMenu(false);
-+                      if (onDelete) onDelete();
-                     }}
--                    className="px-3.5 py-2 text-[12px] font-semibold text-[#BF5AF2] hover:bg-[#BF5AF2]/10 transition-colors text-left flex items-center gap-1.5 w-full"
-+                    className="flex items-center px-3 py-2 text-[13px] font-bold text-[#FF3B30] hover:bg-[#FF3B30]/15 active:bg-[#FF3B30]/20 transition-colors w-full text-left cursor-pointer border-none bg-transparent"
-                   >
--                    <Clock className="w-3.5 h-3.5 text-[#BF5AF2]" />
--                    Turno Especial
-+                    <Trash2 className="w-[16px] h-[16px] mr-2" />
-+                    Deletar
-                   </button>
-                 </motion.div>
--              </>
-+              </PortalMenu>
-             )}
-           </AnimatePresence>
--        </div>
--
--        {/* Role Tag Dropdown */}
--        <div className="relative">
--          <button
--            onClick={() => setIsOpen(!isOpen)}
--            className="text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors outline-none shadow-sm"
--          >
--            {emp.role}
--            <ChevronDown className="w-3.5 h-3.5" />
--          </button>
- 
-+          {/* Portal: Menu Ausente em Cart├úo com Cantos Arredondados */}
-           <AnimatePresence>
--            {isOpen && (
--              <>
--                <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
--                <motion.div
--                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
--                  animate={{ opacity: 1, scale: 1, y: 0 }}
--                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
--                  transition={{ duration: 0.15 }}
--                  className="absolute right-0 top-[115%] w-[150px] bg-[#2D3748] border border-white/10 rounded-[10px] shadow-2xl z-50 overflow-hidden flex flex-col py-1"
-+            {showAbsentMenu && absentRect && (
-+              <PortalMenu>
-+                <div className="fixed inset-0 z-[999]" onClick={() => setShowAbsentMenu(false)} />
-+                <div
-+                  style={{
-+                    position: 'fixed',
-+                    top: absentRect.bottom + 10, // Abaixo do bot├úo com espa├ºamento n├¡tido de 10px
-+                    left: absentRect.left + absentRect.width / 2, // Alinhado ao centro horizontal do bot├úo
-+                    transform: 'translateX(-50%)', // Centraliza horizontalmente
-+                    zIndex: 1000,
-+                  }}
-                 >
--                  {SUPPORT_ROLES_OPTIONS.map((opt) => (
--                    <button
--                      key={opt}
--                      onClick={() => {
--                        onUpdateRole(opt);
--                        setIsOpen(false);
--                      }}
--                      className="px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#FF6B00] hover:text-white transition-colors text-left"
--                    >
--                      {opt}
--                    </button>
--                  ))}
--                </motion.div>
--              </>
-+                  <motion.div
-+                    initial={{ opacity: 0, scale: 0.95, y: -8 }}
-+                    animate={{ opacity: 1, scale: 1, y: 0 }}
-+                    exit={{ opacity: 0, scale: 0.95, y: -8 }}
-+                    transition={{ duration: 0.15, ease: 'easeOut' }}
-+                    className={`w-[155px] backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden flex flex-col p-1.5 gap-1 transition-colors duration-300 ${
-+                      isDarkMode 
-+                        ? 'bg-slate-950/40 border border-white/10' 
-+                        : 'bg-white/40 border border-slate-300/50'
-+                    }`}
-+                  >
-+                    {[
-+                      { type: 'F├ëRIAS' },
-+                      { type: 'FORA' },
-+                      { type: 'ATM' },
-+                      { type: 'RESTRI├ç├âO' },
-+                      { type: 'INSS' }
-+                    ].map((opt) => {
-+                      const meta = STATUS_METADATA[opt.type as any];
-+                      const Icon = meta.icon;
-+                      const colorClass = isDarkMode ? meta.colorDark : meta.colorLight;
++    return () => {
++      unsubscribeEdits();
++      clearInterval(cleanupInterval);
++    };
++  }, [selectedTurma, isDemoMode, isTabVisible, setActiveEdits]);
++}
+diff --git a/src/hooks/useMovementLog.ts b/src/hooks/useMovementLog.ts
+new file mode 100644
+index 0000000..0203492
+--- /dev/null
++++ b/src/hooks/useMovementLog.ts
+@@ -0,0 +1,75 @@
++import React, { useCallback } from 'react';
++import { MovementLog, TurmaType } from '../types';
++import { firestoreService } from '../services/firestoreService';
 +
-+                      return (
-+                        <button
-+                          key={opt.type}
-+                          onClick={(e) => {
-+                            e.stopPropagation();
-+                            setShowAbsentMenu(false);
-+                            onMarkAbsent(opt.type as any);
-+                          }}
-+                          className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-[11px] font-extrabold tracking-wider w-full transition-all text-left uppercase cursor-pointer border-none bg-transparent group ${
-+                            isDarkMode 
-+                              ? 'text-white hover:bg-white/10 active:bg-white/15' 
-+                              : 'text-slate-800 hover:bg-slate-800/10 active:bg-slate-800/15'
-+                          }`}
-+                        >
-+                          <div className="flex items-center gap-3">
-+                            <Icon className={`w-4 h-4 shrink-0 ${colorClass}`} />
-+                            <span className={colorClass}>{meta.label}</span>
-+                          </div>
-+                          <ChevronRight 
-+                            className={`w-3.5 h-3.5 shrink-0 transition-all duration-150 ${
-+                              isDarkMode 
-+                                ? 'text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5' 
-+                                : 'text-slate-800/25 group-hover:text-slate-800/60 group-hover:translate-x-0.5'
-+                            }`} 
-+                          />
-+                        </button>
-+                      );
-+                    })}
-+                  </motion.div>
-+                </div>
-+              </PortalMenu>
-             )}
-           </AnimatePresence>
++interface UseMovementLogProps {
++  adminUser: { name: string; funcao?: string; email?: string } | null;
++  isDemoMode: boolean;
++  selectedTurma: TurmaType | null;
++  setMovementLogs: React.Dispatch<React.SetStateAction<MovementLog[]>>;
++}
 +
-         </div>
--      </div>
-     </div>
-   );
- }
-@@ -1604,15 +2543,16 @@ function SpecialShiftSlot({
-   onUpdate,
-   onTransfer
- }: {
-+  key?: any;
-   emp: Employee;
-   index: number;
-   allDepartments: Department[];
--  onUpdate: (field: keyof Employee, value: string) => void;
-+  onUpdate: (field: keyof Employee, value: any) => void;
-   onTransfer: (targetDeptId: string) => void;
- }) {
- 
-   return (
--    <div className="w-[250px] shrink-0 h-[100px] bg-[#111217] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
-+    <div className="w-[250px] shrink-0 h-[100px] bg-[#1A202C] rounded-2xl border border-white/5 shadow-sm p-3 flex flex-col justify-between relative group hover:border-[#BF5AF2]/30 transition-colors">
-       <div className="flex items-center justify-between w-full">
-         <div className="flex items-center min-w-0">
-           <div className="w-6 h-6 rounded-full bg-[#BF5AF2]/20 text-[#BF5AF2] flex items-center justify-center mr-2 shrink-0">
++export function useMovementLog({
++  adminUser,
++  isDemoMode,
++  selectedTurma,
++  setMovementLogs,
++}: UseMovementLogProps) {
++  const logMovement = useCallback(
++    (
++      employeeName: string,
++      from: string,
++      to: string,
++      line?: string,
++      machine?: string,
++    ) => {
++      const logId =
++        Date.now().toString() + Math.random().toString(36).substring(2, 7);
++        
++      const currentAdmin = adminUser
++        ? adminUser.funcao
++          ? `${adminUser.name} (${adminUser.funcao})`
++          : adminUser.name
++        : "Sistema";
++        
++      const adminName = isDemoMode
++        ? [
++            "Lucas (Admin)",
++            "Mariana (Super)",
++            "Roberto (Gestor)",
++            "Fernanda (Coord)",
++          ][Math.floor(Math.random() * 4)]
++        : currentAdmin;
++
++      setMovementLogs((prev) => {
++        const newLog: MovementLog = {
++          id: logId,
++          adminName: adminName,
++          employeeName,
++          from,
++          to,
++          line,
++          machine,
++          timestamp: new Date(),
++        };
++        return [newLog, ...prev].slice(0, 500);
++      });
++
++      if (!isDemoMode && selectedTurma) {
++        firestoreService.saveMovementLog(selectedTurma, {
++          id: logId,
++          adminName: adminName,
++          employeeName,
++          from,
++          to,
++          line,
++          machine,
++          timestamp: new Date(),
++        });
++      }
++    },
++    [adminUser, isDemoMode, selectedTurma, setMovementLogs],
++  );
++
++  return { logMovement };
++}

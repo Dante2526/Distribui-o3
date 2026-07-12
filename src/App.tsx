@@ -197,19 +197,22 @@ function AppContent() {
     return localStorage.getItem("distribui-theme-selected") === "true";
   });
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const isMock = urlParams.get("mock") === "true";
+
   const handleThemeContinue = useCallback(() => {
     localStorage.setItem("distribui-theme-selected", "true");
     setHasSelectedTheme(true);
   }, []);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(isMock);
   const [adminUser, setAdminUser] = useState<{
     name: string;
     email: string;
     color?: string;
     funcao?: string;
     nivel?: string;
-  } | null>(null);
+  } | null>(isMock ? { name: "Mock Admin", email: "mock@admin.com" } : null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activePage, setActivePage] = useState(() => {
     return localStorage.getItem("distribui-page") || "home";
@@ -254,53 +257,12 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo Híbrido de Colisão para resolver os problemas de arrastar
+  // Algoritmo de Colisão: a pedido do usuário, DEVE respeitar 100% a posição do mouse.
+  // Se o mouse (ou dedo) estiver solto em cima da "Recepção", vai pra Recepção.
   const customCollisionDetection = useCallback((args: any) => {
-    // 1. Tenta achar colisão exata do mouse (ótimo para precisão e para o Turno 6H)
     const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.some((c) => c.id === "special-shift")) {
-      return pointerCollisions;
-    }
-
-    // 2. Colisão pelo Centro Geométrico do Cartão
-    // Resolve o bug do rectIntersection (exigir 51% de área) e o bug do closestCenter (alturas de colunas diferentes).
-    const { collisionRect, droppableRects, droppableContainers } = args;
-    const centerX = collisionRect.left + collisionRect.width / 2;
-    const centerY = collisionRect.top + collisionRect.height / 2;
-
-    const centerCollisions: any[] = [];
-
-    for (const container of droppableContainers) {
-      if (container.id === "special-shift") continue;
-
-      const rect = droppableRects.get(container.id);
-      if (rect) {
-        if (
-          centerX >= rect.left &&
-          centerX <= rect.right &&
-          centerY >= rect.top &&
-          centerY <= rect.bottom
-        ) {
-          centerCollisions.push({
-            id: container.id,
-            data: { droppableContainer: container, value: 1 },
-          });
-        }
-      }
-    }
-
-    if (centerCollisions.length > 0) {
-      return centerCollisions;
-    }
-
-    // 3. Fallback: Se o centro estiver fora da tela, tenta área (rectIntersection)
-    let rectCollisions = rectIntersection(args);
-    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
-
-    if (rectCollisions.length > 0) return rectCollisions;
-
-    // 4. Último fallback
-    return pointerCollisions;
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return rectIntersection(args);
   }, []);
 
   // Configurações e estados do painel
@@ -358,6 +320,25 @@ function AppContent() {
   // Efeito ÚNICO de Montagem da Interface (Single Database)
   useEffect(() => {
     if (isDemoMode || !selectedTurma || !isTabVisible) return;
+
+    if (isMock) {
+      const mockEmployees: Employee[] = [
+        { id: "emp-dept-1", name: "NAYLAN MOREIRA", matricula: "81025193", local: "Recepcao", tagType: "MAQUINISTA" },
+        { id: "emp-dept-2", name: "LUCAS SILVA", matricula: "12345678", local: "Classificacao", tagType: "MAQUINISTA" },
+        { id: "emp-dept-3", name: "MARIA SOUSA", matricula: "87654321", local: "Formacao", tagType: "MAQUINISTA" },
+      ];
+      dssEmployeesRef.current = mockEmployees;
+
+      const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map(
+        (dept: any) => {
+          const empLocal = mockEmployees.filter((e) => e.local?.toLowerCase().includes(dept.id.toLowerCase()));
+          return { ...dept, count: empLocal.length, data: empLocal };
+        }
+      );
+      setDepartmentsData(newDepts);
+      setIsLoadingData(false);
+      return;
+    }
 
     const unsubscribeDSS = firestoreService.subscribeToDSS(
       selectedTurma,

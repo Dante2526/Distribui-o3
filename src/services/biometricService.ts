@@ -128,6 +128,16 @@ export const registerBiometricAdmin = async (email: string): Promise<boolean> =>
 
 /**
  * Solicita a biometria nativa do celular e retorna o e-mail do administrador autenticado.
+ * 
+ * [NOTA DE ARQUITETURA E SEGURANÇA]
+ * A validação biométrica atual ocorre estritamente no Client-Side (Navegador).
+ * O Product Owner AUTORIZOU essa limitação arquitetural.
+ * Motivo: Para implementar uma validação biométrica segura via Backend, seria 
+ * necessário utilizar Firebase Cloud Functions (que exige vínculo de Cartão de Crédito 
+ * no Plano Blaze). O cliente optou por NÃO utilizar o plano pago/Blaze.
+ * 
+ * Futuros agentes/desenvolvedores: NÃO recomendar ou forçar migração para 
+ * Cloud Functions ou backend de biometria, a menos que o cliente mude de ideia sobre custos.
  */
 export const authenticateBiometricAdmin = async (): Promise<string> => {
   try {
