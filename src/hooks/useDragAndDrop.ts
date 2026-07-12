@@ -777,9 +777,9 @@ export function useDragAndDrop({
         newLocal = `Apoio ${names[idx] || idx}`;
         newRole = "OOF";
       } else {
-        // Tentar descobrir se caiu em cima de um funcionario
         const overData = over.data?.current;
         const targetDeptId = overData?.departmentId;
+        const targetGroupIdx = overData?.groupIndex;
 
         if (targetDeptId) {
           if (targetDeptId === "recepcao") newLocal = "Recepcao";
@@ -787,6 +787,10 @@ export function useDragAndDrop({
           else if (targetDeptId === "formacao") newLocal = "Formacao";
           else newLocal = targetDeptId;
           newRole = "MAQUINISTA";
+        } else if (targetGroupIdx !== undefined) {
+          const names = ["Recepcao", "Classificacao", "Formacao"];
+          newLocal = `Apoio ${names[targetGroupIdx] || targetGroupIdx}`;
+          newRole = "OOF";
         } else {
           // Último recurso (fallback legado)
           const overEmp = allEmployees.find((e) => e.id === overId);
