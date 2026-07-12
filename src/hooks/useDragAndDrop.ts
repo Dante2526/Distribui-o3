@@ -1,17 +1,817 @@
-import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
+import React, { useCallback, useMemo } from 'react';
+import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import { Department, SupportRole, Employee, TurmaType } from '../types';
+import { firestoreService } from '../services/firestoreService';
 
-export function useDragAndDrop() {
-  const handleDragStart = (event: DragStartEvent) => {
-    // Logic will be extracted here
-  };
-  
-  const handleDragOver = (event: DragOverEvent) => {
-    // Logic will be extracted here
-  };
-  
-  const handleDragEnd = (event: DragEndEvent) => {
-    // Logic will be extracted here
-  };
+export interface UseDragAndDropProps {
+  isAdmin: boolean;
+  activeIdRef: React.MutableRefObject<string | null>;
+  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
+  setOverId: React.Dispatch<React.SetStateAction<string | null>>;
+  handleStartEditRef: React.MutableRefObject<(id: string) => void>;
+  handleStopEditRef: React.MutableRefObject<(id: string) => void>;
+  clonedDepartmentsRef: React.MutableRefObject<Department[] | null>;
+  clonedSupportRef: React.MutableRefObject<SupportRole[][] | null>;
+  clonedSpecialShiftRef: React.MutableRefObject<Employee[] | null>;
+  departmentsDataRef: React.MutableRefObject<Department[]>;
+  supportRolesDataRef: React.MutableRefObject<SupportRole[][]>;
+  specialShiftDataRef: React.MutableRefObject<Employee[]>;
+  dragSourceRef: React.MutableRefObject<any>;
+  setActiveSupportId: React.Dispatch<React.SetStateAction<string | null>>;
+  setDepartmentsData: React.Dispatch<React.SetStateAction<Department[]>>;
+  setSupportRolesData: React.Dispatch<React.SetStateAction<SupportRole[][]>>;
+  setSpecialShiftData: React.Dispatch<React.SetStateAction<Employee[]>>;
+  selectedTurma: TurmaType | null;
+}
 
-  return { handleDragStart, handleDragOver, handleDragEnd };
+export function useDragAndDrop({
+  isAdmin,
+  activeIdRef,
+  setActiveId,
+  setOverId,
+  handleStartEditRef,
+  handleStopEditRef,
+  clonedDepartmentsRef,
+  clonedSupportRef,
+  clonedSpecialShiftRef,
+  departmentsDataRef,
+  supportRolesDataRef,
+  specialShiftDataRef,
+  dragSourceRef,
+  setActiveSupportId,
+  setDepartmentsData,
+  setSupportRolesData,
+  setSpecialShiftData,
+  selectedTurma,
+}: UseDragAndDropProps) {
+  const mouseSensor = useSensor(
+    MouseSensor,
+    useMemo(
+      () => ({
+        activationConstraint: { distance: isAdmin ? 5 : 999999 },
+      }),
+      [isAdmin]
+    )
+  );
+
+  const touchSensor = useSensor(
+    TouchSensor,
+    useMemo(
+      () => ({
+        activationConstraint: {
+          delay: isAdmin ? 250 : 999999,
+          tolerance: isAdmin ? 5 : 0,
+        },
+      }),
+      [isAdmin]
+    )
+  );
+
+  const sensors = useSensors(mouseSensor, touchSensor);
+
+  const handleDragStart = useCallback(
+    (event: any) => {
+      const activeIdVal = event.active.id;
+      setActiveId(activeIdVal);
+      activeIdRef.current = activeIdVal;
+      setOverId(null);
+      handleStartEditRef.current(activeIdVal as string);
+      clonedDepartmentsRef.current = departmentsDataRef.current;
+      clonedSupportRef.current = supportRolesDataRef.current;
+      clonedSpecialShiftRef.current = specialShiftDataRef.current;
+
+      let sourceContainer = "";
+      let sourceType: "maquinista" | "apoio" | "special" = "maquinista";
+      let sourceRole: string | undefined = undefined;
+
+      for (const dept of departmentsDataRef.current) {
+        if (dept.data.some((e) => e.id === activeIdVal)) {
+          sourceContainer = dept.id;
+          sourceType = "maquinista";
+          break;
+        }
+      }
+
+      if (!sourceContainer) {
+        for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+          const emp = supportRolesDataRef.current[idx].find(
+            (e) => e.id === activeIdVal
+          );
+          if (emp) {
+            sourceContainer = `support-group-${idx}`;
+            sourceType = "apoio";
+            sourceRole = emp.role;
+            break;
+          }
+        }
+      }
+
+      if (!sourceContainer) {
+        if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+          sourceContainer = "special-shift";
+          sourceType = "special";
+        }
+      }
+
+      dragSourceRef.current = {
+        id: activeIdVal,
+        type: sourceType,
+        originalContainer: sourceContainer,
+        originalRole: sourceRole,
+      };
+
+      const isSupport = sourceType === "apoio";
+      if (isSupport) {
+        setActiveSupportId(activeIdVal);
+      }
+    },
+    [
+      setActiveId,
+      activeIdRef,
+      setOverId,
+      handleStartEditRef,
+      clonedDepartmentsRef,
+      departmentsDataRef,
+      clonedSupportRef,
+      supportRolesDataRef,
+      clonedSpecialShiftRef,
+      specialShiftDataRef,
+      dragSourceRef,
+      setActiveSupportId,
+    ]
+  );
+
+  const handleDragCancel = useCallback(() => {
+    const currentActiveId = activeIdRef.current;
+    if (currentActiveId) handleStopEditRef.current(currentActiveId);
+    setActiveId(null);
+    activeIdRef.current = null;
+    setActiveSupportId(null);
+    setOverId(null);
+    dragSourceRef.current = null;
+    if (clonedDepartmentsRef.current)
+      setDepartmentsData(clonedDepartmentsRef.current);
+    if (clonedSupportRef.current)
+      setSupportRolesData(clonedSupportRef.current);
+    if (clonedSpecialShiftRef.current)
+      setSpecialShiftData(clonedSpecialShiftRef.current);
+  }, [
+    activeIdRef,
+    handleStopEditRef,
+    setActiveId,
+    setActiveSupportId,
+    setOverId,
+    dragSourceRef,
+    clonedDepartmentsRef,
+    setDepartmentsData,
+    clonedSupportRef,
+    setSupportRolesData,
+    clonedSpecialShiftRef,
+    setSpecialShiftData,
+  ]);
+
+  const handleDragOver = useCallback(
+    (event: any) => {
+      const { active, over } = event;
+      if (!over) {
+        setOverId(null);
+        return;
+      }
+
+      const activeId = active.id;
+      const overId = over.id;
+      setOverId(overId);
+
+      if (activeId === overId) return;
+
+      let activeContainer: string | null = null;
+      let activeType: "maquinista" | "apoio" | "special" | null = null;
+      let activeItem: any = null;
+      let activeIdx = -1;
+
+      for (const dept of departmentsDataRef.current) {
+        const idx = dept.data.findIndex((e) => e.id === activeId);
+        if (idx !== -1) {
+          activeContainer = dept.id;
+          activeType = "maquinista";
+          activeItem = dept.data[idx];
+          activeIdx = idx;
+          break;
+        }
+      }
+
+      if (!activeType) {
+        for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+          const supportIdx = supportRolesDataRef.current[idx].findIndex(
+            (e) => e.id === activeId
+          );
+          if (supportIdx !== -1) {
+            activeContainer = `support-group-${idx}`;
+            activeType = "apoio";
+            activeItem = supportRolesDataRef.current[idx][supportIdx];
+            activeIdx = supportIdx;
+            break;
+          }
+        }
+      }
+
+      if (!activeType) {
+        const idx = specialShiftDataRef.current.findIndex(
+          (e) => e.id === activeId
+        );
+        if (idx !== -1) {
+          activeContainer = "special-shift";
+          activeType = "special";
+          activeItem = specialShiftDataRef.current[idx];
+          activeIdx = idx;
+        }
+      }
+
+      if (!activeContainer || !activeType || !activeItem) return;
+
+      let overContainer: string | null = null;
+      let overType: "maquinista" | "apoio" | "special" | null = null;
+      let overIdx = -1;
+
+      if (
+        overId === "recepcao" ||
+        overId === "classificacao" ||
+        overId === "formacao"
+      ) {
+        overContainer = overId;
+        overType = "maquinista";
+      } else if (overId.toString().startsWith("support-group-")) {
+        overContainer = overId;
+        overType = "apoio";
+      } else if (overId === "special-shift") {
+        overContainer = "special-shift";
+        overType = "special";
+      } else {
+        const dept = departmentsDataRef.current.find((d) => d.id === overId);
+        if (dept) {
+          overContainer = dept.id;
+          overType = "maquinista";
+        } else {
+          for (const d of departmentsDataRef.current) {
+            const idx = d.data.findIndex((e) => e.id === overId);
+            if (idx !== -1) {
+              overContainer = d.id;
+              overType = "maquinista";
+              overIdx = idx;
+              break;
+            }
+          }
+        }
+
+        if (!overContainer) {
+          const groupIdx = parseInt(
+            overId.toString().replace("support-group-", ""),
+            10
+          );
+          if (
+            !isNaN(groupIdx) &&
+            groupIdx >= 0 &&
+            groupIdx < supportRolesDataRef.current.length
+          ) {
+            overContainer = `support-group-${groupIdx}`;
+            overType = "apoio";
+          } else {
+            for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
+              const supportIdx = supportRolesDataRef.current[idx].findIndex(
+                (e) => e.id === overId
+              );
+              if (supportIdx !== -1) {
+                overContainer = `support-group-${idx}`;
+                overType = "apoio";
+                overIdx = supportIdx;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!overContainer) {
+          const specialIdx = specialShiftDataRef.current.findIndex(
+            (e) => e.id === overId
+          );
+          if (specialIdx !== -1) {
+            overContainer = "special-shift";
+            overType = "special";
+            overIdx = specialIdx;
+          }
+        }
+      }
+
+      if (!overContainer || !overType) return;
+
+      if (activeContainer === overContainer) {
+        if (activeType === "maquinista") {
+          const dept = departmentsDataRef.current.find(
+            (d) => d.id === activeContainer
+          );
+          if (dept) {
+            const activeIndex = dept.data.findIndex((e) => e.id === activeId);
+            const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
+            if (activeIndex !== overIndex && activeIndex !== -1) {
+              setDepartmentsData((prev) =>
+                prev.map((d) => {
+                  if (d.id === activeContainer) {
+                    return {
+                      ...d,
+                      data: arrayMove(d.data, activeIndex, overIndex),
+                    };
+                  }
+                  return {
+                    ...d,
+                    data: d.data.filter((e) => e.id !== activeId),
+                    count: Math.max(
+                      0,
+                      d.data.filter((e) => e.id !== activeId).length
+                    ),
+                  };
+                })
+              );
+            }
+          }
+        } else if (activeType === "apoio") {
+          const groupIdx = parseInt(
+            activeContainer.replace("support-group-", ""),
+            10
+          );
+          if (!isNaN(groupIdx)) {
+            const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(
+              (e) => e.id === activeId
+            );
+            const overIndex =
+              overIdx >= 0
+                ? overIdx
+                : supportRolesDataRef.current[groupIdx].length - 1;
+            if (activeIndex !== overIndex && activeIndex !== -1) {
+              setSupportRolesData((prev) =>
+                prev.map((g, idx) => {
+                  if (idx === groupIdx)
+                    return arrayMove(g, activeIndex, overIndex);
+                  return g;
+                })
+              );
+            }
+          }
+        } else if (activeType === "special") {
+          const activeIndex = specialShiftDataRef.current.findIndex(
+            (e) => e.id === activeId
+          );
+          const overIndex =
+            overIdx >= 0 ? overIdx : specialShiftDataRef.current.length - 1;
+          if (activeIndex !== overIndex && activeIndex !== -1) {
+            setSpecialShiftData((prev) =>
+              arrayMove(prev, activeIndex, overIndex)
+            );
+          }
+        }
+        return;
+      }
+
+      // A: Maquinista -> Maquinista
+      if (activeType === "maquinista" && overType === "maquinista") {
+        setDepartmentsData((prev) => {
+          const activeDept = prev.find((d) => d.id === activeContainer);
+          const overDept = prev.find((d) => d.id === overContainer);
+          if (!activeDept || !overDept) return prev;
+
+          const targetIdx = overIdx >= 0 ? overIdx : overDept.data.length;
+
+          return prev.map((d) => {
+            if (d.id === activeContainer) {
+              const newData = d.data.filter((e) => e.id !== activeId);
+              return { ...d, data: newData, count: newData.length };
+            }
+            if (d.id === overContainer) {
+              const cleaned = d.data.filter((e) => e.id !== activeId);
+              const newData = [...cleaned];
+              const movedItem = { ...activeItem, line: "", machine: "" };
+              newData.splice(targetIdx, 0, movedItem);
+              return { ...d, data: newData, count: newData.length };
+            }
+            return {
+              ...d,
+              data: d.data.filter((e) => e.id !== activeId),
+              count: Math.max(
+                0,
+                d.data.filter((e) => e.id !== activeId).length
+              ),
+            };
+          });
+        });
+      }
+
+      // B: Apoio -> Apoio
+      else if (activeType === "apoio" && overType === "apoio") {
+        const activeGroupIdx = parseInt(
+          activeContainer.replace("support-group-", ""),
+          10
+        );
+        const overGroupIdx = parseInt(
+          overContainer.replace("support-group-", ""),
+          10
+        );
+        if (!isNaN(activeGroupIdx) && !isNaN(overGroupIdx)) {
+          setSupportRolesData((prev) => {
+            const activeItems = prev[activeGroupIdx];
+            const overItems = prev[overGroupIdx];
+            if (!activeItems || !overItems) return prev;
+
+            const targetIdx = overIdx >= 0 ? overIdx : overItems.length;
+
+            return prev.map((group, idx) => {
+              if (idx === activeGroupIdx)
+                return group.filter((e) => e.id !== activeId);
+              if (idx === overGroupIdx) {
+                const cleaned = group.filter((e) => e.id !== activeId);
+                const newData = [...cleaned];
+                newData.splice(targetIdx, 0, activeItem);
+                return newData;
+              }
+              return group.filter((e) => e.id !== activeId);
+            });
+          });
+        }
+      }
+
+      // C: Maquinista -> Apoio
+      else if (activeType === "maquinista" && overType === "apoio") {
+        const overGroupIdx = parseInt(
+          overContainer.replace("support-group-", ""),
+          10
+        );
+        if (!isNaN(overGroupIdx)) {
+          const adaptedSupport: SupportRole = {
+            id: activeItem.id,
+            name: activeItem.name,
+            role: "VIRADOR",
+            matricula: activeItem.matricula || "",
+          };
+
+          setDepartmentsData((prev) =>
+            prev.map((d) => {
+              if (d.id === activeContainer) {
+                const newData = d.data.filter((e) => e.id !== activeId);
+                return { ...d, data: newData, count: newData.length };
+              }
+              return {
+                ...d,
+                data: d.data.filter((e) => e.id !== activeId),
+                count: Math.max(
+                  0,
+                  d.data.filter((e) => e.id !== activeId).length
+                ),
+              };
+            })
+          );
+
+          setSupportRolesData((prev) =>
+            prev.map((group, idx) => {
+              if (idx === overGroupIdx) {
+                const cleaned = group.filter((e) => e.id !== activeId);
+                const newData = [...cleaned];
+                const targetIdx = overIdx >= 0 ? overIdx : group.length;
+                newData.splice(targetIdx, 0, adaptedSupport);
+                return newData;
+              }
+              return group.filter((e) => e.id !== activeId);
+            })
+          );
+        }
+      }
+
+      // D: Apoio -> Maquinista
+      else if (activeType === "apoio" && overType === "maquinista") {
+        const activeGroupIdx = parseInt(
+          activeContainer.replace("support-group-", ""),
+          10
+        );
+        if (!isNaN(activeGroupIdx)) {
+          const adaptedEmployee: Employee = {
+            id: activeItem.id,
+            name: activeItem.name,
+            matricula: activeItem.matricula || "",
+            line: "",
+            machine: "",
+            error: false,
+          };
+
+          setSupportRolesData((prev) =>
+            prev.map((group, idx) => {
+              if (idx === activeGroupIdx)
+                return group.filter((e) => e.id !== activeId);
+              return group.filter((e) => e.id !== activeId);
+            })
+          );
+
+          setDepartmentsData((prev) =>
+            prev.map((d) => {
+              if (d.id === overContainer) {
+                const cleaned = d.data.filter((e) => e.id !== activeId);
+                const newData = [...cleaned];
+                const targetIdx = overIdx >= 0 ? overIdx : d.data.length;
+                newData.splice(targetIdx, 0, adaptedEmployee);
+                return { ...d, data: newData, count: newData.length };
+              }
+              return {
+                ...d,
+                data: d.data.filter((e) => e.id !== activeId),
+                count: Math.max(
+                  0,
+                  d.data.filter((e) => e.id !== activeId).length
+                ),
+              };
+            })
+          );
+        }
+      }
+
+      // E: Special -> Maquinista
+      else if (activeType === "special" && overType === "maquinista") {
+        const adaptedEmployee: Employee = {
+          id: activeItem.id,
+          name: activeItem.name,
+          matricula: activeItem.matricula || "",
+          line: activeItem.line || "",
+          machine: activeItem.machine || "",
+          error: activeItem.error || false,
+        };
+
+        setSpecialShiftData((prev) => prev.filter((e) => e.id !== activeId));
+
+        setDepartmentsData((prev) =>
+          prev.map((d) => {
+            if (d.id === overContainer) {
+              const cleaned = d.data.filter((e) => e.id !== activeId);
+              const newData = [...cleaned];
+              const targetIdx = overIdx >= 0 ? overIdx : d.data.length;
+              newData.splice(targetIdx, 0, adaptedEmployee);
+              return { ...d, data: newData, count: newData.length };
+            }
+            return {
+              ...d,
+              data: d.data.filter((e) => e.id !== activeId),
+              count: Math.max(
+                0,
+                d.data.filter((e) => e.id !== activeId).length
+              ),
+            };
+          })
+        );
+      }
+
+      // F: Special -> Apoio
+      else if (activeType === "special" && overType === "apoio") {
+        const overGroupIdx = parseInt(
+          overContainer.replace("support-group-", ""),
+          10
+        );
+        if (!isNaN(overGroupIdx)) {
+          const adaptedSupport: SupportRole = {
+            id: activeItem.id,
+            name: activeItem.name,
+            role: activeItem.originalSupportRole || "VIRADOR",
+            matricula: activeItem.matricula || "",
+          };
+
+          setSpecialShiftData((prev) => prev.filter((e) => e.id !== activeId));
+
+          setSupportRolesData((prev) =>
+            prev.map((group, idx) => {
+              if (idx === overGroupIdx) {
+                const cleaned = group.filter((e) => e.id !== activeId);
+                const newData = [...cleaned];
+                const targetIdx = overIdx >= 0 ? overIdx : group.length;
+                newData.splice(targetIdx, 0, adaptedSupport);
+                return newData;
+              }
+              return group.filter((e) => e.id !== activeId);
+            })
+          );
+        }
+      }
+
+      // G: Maquinista -> Special
+      else if (activeType === "maquinista" && overType === "special") {
+        const isOriginallyApoio = dragSourceRef.current?.type === "apoio";
+        const adaptedSpecial: Employee = {
+          id: activeItem.id,
+          name: activeItem.name,
+          matricula: activeItem.matricula || "",
+          line: activeItem.line || "",
+          machine: activeItem.machine || "",
+          tagType: isOriginallyApoio ? "OOF" : "MAQUINISTA",
+          originalDeptId: isOriginallyApoio
+            ? undefined
+            : dragSourceRef.current?.originalContainer || activeContainer,
+          originalSupportGroupIndex: isOriginallyApoio
+            ? parseInt(
+                dragSourceRef.current?.originalContainer.replace(
+                  "support-group-",
+                  ""
+                ) || "0",
+                10
+              )
+            : undefined,
+          originalSupportRole: isOriginallyApoio
+            ? dragSourceRef.current?.originalRole || "VIRADOR"
+            : undefined,
+        };
+
+        setDepartmentsData((prev) =>
+          prev.map((d) => {
+            if (d.id === activeContainer) {
+              const newData = d.data.filter((e) => e.id !== activeId);
+              return { ...d, data: newData, count: newData.length };
+            }
+            return {
+              ...d,
+              data: d.data.filter((e) => e.id !== activeId),
+              count: Math.max(
+                0,
+                d.data.filter((e) => e.id !== activeId).length
+              ),
+            };
+          })
+        );
+
+        setSupportRolesData((prev) =>
+          prev.map((group) => group.filter((e) => e.id !== activeId))
+        );
+
+        setSpecialShiftData((prev) => {
+          const cleaned = prev.filter((e) => e.id !== activeId);
+          const newData = [...cleaned];
+          const targetIdx = overIdx >= 0 ? overIdx : prev.length;
+          newData.splice(targetIdx, 0, adaptedSpecial);
+          return newData;
+        });
+      }
+
+      // H: Apoio -> Special
+      else if (activeType === "apoio" && overType === "special") {
+        const activeGroupIdx = parseInt(
+          activeContainer.replace("support-group-", ""),
+          10
+        );
+        if (!isNaN(activeGroupIdx)) {
+          const adaptedSpecial: Employee = {
+            id: activeItem.id,
+            name: activeItem.name,
+            matricula: activeItem.matricula || "",
+            line: "",
+            machine: activeItem.machine || "",
+            tagType: "OOF",
+            originalSupportGroupIndex: activeGroupIdx,
+            originalSupportRole: activeItem.role,
+          };
+
+          setSupportRolesData((prev) =>
+            prev.map((group, idx) => {
+              if (idx === activeGroupIdx)
+                return group.filter((e) => e.id !== activeId);
+              return group.filter((e) => e.id !== activeId);
+            })
+          );
+
+          setSpecialShiftData((prev) => {
+            const cleaned = prev.filter((e) => e.id !== activeId);
+            const newData = [...cleaned];
+            const targetIdx = overIdx >= 0 ? overIdx : prev.length;
+            newData.splice(targetIdx, 0, adaptedSpecial);
+            return newData;
+          });
+        }
+      }
+    },
+    [
+      setOverId,
+      departmentsDataRef,
+      supportRolesDataRef,
+      specialShiftDataRef,
+      setDepartmentsData,
+      setSupportRolesData,
+      setSpecialShiftData,
+      dragSourceRef,
+    ]
+  );
+
+  const handleDragEnd = useCallback(
+    (event: any) => {
+      const { active, over } = event;
+      const activeIdVal = active?.id;
+      if (activeIdVal) handleStopEditRef.current(activeIdVal);
+
+      if (!over || !activeIdVal) {
+        setActiveId(null);
+        activeIdRef.current = null;
+        setActiveSupportId(null);
+        setOverId(null);
+        dragSourceRef.current = null;
+        return;
+      }
+
+      const overId = over.id;
+      if (activeIdVal === overId) {
+        setActiveId(null);
+        activeIdRef.current = null;
+        setActiveSupportId(null);
+        setOverId(null);
+        dragSourceRef.current = null;
+        return;
+      }
+
+      // Identificar a origem (para logging se necessário)
+      let employeeName = "";
+      const allEmployees = [
+        ...departmentsDataRef.current.flatMap((d) => d.data),
+        ...supportRolesDataRef.current.flatMap((g) => g),
+        ...specialShiftDataRef.current,
+      ];
+      const emp = allEmployees.find((e) => e.id === activeIdVal);
+      if (emp) employeeName = emp.name;
+
+      // Determinar o formato do novo "local" no DSS
+      let newLocal = "";
+      let newRole = "";
+
+      // Mapear destinos
+      if (overId === "recepcao") {
+        newLocal = "Recepcao"; 
+        newRole = "MAQUINISTA";
+      } else if (overId === "classificacao") {
+        newLocal = "Classificacao";
+        newRole = "MAQUINISTA";
+      } else if (overId === "formacao") {
+        newLocal = "Formacao";
+        newRole = "MAQUINISTA";
+      } else if (overId.toString().startsWith("Recepcao ")) {
+        newLocal = overId.toString(); 
+        newRole = "MAQUINISTA";
+      } else if (overId === "special-shift") {
+        newLocal = "Turno 6H";
+        newRole = "MAQUINISTA";
+      } else if (overId.toString().startsWith("support-group-")) {
+        const idx = parseInt(overId.toString().split("-")[2], 10);
+        const names = ["Recepcao", "Classificacao", "Formacao"];
+        newLocal = `Apoio ${names[idx] || idx}`;
+        newRole = "OOF";
+      } else {
+        // Tentar descobrir se caiu em cima de um funcionario
+        const overEmp = allEmployees.find((e) => e.id === overId);
+        if (overEmp) {
+          // Pega o local do funcionario sobreposto
+          newLocal = overEmp.local || "";
+          newRole = overEmp.tagType || "MAQUINISTA";
+        }
+      }
+
+      // Se temos um novo local e um ID valido, enviamos pro DSS!
+      if (newLocal && selectedTurma) {
+        firestoreService.updateEmployeeLocationAndRoleDSS(
+          selectedTurma,
+          activeIdVal,
+          newLocal,
+          newRole
+        );
+        if (newRole) {
+          firestoreService.updateEmployeeRoleDSS(
+            selectedTurma,
+            activeIdVal,
+            newRole
+          );
+        }
+      }
+
+      setActiveId(null);
+      activeIdRef.current = null;
+      setActiveSupportId(null);
+      setOverId(null);
+      dragSourceRef.current = null;
+    },
+    [
+      handleStopEditRef,
+      setActiveId,
+      activeIdRef,
+      setActiveSupportId,
+      setOverId,
+      dragSourceRef,
+      departmentsDataRef,
+      supportRolesDataRef,
+      specialShiftDataRef,
+      selectedTurma,
+    ]
+  );
+
+  return {
+    sensors,
+    handleDragStart,
+    handleDragCancel,
+    handleDragOver,
+    handleDragEnd,
+  };
 }

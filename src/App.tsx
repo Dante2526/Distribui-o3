@@ -48,7 +48,6 @@ import {
   hasRegisteredBiometrics,
   clearBiometricData,
 } from "./services/biometricService";
-import { signInToFirebase } from "./lib/firebase";
 import { TurmaSelectionScreen } from "./components/TurmaSelectionScreen";
 import ThemeSelectionScreen from "./components/ThemeSelectionScreen";
 import type { TurmaType } from "./types";
@@ -78,6 +77,9 @@ import { EmployeeRow } from "./components/EmployeeRow";
 import { SupportRoleRow } from "./components/SupportRoleRow";
 import { ModalsContainer } from "./components/modals/ModalsContainer";
 import { useDashboardData } from "./hooks/useDashboardData";
+import { useFirebaseSync } from "./hooks/useFirebaseSync";
+import { useMovementLog } from "./hooks/useMovementLog";
+import { useDragAndDrop } from "./hooks/useDragAndDrop";
 
 // Componente Wrapper Droppable para o Turno 6H
 const SpecialShiftContainer = ({
@@ -257,10 +259,6 @@ function AppContent() {
   }, [activePage]);
 
   // Histórico de Movimentações
-  // Faz o login anônimo ao montar o app (se as vars existirem)
-  useEffect(() => {
-    signInToFirebase();
-  }, []);
 
   const isReceivingSnapshotRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);
@@ -279,47 +277,13 @@ function AppContent() {
     annotationsRightRef.current = annotationsRight;
   }, [adminUser, isDemoMode, selectedTurma, annotationsLeft, annotationsRight]);
 
-  // Efeito principal de sincronização de dados (Firebase vs Mock)
-  useEffect(() => {
-    if (!selectedTurma || isDemoMode || !isTabVisible) return;
-
-    // Escuta edições ativas em tempo real
-    const unsubscribeEdits = firestoreService.subscribeToActiveEdits(
-      selectedTurma,
-      (edits) => {
-        const now = Date.now();
-        const cleanedEdits: Record<string, ActiveEdit> = {};
-        Object.keys(edits).forEach((key) => {
-          // Ignora edições mais antigas que 15s que ficaram presas
-          if (now - edits[key].timestamp < 15000) {
-            cleanedEdits[key] = edits[key];
-          }
-        });
-        setActiveEdits(cleanedEdits);
-      },
-    );
-
-    const cleanupInterval = setInterval(() => {
-      setActiveEdits((prev) => {
-        const now = Date.now();
-        const cleaned: Record<string, ActiveEdit> = {};
-        let changed = false;
-        Object.keys(prev).forEach((key) => {
-          if (now - prev[key].timestamp < 15000) {
-            cleaned[key] = prev[key];
-          } else {
-            changed = true;
-          }
-        });
-        return changed ? cleaned : prev;
-      });
-    }, 5000);
-
-    return () => {
-      unsubscribeEdits();
-      clearInterval(cleanupInterval);
-    };
-  }, [isDemoMode, selectedTurma, isTabVisible]);
+  // Efeito principal de sincronização de dados (Firebase vs Mock) extraído para Hook
+  useFirebaseSync({
+    selectedTurma,
+    isDemoMode,
+    isTabVisible,
+    setActiveEdits,
+  });
 
   // Efeito para carregar o histórico de logs apenas quando o modal for aberto
   useEffect(() => {
@@ -470,60 +434,12 @@ function AppContent() {
     }
   }, [toast]);
 
-  const logMovement = useCallback(
-    (
-      employeeName: string,
-      from: string,
-      to: string,
-      line?: string,
-      machine?: string,
-    ) => {
-      const logId =
-        Date.now().toString() + Math.random().toString(36).substring(2, 7);
-      const currentAdmin = adminUserRef.current
-        ? adminUserRef.current.funcao
-          ? `${adminUserRef.current.name} (${adminUserRef.current.funcao})`
-          : adminUserRef.current.name
-        : "Sistema";
-      const adminName = isDemoModeRef.current
-        ? [
-            "Lucas (Admin)",
-            "Mariana (Super)",
-            "Roberto (Gestor)",
-            "Fernanda (Coord)",
-          ][Math.floor(Math.random() * 4)]
-        : currentAdmin;
-
-      setMovementLogs((prev) => {
-        const newLog: MovementLog = {
-          id: logId,
-          adminName: adminName,
-          employeeName,
-          from,
-          to,
-          line,
-          machine,
-          timestamp: new Date(),
-        };
-        return [newLog, ...prev].slice(0, 500);
-      });
-
-      // Bug 3/17: usa selectedTurmaRef para evitar stale closure
-      if (!isDemoModeRef.current && selectedTurmaRef.current) {
-        firestoreService.saveMovementLog(selectedTurmaRef.current, {
-          id: logId,
-          adminName: adminName,
-          employeeName,
-          from,
-          to,
-          line,
-          machine,
-          timestamp: new Date(),
-        });
-      }
-    },
-    [],
-  );
+  const { logMovement } = useMovementLog({
+    adminUser,
+    isDemoMode,
+    selectedTurma,
+    setMovementLogs,
+  });
 
   const handleClearAll = useCallback(() => {
     setDepartmentsData((prev) =>
@@ -1042,6 +958,34 @@ function AppContent() {
     isDarkModeRef.current = isDarkMode;
   }, [departmentsData, supportRolesData, specialShiftData, isDarkMode]);
 
+  const {
+    sensors,
+    handleDragStart,
+    handleDragCancel,
+    handleDragOver,
+    handleDragEnd,
+  } = useDragAndDrop({
+    isAdmin,
+    activeIdRef,
+    setActiveId,
+    setOverId,
+    handleStartEditRef,
+    handleStopEditRef,
+    clonedDepartmentsRef,
+    clonedSupportRef,
+    clonedSpecialShiftRef,
+    departmentsDataRef,
+    supportRolesDataRef,
+    specialShiftDataRef,
+    dragSourceRef,
+    setActiveSupportId,
+    setDepartmentsData,
+    setSupportRolesData,
+    setSpecialShiftData,
+    selectedTurma,
+  });
+
+  /*
   const mouseSensor = useSensor(
     MouseSensor,
     React.useMemo(
@@ -1741,6 +1685,7 @@ function AppContent() {
     setOverId(null);
     dragSourceRef.current = null;
   }, []);
+  */
 
   const {
     activeEmployee,
