@@ -723,6 +723,14 @@ export function useDragAndDrop({
       if (activeIdVal) handleStopEditRef.current(activeIdVal);
 
       if (!over || !activeIdVal) {
+        // Se soltou fora de qualquer lugar válido, REVERTE o estado React para o original!
+        if (clonedDepartmentsRef.current)
+          setDepartmentsData(clonedDepartmentsRef.current);
+        if (clonedSupportRef.current)
+          setSupportRolesData(clonedSupportRef.current);
+        if (clonedSpecialShiftRef.current)
+          setSpecialShiftData(clonedSpecialShiftRef.current);
+
         setActiveId(null);
         activeIdRef.current = null;
         setActiveSupportId(null);
@@ -733,6 +741,13 @@ export function useDragAndDrop({
 
       const overId = over.id as string;
       if (activeIdVal === overId) {
+        if (clonedDepartmentsRef.current)
+          setDepartmentsData(clonedDepartmentsRef.current);
+        if (clonedSupportRef.current)
+          setSupportRolesData(clonedSupportRef.current);
+        if (clonedSpecialShiftRef.current)
+          setSpecialShiftData(clonedSpecialShiftRef.current);
+
         setActiveId(null);
         activeIdRef.current = null;
         setActiveSupportId(null);
@@ -813,6 +828,14 @@ export function useDragAndDrop({
           newLocal,
           newRole,
         );
+      } else {
+        // Fallback: se não conseguiu determinar um novo local válido, reverte!
+        if (clonedDepartmentsRef.current)
+          setDepartmentsData(clonedDepartmentsRef.current);
+        if (clonedSupportRef.current)
+          setSupportRolesData(clonedSupportRef.current);
+        if (clonedSpecialShiftRef.current)
+          setSpecialShiftData(clonedSpecialShiftRef.current);
       }
 
       setActiveId(null);
