@@ -46,8 +46,11 @@ export function useDragAndDrop({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [activeSupportId, setActiveSupportId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<any>(null);
+  const [activeType, setActiveType] = useState<string | null>(null);
 
   const activeIdRef = useRef<string | null>(null);
+  const activeItemRef = useRef<any>(null);
   const clonedDepartmentsRef = useRef<Department[] | null>(null);
   const clonedSupportRef = useRef<SupportRole[][] | null>(null);
   const clonedSpecialShiftRef = useRef<Employee[] | null>(null);
