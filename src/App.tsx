@@ -347,16 +347,34 @@ function AppContent() {
                   .replace(/[\u0300-\u036f]/g, "")
                   .toLowerCase()
               : "";
-            if (statusNormal.includes("ferias")) {
-              newAnnotationsRight[2].items.push(emp);
-            } else if (statusNormal.includes("inss")) {
-              newAnnotationsRight[0].items.push(emp);
-            } else if (statusNormal.includes("fora")) {
-              newAnnotationsRight[1].items.push(emp);
-            } else if (statusNormal.includes("atestado")) {
+            if (statusNormal.includes("feria")) {
               newAnnotationsLeft[1].items.push(emp);
+            } else if (statusNormal.includes("inss")) {
+              newAnnotationsRight[2].items.push(emp);
+            } else if (
+              statusNormal.includes("fora") ||
+              statusNormal.includes("atm") ||
+              statusNormal.includes("atestado") ||
+              statusNormal.includes("medico")
+            ) {
+              newAnnotationsLeft[2].items.push(emp);
+            } else if (statusNormal.includes("restri")) {
+              newAnnotationsRight[1].items.push(emp);
+            } else if (
+              statusNormal.includes("estagio") ||
+              statusNormal.includes("estágio") ||
+              statusNormal.includes("maq") ||
+              statusNormal.includes("off")
+            ) {
+              newAnnotationsRight[0].items.push(emp);
+            } else if (
+              statusNormal.includes("treina") ||
+              statusNormal.includes("reveza") ||
+              statusNormal.includes("te")
+            ) {
+              newAnnotationsLeft[0].items.push(emp);
             } else {
-              newAnnotationsRight[1].items.push(emp); // Default Fora
+              newAnnotationsLeft[2].items.push(emp); // Default Fora
             }
             return; // Skip other boards if absent
           }
@@ -389,6 +407,9 @@ function AppContent() {
             if (!isNaN(idx) && newSupport[idx]) {
               newSupport[idx].push(emp);
             }
+          } else {
+            // Fallback para quando o local não está definido (como quando recém-criado)
+            newDepts.find((d: any) => d.id === "classificacao")?.data.push(emp);
           }
         });
 
