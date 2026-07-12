@@ -2666,6 +2666,27 @@ function AppContent() {
 
   const handleMove = useCallback(
     (sourceDeptId: string, targetDeptId: string, sourceEmpIndex: number) => {
+      // 1) Descobre qual o novo 'local' no padrão do banco
+      let newLocal = "";
+      let newRole = "MAQUINISTA";
+      if (targetDeptId === "recepcao") newLocal = "Recepcao";
+      else if (targetDeptId === "classificacao") newLocal = "Classificacao";
+      else if (targetDeptId === "formacao") newLocal = "Formacao";
+      else newLocal = targetDeptId;
+
+      // 2) Dispara atualização pro Firebase
+      const sourceDept = departmentsData.find((d) => d.id === sourceDeptId);
+      const movedEmp = sourceDept?.data[sourceEmpIndex];
+      if (movedEmp && movedEmp.id && selectedTurma && newLocal) {
+        firestoreService.updateEmployeeLocationAndRoleDSS(
+          selectedTurma,
+          movedEmp.id,
+          newLocal,
+          newRole,
+        );
+      }
+
+      // 3) Atualiza estado local (Optimistic UI)
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
         const sourceDeptIndex = newDepts.findIndex(
@@ -2675,7 +2696,12 @@ function AppContent() {
           (d) => d.id === targetDeptId,
         );
 
-        if (sourceDeptIndex === targetDeptIndex) return prev;
+        if (
+          sourceDeptIndex === targetDeptIndex ||
+          sourceDeptIndex === -1 ||
+          targetDeptIndex === -1
+        )
+          return prev;
 
         const sourceData = [...newDepts[sourceDeptIndex].data];
         const targetData = [...newDepts[targetDeptIndex].data];
@@ -2697,7 +2723,7 @@ function AppContent() {
         return newDepts;
       });
     },
-    [],
+    [selectedTurma],
   );
 
   const handleUpdateEmployeeField = useCallback(

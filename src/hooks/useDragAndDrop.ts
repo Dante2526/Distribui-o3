@@ -778,11 +778,22 @@ export function useDragAndDrop({
         newRole = "OOF";
       } else {
         // Tentar descobrir se caiu em cima de um funcionario
-        const overEmp = allEmployees.find((e) => e.id === overId);
-        if (overEmp) {
-          // Pega o local do funcionario sobreposto
-          newLocal = overEmp.local || "";
-          newRole = overEmp.tagType || "MAQUINISTA";
+        const overData = over.data?.current;
+        const targetDeptId = overData?.departmentId;
+
+        if (targetDeptId) {
+          if (targetDeptId === "recepcao") newLocal = "Recepcao";
+          else if (targetDeptId === "classificacao") newLocal = "Classificacao";
+          else if (targetDeptId === "formacao") newLocal = "Formacao";
+          else newLocal = targetDeptId;
+          newRole = "MAQUINISTA";
+        } else {
+          // Último recurso (fallback legado)
+          const overEmp = allEmployees.find((e) => e.id === overId);
+          if (overEmp) {
+            newLocal = overEmp.local || "";
+            newRole = overEmp.tagType || "MAQUINISTA";
+          }
         }
       }
 
