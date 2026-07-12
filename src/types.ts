@@ -104,6 +104,8 @@ export type Employee = {
   originalSupportGroupIndex?: number;
   originalSupportRole?: string;
   tagType?: "MAQUINISTA" | "OOF";
+  status?: string;
+  ausente?: boolean;
 };
 
 export type DepartmentOption = {

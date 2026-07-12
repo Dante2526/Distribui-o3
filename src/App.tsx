@@ -153,6 +153,7 @@ const deduplicateSupportRoles = (
 };
 
 function AppContent() {
+  const lastNetworkWriteRef = useRef<Record<string, number>>({});
   const {
     departmentsData,
     setDepartmentsData,
@@ -1203,65 +1204,57 @@ function AppContent() {
   const handleStartEdit = useCallback(
     (empId: string) => {
       if (!selectedTurma || !isAdmin || !adminUser) return;
+
+      const adminDisplayName = adminUser.funcao
+        ? `${adminUser.name} (${adminUser.funcao})`
+        : adminUser.name;
+      const color = adminUser.color || "#3b82f6";
+
       setActiveEdits((prev) => {
         const newEdits = { ...prev };
-        const adminDisplayName = adminUser.funcao
-          ? `${adminUser.name} (${adminUser.funcao})`
-          : adminUser.name;
         Object.keys(newEdits).forEach((key) => {
-          if (newEdits[key].userName === adminDisplayName) {
+          if (newEdits[key].userName === adminDisplayName && key !== empId) {
             delete newEdits[key];
+            if (selectedTurma)
+              firestoreService.stopActiveEdit(selectedTurma, key);
           }
         });
         newEdits[empId] = {
           empId,
           userName: adminDisplayName,
-          color: adminUser.color || "#3b82f6",
+          color,
           timestamp: Date.now(),
         };
-
-        // Sincroniza com Firebase para todos verem o contorno
-        firestoreService.saveActiveEdits(selectedTurma, newEdits);
         return newEdits;
       });
 
-      if (editTimersRef.current[empId]) {
-        clearTimeout(editTimersRef.current[empId]);
-      }
+      const now = Date.now();
+      const lastWrite = lastNetworkWriteRef.current[empId] || 0;
 
-      editTimersRef.current[empId] = setTimeout(() => {
-        delete editTimersRef.current[empId];
-        setActiveEdits((prev) => {
-          const newEdits = { ...prev };
-          if (
-            newEdits[empId] &&
-            Date.now() - newEdits[empId].timestamp >= 11500
-          ) {
-            delete newEdits[empId];
-            if (selectedTurma)
-              firestoreService.saveActiveEdits(selectedTurma, newEdits);
-          }
-          return newEdits;
-        });
-      }, 12000);
+      if (now - lastWrite > 3000) {
+        firestoreService.startActiveEdit(
+          selectedTurma,
+          empId,
+          adminDisplayName,
+          color,
+        );
+        lastNetworkWriteRef.current[empId] = now;
+      }
     },
     [selectedTurma, isAdmin, adminUser],
   );
 
   const handleStopEdit = useCallback(
     (empId: string) => {
-      if (editTimersRef.current[empId]) {
-        clearTimeout(editTimersRef.current[empId]);
-        delete editTimersRef.current[empId];
-      }
       setActiveEdits((prev) => {
         if (!prev[empId]) return prev;
         const newEdits = { ...prev };
         delete newEdits[empId];
-        if (selectedTurma)
-          firestoreService.saveActiveEdits(selectedTurma, newEdits);
         return newEdits;
       });
+      if (selectedTurma) {
+        firestoreService.stopActiveEdit(selectedTurma, empId);
+      }
     },
     [selectedTurma],
   );
@@ -1272,40 +1265,32 @@ function AppContent() {
       const target = e.target as HTMLElement;
       const activeEl = document.activeElement;
 
-      // Se não tem nenhum input com foco, não precisa fazer nada
       if (!(activeEl instanceof HTMLElement)) return;
       if (activeEl.tagName !== "INPUT" && activeEl.tagName !== "TEXTAREA")
         return;
-
-      // Se clicou dentro de um input/textarea, deixa o navegador lidar normalmente
       if (target.closest("input, textarea")) return;
 
-      // Força blur — isso vai disparar o onBlur do input que chama onStopEdit
       activeEl.blur();
 
-      // Fallback: se por algum motivo o onBlur não disparar, limpa todos os edits do usuário local
       if (adminUser) {
         setActiveEdits((prev) => {
           const newEdits = { ...prev };
-          let changed = false;
           const adminDisplayName = adminUser.funcao
             ? `${adminUser.name} (${adminUser.funcao})`
             : adminUser.name;
           Object.keys(newEdits).forEach((key) => {
             if (newEdits[key].userName === adminDisplayName) {
               delete newEdits[key];
-              changed = true;
+              if (selectedTurma)
+                firestoreService.stopActiveEdit(selectedTurma, key);
             }
           });
-          if (changed && selectedTurma) {
-            firestoreService.saveActiveEdits(selectedTurma, newEdits);
-          }
           return newEdits;
         });
       }
     };
 
-    document.addEventListener("mousedown", handleDocMouseDown, true); // capture=true garante prioridade máxima
+    document.addEventListener("mousedown", handleDocMouseDown, true);
     return () => {
       document.removeEventListener("mousedown", handleDocMouseDown, true);
     };

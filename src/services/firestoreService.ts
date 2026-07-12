@@ -12,6 +12,8 @@ import {
   where,
   orderBy,
   limit,
+  serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { dbDSS, dbRegistros } from "../lib/firebase";
 import type {
@@ -299,49 +301,92 @@ export const firestoreService = {
     }
   },
 
-  // ESCUTAR EDICOES ATIVAS
+  // ESCUTAR EDICOES ATIVAS (Nova Coleção)
   subscribeToActiveEdits(
     turma: TurmaType,
     callback: (edits: Record<string, any>) => void,
   ) {
-    if (!dbRegistros) return () => {};
-    const editsDocRef = doc(
-      dbRegistros,
+    if (!dbDSS) return () => {};
+    const colRef = collection(
+      dbDSS,
       `turma ${turma.toLowerCase()}`,
-      "estado_painel",
-      "metadata",
-      "edits",
+      "edicao_ativa_distribui",
+      "docs",
     );
-    return onSnapshot(editsDocRef, (snapshot) => {
-      if (snapshot.exists()) {
-        try {
-          const data = snapshot.data();
-          const edits = data.edits ? JSON.parse(data.edits) : {};
-          callback(edits);
-        } catch (e) {
-          callback({});
+
+    return onSnapshot(colRef, (snapshot) => {
+      const edits: Record<string, any> = {};
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        // Verifica se não está pendente e se tem timestamp
+        if (data.timestamp) {
+          const ts = data.timestamp.toMillis
+            ? data.timestamp.toMillis()
+            : Date.now();
+          // Se for mais velho que 20 segundos, considera expirado (Garbage Collection visual)
+          if (Date.now() - ts < 20000) {
+            edits[docSnap.id] = {
+              empId: docSnap.id,
+              userName: data.userName,
+              color: data.color,
+              timestamp: ts,
+            };
+          } else {
+            // Garbage collection real no banco de dados se tiver expirado
+            deleteDoc(docSnap.ref).catch(() => {});
+          }
+        } else {
+          // Gravação pendente (local)
+          edits[docSnap.id] = {
+            empId: docSnap.id,
+            userName: data.userName,
+            color: data.color,
+            timestamp: Date.now(),
+          };
         }
-      } else {
-        callback({});
-      }
+      });
+      callback(edits);
     });
   },
 
-  // SALVAR EDICOES ATIVAS
-  saveActiveEdits(turma: TurmaType, edits: Record<string, any>) {
-    if (!dbRegistros) return;
-    const editsDocRef = doc(
-      dbRegistros,
+  // INICIAR/RENOVAR EDIÇÃO ATIVA
+  startActiveEdit(
+    turma: TurmaType,
+    empId: string,
+    userName: string,
+    color: string,
+  ) {
+    if (!dbDSS) return;
+    const docRef = doc(
+      dbDSS,
       `turma ${turma.toLowerCase()}`,
-      "estado_painel",
-      "metadata",
-      "edits",
+      "edicao_ativa_distribui",
+      "docs",
+      empId,
     );
     setDoc(
-      editsDocRef,
-      { edits: JSON.stringify(edits), updatedAt: new Date().toISOString() },
+      docRef,
+      {
+        userName,
+        color,
+        timestamp: serverTimestamp(),
+      },
       { merge: true },
     ).catch(() => {});
+  },
+
+  // PARAR EDIÇÃO ATIVA
+  stopActiveEdit(turma: TurmaType, empId: string) {
+    if (!dbDSS) return;
+    const docRef = doc(
+      dbDSS,
+      `turma ${turma.toLowerCase()}`,
+      "edicao_ativa_distribui",
+      "docs",
+      empId,
+    );
+    deleteDoc(docRef).catch(() => {});
   },
 
   // GRAVAR HISTÓRICO DE MOVIMENTAÇÃO
