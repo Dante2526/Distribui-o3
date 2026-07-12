@@ -268,20 +268,21 @@ function AppContent() {
       return pointerCollisions;
     }
 
-    // 2. Se o mouse não estiver no Turno 6H, usamos a distância do centro (closestCenter)
-    // Isso é mais natural que rectIntersection para arrastar entre listas
-    let centerCollisions = closestCenter(args);
+    // 2. Se o mouse não estiver no Turno 6H, calcula interseção de área (rectIntersection)
+    // Isso é perfeito porque as colunas têm alturas muito diferentes (ex: Classificação tem 37 e Formação 1).
+    // O rectIntersection usa a área de sobreposição, enquanto o closestCenter enlouquece com centros desalinhados.
+    let rectCollisions = rectIntersection(args);
 
     // Remove o Turno 6H das colisões, para ele não "roubar" os cartões de longe
-    centerCollisions = centerCollisions.filter((c) => c.id !== "special-shift");
+    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
 
-    if (centerCollisions.length > 0) {
-      return centerCollisions;
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
     }
 
     // 3. Fallback final
     if (pointerCollisions.length > 0) return pointerCollisions;
-    return centerCollisions;
+    return rectCollisions;
   }, []);
 
   // Configurações e estados do painel
