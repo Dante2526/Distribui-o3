@@ -313,17 +313,23 @@ function AppContent() {
       (dssEmployees) => {
         dssEmployeesRef.current = dssEmployees;
 
-        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map((d: any) => {
-          d.data = [];
-          d.count = 0;
-          return d;
-        });
+        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map(
+          (d: any) => {
+            d.data = [];
+            d.count = 0;
+            return d;
+          },
+        );
         const newSupport = initialSupportData.map(() => [] as any[]);
-        const newAnnotationsLeft = JSON.parse(JSON.stringify(initialAnnotationsLeft)).map((g: any) => {
+        const newAnnotationsLeft = JSON.parse(
+          JSON.stringify(initialAnnotationsLeft),
+        ).map((g: any) => {
           g.items = [];
           return g;
         });
-        const newAnnotationsRight = JSON.parse(JSON.stringify(initialAnnotationsRight)).map((g: any) => {
+        const newAnnotationsRight = JSON.parse(
+          JSON.stringify(initialAnnotationsRight),
+        ).map((g: any) => {
           g.items = [];
           return g;
         });
@@ -357,11 +363,17 @@ function AppContent() {
 
           const localLower = rawLocal.toLowerCase();
 
-          if (localLower === "classificacao" || localLower === "classificação") {
+          if (
+            localLower === "classificacao" ||
+            localLower === "classificação"
+          ) {
             newDepts.find((d: any) => d.id === "classificacao")?.data.push(emp);
           } else if (localLower === "formacao" || localLower === "formação") {
             newDepts.find((d: any) => d.id === "formacao")?.data.push(emp);
-          } else if (localLower.startsWith("recepcao") || localLower.startsWith("recepção")) {
+          } else if (
+            localLower.startsWith("recepcao") ||
+            localLower.startsWith("recepção")
+          ) {
             newDepts.find((d: any) => d.id === "recepcao")?.data.push(emp);
           } else if (localLower === "turno 6h") {
             newSpecial.push(emp);
@@ -369,7 +381,8 @@ function AppContent() {
             const suffix = localLower.replace("apoio ", "").trim();
             let idx = -1;
             if (suffix === "recepcao" || suffix === "recepção") idx = 0;
-            else if (suffix === "classificacao" || suffix === "classificação") idx = 1;
+            else if (suffix === "classificacao" || suffix === "classificação")
+              idx = 1;
             else if (suffix === "formacao" || suffix === "formação") idx = 2;
             else idx = parseInt(suffix, 10);
 
@@ -483,14 +496,14 @@ function AppContent() {
 
     const totalFerias = todasAnotacoes.filter(
       (item) =>
-        item.status.toUpperCase().includes("FÉRIA") ||
-        item.status.toUpperCase().includes("FERIA"),
+        (item.status || "").toUpperCase().includes("FÉRIA") ||
+        (item.status || "").toUpperCase().includes("FERIA"),
     ).length;
     const totalFora = todasAnotacoes.filter(
-      (item) => item.status.toUpperCase() === "FORA",
+      (item) => (item.status || "").toUpperCase() === "FORA",
     ).length;
     const totalATM = todasAnotacoes.filter((item) =>
-      item.status.toUpperCase().includes("ATM"),
+      (item.status || "").toUpperCase().includes("ATM"),
     ).length;
 
     let report = `RESUMO GERAL - DISTRIBUIÇÃO DE EQUIPES\n`;
@@ -502,11 +515,11 @@ function AppContent() {
     report += `• Férias: ${totalFerias}\n`;
     report += `• Fora: ${totalFora}\n`;
     report += `• ATM: ${totalATM}\n`;
-    report += `• Restrição: ${todasAnotacoes.filter((item) => item.status.toUpperCase().includes("RESTRI") || item.status.toUpperCase().includes("RESTRICAO")).length}\n`;
-    report += `• Estágio: ${todasAnotacoes.filter((item) => item.status.toUpperCase().includes("ESTÁGIO") || item.status.toUpperCase().includes("ESTAGIO")).length}\n`;
-    report += `• INSS: ${todasAnotacoes.filter((item) => item.status.toUpperCase() === "INSS").length}\n`;
-    report += `• Treinamento: ${todasAnotacoes.filter((item) => item.status.toUpperCase().includes("TREINA")).length}\n`;
-    report += `• Revezamento: ${todasAnotacoes.filter((item) => item.status.toUpperCase().includes("REVEZA")).length}\n\n`;
+    report += `• Restrição: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("RESTRI") || (item.status || "").toUpperCase().includes("RESTRICAO")).length}\n`;
+    report += `• Estágio: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("ESTÁGIO") || (item.status || "").toUpperCase().includes("ESTAGIO")).length}\n`;
+    report += `• INSS: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase() === "INSS").length}\n`;
+    report += `• Treinamento: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("TREINA")).length}\n`;
+    report += `• Revezamento: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("REVEZA")).length}\n\n`;
     report += `\n--- COLABORADORES POR SETOR ---\n`;
     departmentsData.forEach((d) => {
       let icon = "🟢";
@@ -563,7 +576,7 @@ function AppContent() {
       afastados: todasAnotacoes.length,
       afastadosList: todasAnotacoes.map((a) => a.name),
       ausentes: todasAnotacoes.filter((item) => {
-        const s = item.status.toUpperCase();
+        const s = (item.status || "").toUpperCase();
         return (
           s.includes("FÉRIA") ||
           s.includes("FERIA") ||
@@ -580,22 +593,22 @@ function AppContent() {
       atm: totalATM,
       restricao: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("RESTRI") ||
-          item.status.toUpperCase().includes("RESTRICAO"),
+          (item.status || "").toUpperCase().includes("RESTRI") ||
+          (item.status || "").toUpperCase().includes("RESTRICAO"),
       ).length,
       estagio: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("ESTÁGIO") ||
-          item.status.toUpperCase().includes("ESTAGIO"),
+          (item.status || "").toUpperCase().includes("ESTÁGIO") ||
+          (item.status || "").toUpperCase().includes("ESTAGIO"),
       ).length,
       inss: todasAnotacoes.filter(
-        (item) => item.status.toUpperCase() === "INSS",
+        (item) => (item.status || "").toUpperCase() === "INSS",
       ).length,
       treinamento: todasAnotacoes.filter((item) =>
-        item.status.toUpperCase().includes("TREINA"),
+        (item.status || "").toUpperCase().includes("TREINA"),
       ).length,
       revezamento: todasAnotacoes.filter((item) =>
-        item.status.toUpperCase().includes("REVEZA"),
+        (item.status || "").toUpperCase().includes("REVEZA"),
       ).length,
     });
     setIsReportModalOpen(true);
@@ -927,7 +940,6 @@ function AppContent() {
   }, [selectedTurma, adminUser]);
 
   // ===================== DND HANDLERS =====================
-  
 
   const handleStartEditRef = useRef(handleStartEdit);
   const handleStopEditRef = useRef(handleStopEdit);
@@ -935,8 +947,6 @@ function AppContent() {
     handleStartEditRef.current = handleStartEdit;
     handleStopEditRef.current = handleStopEdit;
   }, [handleStartEdit, handleStopEdit]);
-
-  
 
   const {
     sensors,
@@ -1967,9 +1977,7 @@ function AppContent() {
 
   const handleTransferToSpecialShift = useCallback(
     (sourceDeptId: string, sourceEmpIndex: number) => {
-      const sourceDept = departmentsData.find(
-        (d) => d.id === sourceDeptId,
-      );
+      const sourceDept = departmentsData.find((d) => d.id === sourceDeptId);
       if (!sourceDept) return;
 
       const movedEmployee = sourceDept.data[sourceEmpIndex];
@@ -3018,9 +3026,7 @@ function AppContent() {
         });
       } else if (item.originalDeptId) {
         let deptName = item.originalDeptId;
-        const dept = departmentsData?.find(
-          (d) => d.id === item.originalDeptId,
-        );
+        const dept = departmentsData?.find((d) => d.id === item.originalDeptId);
         if (dept) deptName = dept.title;
 
         logMovement(
@@ -3174,37 +3180,37 @@ function AppContent() {
       totalFuncionarios: tMaquinistas + tApoio + tTurno6H,
       totalFerias: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("FÉRIA") ||
-          item.status.toUpperCase().includes("FERIA"),
+          (item.status || "").toUpperCase().includes("FÉRIA") ||
+          (item.status || "").toUpperCase().includes("FERIA"),
       ).length,
       totalFora: todasAnotacoes.filter(
-        (item) => item.status.toUpperCase() === "FORA",
+        (item) => (item.status || "").toUpperCase() === "FORA",
       ).length,
       totalATM: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("ATM") ||
-          item.status.toUpperCase().includes("ATESTADO") ||
-          item.status.toUpperCase().includes("MÉDICO") ||
-          item.status.toUpperCase().includes("MEDICO"),
+          (item.status || "").toUpperCase().includes("ATM") ||
+          (item.status || "").toUpperCase().includes("ATESTADO") ||
+          (item.status || "").toUpperCase().includes("MÉDICO") ||
+          (item.status || "").toUpperCase().includes("MEDICO"),
       ).length,
       totalRestricao: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("RESTRI") ||
-          item.status.toUpperCase().includes("RESTRICAO"),
+          (item.status || "").toUpperCase().includes("RESTRI") ||
+          (item.status || "").toUpperCase().includes("RESTRICAO"),
       ).length,
       totalEstagio: todasAnotacoes.filter(
         (item) =>
-          item.status.toUpperCase().includes("ESTÁGIO") ||
-          item.status.toUpperCase().includes("ESTAGIO"),
+          (item.status || "").toUpperCase().includes("ESTÁGIO") ||
+          (item.status || "").toUpperCase().includes("ESTAGIO"),
       ).length,
       totalINSS: todasAnotacoes.filter(
-        (item) => item.status.toUpperCase() === "INSS",
+        (item) => (item.status || "").toUpperCase() === "INSS",
       ).length,
       totalTreinamento: todasAnotacoes.filter((item) =>
-        item.status.toUpperCase().includes("TREINA"),
+        (item.status || "").toUpperCase().includes("TREINA"),
       ).length,
       totalRevezamento: todasAnotacoes.filter((item) =>
-        item.status.toUpperCase().includes("REVEZA"),
+        (item.status || "").toUpperCase().includes("REVEZA"),
       ).length,
     };
   }, [
