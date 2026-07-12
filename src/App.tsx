@@ -409,7 +409,13 @@ function AppContent() {
             }
           } else {
             // Fallback para quando o local não está definido (como quando recém-criado)
-            newDepts.find((d: any) => d.id === "classificacao")?.data.push(emp);
+            if (emp.tagType === "OOF") {
+              if (newSupport[1]) newSupport[1].push(emp);
+            } else {
+              newDepts
+                .find((d: any) => d.id === "classificacao")
+                ?.data.push(emp);
+            }
           }
         });
 
