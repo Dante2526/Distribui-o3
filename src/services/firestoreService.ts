@@ -158,7 +158,8 @@ export const firestoreService = {
   ): Promise<void> {
     if (!dbDSS) return;
     try {
-      const docRef = doc(dbDSS, "turmas", turma, "dss_employees", employeeId);
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const docRef = doc(dbDSS, collectionName, employeeId);
       await updateDoc(docRef, { local, função: role });
     } catch (e) {
       console.error("Erro ao atualizar local e funcao no DSS:", e);
