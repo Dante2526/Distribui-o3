@@ -56,6 +56,14 @@ export const firestoreService = {
             tagType: data.tagType || "N/A",
             line: data.line || "",
             machine: data.machine || "",
+            error: data.error || false,
+            originalDeptId: data.originalDeptId,
+            originalSupportGroupIndex: data.originalSupportGroupIndex,
+            originalSupportRole: data.originalSupportRole,
+            status: data.status,
+            ausente: data.ausente || false,
+            ordem: data.ordem || 0,
+            local: data.local || "",
           };
           emp._role = data["função"] || data.funcao || data.role || "";
           allEmployees.push(emp);
