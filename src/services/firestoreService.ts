@@ -54,8 +54,8 @@ export const firestoreService = {
             name: data.name || "",
             matricula: data.matricula || "",
             tagType: data.tagType || "N/A",
-            line: data.line || "",
-            machine: data.machine || "",
+            line: data.linha || data.line || "",
+            machine: data.loco || data.machine || "",
             error: data.error || false,
             originalDeptId: data.originalDeptId,
             originalSupportGroupIndex: data.originalSupportGroupIndex,
@@ -133,8 +133,8 @@ export const firestoreService = {
           name: data.name || "",
           matricula: data.matricula || "",
           tagType: data.tagType || "N/A",
-          line: data.line || "",
-          machine: data.machine || "",
+          line: data.linha || data.line || "",
+          machine: data.loco || data.machine || "",
         };
         emp._role = data["função"] || data.funcao || data.role || "";
         allEmployees.push(emp);
@@ -203,7 +203,13 @@ export const firestoreService = {
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
-      await updateDoc(docRef, { [field]: value });
+
+      // Mapear para os nomes corretos do banco (linha, loco)
+      let dbField = field;
+      if (field === "line") dbField = "linha";
+      if (field === "machine") dbField = "loco";
+
+      await updateDoc(docRef, { [dbField]: value });
     } catch (e) {
       console.error(`Erro ao atualizar campo ${field} no DSS:`, e);
     }

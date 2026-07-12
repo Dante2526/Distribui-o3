@@ -10,7 +10,7 @@ import { Shield, Users, Clock, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   DndContext,
-  pointerWithin,
+  closestCenter,
   MouseSensor,
   TouchSensor,
   useSensor,
@@ -3621,7 +3621,7 @@ function AppContent() {
 
                     <DndContext
                       sensors={sensors}
-                      collisionDetection={pointerWithin}
+                      collisionDetection={closestCenter}
                       modifiers={dndModifiers}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
