@@ -401,10 +401,16 @@ function AppContent() {
           } else if (rawLocal === "Turno 6H") {
             newSpecial.push(emp);
           } else if (rawLocal.startsWith("Apoio ")) {
-            const role = newSupport.find(
-              (r) => r.id === rawLocal.replace("Apoio ", ""),
-            );
-            if (role) role.employees.push(emp);
+            const suffix = rawLocal.replace("Apoio ", "");
+            let idx = -1;
+            if (suffix === "Recepcao") idx = 0;
+            else if (suffix === "Classificacao") idx = 1;
+            else if (suffix === "Formacao") idx = 2;
+            else idx = parseInt(suffix, 10);
+
+            if (!isNaN(idx) && newSupport[idx]) {
+              newSupport[idx].push(emp);
+            }
           }
         });
 
@@ -1698,8 +1704,9 @@ function AppContent() {
       newLocal = "Turno 6H";
       newRole = "MAQUINISTA";
     } else if (overId.toString().startsWith("support-group-")) {
-      const idx = overId.toString().split("-")[2];
-      newLocal = `Apoio ${idx}`; // Ex: Apoio 0
+      const idx = parseInt(overId.toString().split("-")[2], 10);
+      const names = ["Recepcao", "Classificacao", "Formacao"];
+      newLocal = `Apoio ${names[idx] || idx}`;
       newRole = "OOF";
     } else {
       // Tentar descobrir se caiu em cima de um funcionario
