@@ -24,6 +24,7 @@ export const SpecialShiftSlot = React.memo(
     onStopEdit,
     isAdmin,
     isDarkMode,
+    isDragOverlay,
   }: {
     emp: Employee;
     index: number;
@@ -35,6 +36,7 @@ export const SpecialShiftSlot = React.memo(
     onStopEdit?: (empId: string) => void;
     isAdmin?: boolean;
     isDarkMode?: boolean;
+    isDragOverlay?: boolean;
   }) => {
     const {
       attributes,
@@ -50,7 +52,7 @@ export const SpecialShiftSlot = React.memo(
         employee: emp,
         specialIndex: index,
       },
-      disabled: !emp.name.trim(),
+      disabled: !emp.name.trim() || isDragOverlay,
     });
 
     const style: React.CSSProperties = {
@@ -60,7 +62,8 @@ export const SpecialShiftSlot = React.memo(
       ...(activeEdit
         ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: "1.5px" }
         : {}),
-      ...(isDragging ? { zIndex: 50, position: "relative" } : {}),
+      ...(isDragging && !isDragOverlay ? { zIndex: 50, position: "relative" } : {}),
+      ...(isDragOverlay ? { zIndex: 1000, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)" } : {}),
     };
 
     const [showOofMenu, setShowOofMenu] = useState(false);

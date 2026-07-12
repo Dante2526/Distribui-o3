@@ -92,6 +92,37 @@ export function useDragAndDrop({
       const activeIdVal = event.active.id as string;
       setActiveId(activeIdVal);
       activeIdRef.current = activeIdVal;
+
+      // Encontrar o tipo do elemento arrastado e o item
+      let aType = null;
+      let aItem = null;
+
+      const dept = departmentsDataRef.current.find((d) =>
+        d.data.some((e) => e.id === activeIdVal),
+      );
+      if (dept) {
+        aType = "maquinista";
+        aItem = dept.data.find((e) => e.id === activeIdVal);
+      } else {
+        const supportGroupIdx = supportRolesDataRef.current.findIndex((g) =>
+          g.some((e) => e.id === activeIdVal),
+        );
+        if (supportGroupIdx !== -1) {
+          aType = "apoio";
+          aItem = supportRolesDataRef.current[supportGroupIdx].find(
+            (e) => e.id === activeIdVal,
+          );
+        } else {
+          if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+            aType = "special";
+            aItem = specialShiftDataRef.current.find((e) => e.id === activeIdVal);
+          }
+        }
+      }
+
+      setActiveItem(aItem);
+      activeItemRef.current = aItem;
+
       setOverId(null);
       handleStartEditRef.current(activeIdVal as string);
       clonedDepartmentsRef.current = departmentsDataRef.current;
@@ -924,6 +955,8 @@ export function useDragAndDrop({
     handleDragOver,
     handleDragEnd,
     activeId,
+    activeItem,
+    activeType,
     overId,
     activeSupportId,
   };

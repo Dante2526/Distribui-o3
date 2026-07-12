@@ -1014,6 +1014,8 @@ function AppContent() {
     handleDragOver,
     handleDragEnd,
     activeId,
+    activeItem,
+    activeType,
     overId,
     activeSupportId,
   } = useDragAndDrop({
@@ -3786,7 +3788,71 @@ function AppContent() {
                         </div>
                       </div>
 
-                      <DragOverlay dropAnimation={null}>{null}</DragOverlay>
+                      <DragOverlay dropAnimation={null}>
+                        {activeItem && activeType === "maquinista" ? (
+                          <div className="w-[450px]">
+                            <EmployeeRow
+                              emp={activeItem}
+                              index={0}
+                              department={departmentsData.find((d) => d.data.some((e) => e.id === activeItem.id)) || departmentsData[0]}
+                              departmentOptions={departmentOptions}
+                              onMove={() => {}}
+                              onUpdateEmployee={() => {}}
+                              onDelete={() => {}}
+                              onTransferToSpecial={() => {}}
+                              onMarkAbsent={() => {}}
+                              isDarkMode={isDarkMode}
+                              is6HActive={is6HActive}
+                              isDragOverlay={true}
+                              activeEdit={null}
+                              onStartEdit={() => {}}
+                              onStopEdit={() => {}}
+                              isGhost={false}
+                              isDragActive={true}
+                              isAdmin={isAdmin}
+                            />
+                          </div>
+                        ) : activeItem && activeType === "apoio" ? (
+                          <div className="w-[500px]">
+                            <SupportRoleRow
+                              emp={activeItem}
+                              index={0}
+                              groupIndex={0}
+                              isDarkMode={isDarkMode}
+                              is6HActive={is6HActive}
+                              onUpdateRole={() => {}}
+                              onUpdateName={() => {}}
+                              onUpdateMatricula={() => {}}
+                              onMove={() => {}}
+                              onMoveToSpecial={() => {}}
+                              onMarkAbsent={() => {}}
+                              onDelete={() => {}}
+                              isDragOverlay={true}
+                              isDragActive={true}
+                              activeEdit={null}
+                              onStartEdit={() => {}}
+                              onStopEdit={() => {}}
+                              isAdmin={isAdmin}
+                            />
+                          </div>
+                        ) : activeItem && activeType === "special" ? (
+                          <div className="w-[480px]">
+                            <SpecialShiftSlot
+                              emp={activeItem}
+                              index={0}
+                              departmentOptions={departmentOptions}
+                              onUpdate={() => {}}
+                              onTransfer={() => {}}
+                              isDarkMode={isDarkMode}
+                              isDragOverlay={true}
+                              activeEdit={undefined}
+                              onStartEdit={() => {}}
+                              onStopEdit={() => {}}
+                              isAdmin={isAdmin}
+                            />
+                          </div>
+                        ) : null}
+                      </DragOverlay>
                     </DndContext>
 
                     <Footer />
