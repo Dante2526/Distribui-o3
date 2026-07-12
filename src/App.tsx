@@ -1996,6 +1996,15 @@ function AppContent() {
           }, 1500);
         }
 
+        if (selectedTurma && oldEmp && oldEmp.id) {
+          firestoreService.updateEmployeeFieldDSS(
+            selectedTurma,
+            oldEmp.id,
+            field,
+            value,
+          );
+        }
+
         return newData;
       });
     },
@@ -2561,8 +2570,19 @@ function AppContent() {
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const newGroup = [...newGroups[groupIndex]];
-        newGroup[empIndex] = { ...newGroup[empIndex], role: newRole };
+        const oldEmp = newGroup[empIndex];
+        newGroup[empIndex] = { ...oldEmp, role: newRole };
         newGroups[groupIndex] = newGroup;
+
+        if (selectedTurma && oldEmp && oldEmp.id) {
+          firestoreService.updateEmployeeFieldDSS(
+            selectedTurma,
+            oldEmp.id,
+            "função",
+            newRole,
+          );
+        }
+
         return newGroups;
       });
     },
@@ -2574,8 +2594,19 @@ function AppContent() {
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const newGroup = [...newGroups[groupIndex]];
-        newGroup[empIndex] = { ...newGroup[empIndex], name: newName };
+        const oldEmp = newGroup[empIndex];
+        newGroup[empIndex] = { ...oldEmp, name: newName };
         newGroups[groupIndex] = newGroup;
+
+        if (selectedTurma && oldEmp && oldEmp.id) {
+          firestoreService.updateEmployeeFieldDSS(
+            selectedTurma,
+            oldEmp.id,
+            "name",
+            newName,
+          );
+        }
+
         return newGroups;
       });
     },
@@ -2619,6 +2650,15 @@ function AppContent() {
             }
             delete pendingFieldLogsRef.current[logKey];
           }, 1500);
+        }
+
+        if (selectedTurma && oldEmp && oldEmp.id) {
+          firestoreService.updateEmployeeFieldDSS(
+            selectedTurma,
+            oldEmp.id,
+            "matricula",
+            newMatricula,
+          );
         }
 
         return newGroups;
@@ -2781,6 +2821,15 @@ function AppContent() {
             }
             delete pendingFieldLogsRef.current[logKey];
           }, 1500);
+        }
+
+        if (selectedTurma && oldEmp && oldEmp.id) {
+          firestoreService.updateEmployeeFieldDSS(
+            selectedTurma,
+            oldEmp.id,
+            field,
+            value,
+          );
         }
 
         return newDepts;

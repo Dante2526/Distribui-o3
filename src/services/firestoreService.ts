@@ -166,6 +166,22 @@ export const firestoreService = {
     }
   },
 
+  async updateEmployeeFieldDSS(
+    turma: string,
+    employeeId: string,
+    field: string,
+    value: string,
+  ): Promise<void> {
+    if (!dbDSS) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const docRef = doc(dbDSS, collectionName, employeeId);
+      await updateDoc(docRef, { [field]: value });
+    } catch (e) {
+      console.error(`Erro ao atualizar campo ${field} no DSS:`, e);
+    }
+  },
+
   async updateEmployeeRoleDSS(
     turma: TurmaType,
     employeeId: string,
