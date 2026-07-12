@@ -582,9 +582,9 @@ const HistoryModal: React.FC<{
           shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
         }));
         
-        // Ceder o processamento durante a geração da planilha gigante será feito no utilitário se o transformarmos em async,
-        // mas só o fato de atualizar o UI já ajuda aqui antes de travar um pouco.
-        const blob = await (async () => generateExcelBlob(pdfDataList))();
+        const blob = await generateExcelBlob(pdfDataList, (current) => {
+          setExportProgress((prev) => ({ ...prev, current }));
+        });
         
         const safeSearchTerm = searchTerm
           .replace(/[^a-zA-Z0-9]/g, "_")
@@ -601,7 +601,6 @@ const HistoryModal: React.FC<{
         showNotification(`Planilha agrupada baixada com sucesso!`, "success");
         setIsExportingZip(false);
         setIsExportMenuOpen(false);
-        setExportProgress({ current: 0, total: 0 });
         return;
       }
 
@@ -680,7 +679,6 @@ const HistoryModal: React.FC<{
           `${filesToZip.length} resultados compactados em ZIP!`,
           "success",
         );
-        setExportProgress({ current: 0, total: 0 });
       }
     } catch (e) {
       console.error(e);
@@ -715,7 +713,7 @@ const HistoryModal: React.FC<{
     showNotification("Histórico baixado em DOC!", "success");
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!historyData) return;
     const pdfData: PdfReportData = {
       turma: historyData.turma,
@@ -731,7 +729,7 @@ const HistoryModal: React.FC<{
       mainShiftLabel,
       shiftLabel,
     };
-    exportToExcel(pdfData, baseFileName);
+    await exportToExcel(pdfData, baseFileName);
     showNotification("Histórico baixado em Excel!", "success");
   };
 
