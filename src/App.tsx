@@ -1720,10 +1720,11 @@ function AppContent() {
 
     // Se temos um novo local e um ID valido, enviamos pro DSS!
     if (newLocal && selectedTurmaRef.current) {
-      firestoreService.updateEmployeeLocalDSS(
+      firestoreService.updateEmployeeLocationAndRoleDSS(
         selectedTurmaRef.current,
         activeIdVal,
         newLocal,
+        newRole,
       );
       if (newRole) {
         firestoreService.updateEmployeeRoleDSS(

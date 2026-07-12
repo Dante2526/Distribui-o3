@@ -142,17 +142,18 @@ export const firestoreService = {
     }
   },
 
-  async updateEmployeeLocalDSS(
+  async updateEmployeeLocationAndRoleDSS(
     turma: string,
     employeeId: string,
     local: string,
+    role: string,
   ): Promise<void> {
     if (!dbDSS) return;
     try {
       const docRef = doc(dbDSS, "turmas", turma, "dss_employees", employeeId);
-      await updateDoc(docRef, { local });
+      await updateDoc(docRef, { local, função: role });
     } catch (e) {
-      console.error("Erro ao atualizar local no DSS:", e);
+      console.error("Erro ao atualizar local e funcao no DSS:", e);
     }
   },
 
