@@ -780,6 +780,7 @@ export function useDragAndDrop({
         const overData = over.data?.current;
         const targetDeptId = overData?.departmentId;
         const targetGroupIdx = overData?.groupIndex;
+        const targetSpecialIdx = overData?.specialIndex;
 
         if (targetDeptId) {
           if (targetDeptId === "recepcao") newLocal = "Recepcao";
@@ -791,6 +792,9 @@ export function useDragAndDrop({
           const names = ["Recepcao", "Classificacao", "Formacao"];
           newLocal = `Apoio ${names[targetGroupIdx] || targetGroupIdx}`;
           newRole = "OOF";
+        } else if (targetSpecialIdx !== undefined) {
+          newLocal = "Turno 6H";
+          newRole = "MAQUINISTA";
         } else {
           // Último recurso (fallback legado)
           const overEmp = allEmployees.find((e) => e.id === overId);
