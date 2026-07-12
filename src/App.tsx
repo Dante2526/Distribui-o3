@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   DndContext,
   rectIntersection,
+  pointerWithin,
+  closestCenter,
   MouseSensor,
   TouchSensor,
   useSensor,
@@ -251,6 +253,35 @@ function AppContent() {
       window.history.replaceState({ page: activePage }, "");
     }
   }, [activePage]);
+
+  // Algoritmo Híbrido de Colisão para resolver os problemas de arrastar
+  const customCollisionDetection = useCallback((args: any) => {
+    // 1. Tenta achar colisão exata do mouse (ótimo para precisão e para o Turno 6H)
+    const pointerCollisions = pointerWithin(args);
+    const isPointerInSpecialShift = pointerCollisions.some(
+      (c) => c.id === "special-shift",
+    );
+
+    // Se o mouse estiver exatamente sobre uma área válida e NÃO for uma das colunas grandes, usa ela.
+    // (Isso garante que o Turno 6H só pega se o mouse estiver DENTRO dele).
+    if (isPointerInSpecialShift) {
+      return pointerCollisions;
+    }
+
+    // 2. Se o mouse não estiver no Turno 6H, calcula interseção de área (bom para colunas grandes)
+    let rectCollisions = rectIntersection(args);
+
+    // Remove o Turno 6H das colisões de área, para ele não "roubar" os cartões de longe
+    rectCollisions = rectCollisions.filter((c) => c.id !== "special-shift");
+
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+
+    // 3. Fallback final (se soltou meio fora)
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return closestCenter(args);
+  }, []);
 
   // Configurações e estados do painel
 
@@ -3621,7 +3652,7 @@ function AppContent() {
 
                     <DndContext
                       sensors={sensors}
-                      collisionDetection={rectIntersection}
+                      collisionDetection={customCollisionDetection}
                       modifiers={dndModifiers}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
