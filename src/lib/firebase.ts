@@ -37,11 +37,12 @@ const dssConfig = {
   messagingSenderId: import.meta.env.VITE_messagingSenderId_dss,
   appId: import.meta.env.VITE_appId_dss,
 };
-
 const appDSS = safeInitializeApp(dssConfig, "dss");
 
-// Usando getFirestore padrão para comunicação mais rápida (sem atrasos do IndexedDB)
-export const dbDSS = appDSS ? getFirestore(appDSS) : null;
+// Ativando o cache persistente (IndexedDB) para economizar leituras do Firebase
+export const dbDSS = appDSS
+  ? initializeFirestore(appDSS, { localCache: persistentLocalCache() })
+  : null;
 export const authDSS = appDSS ? getAuth(appDSS) : null;
 
 // Função para logar anonimamente
