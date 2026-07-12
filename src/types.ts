@@ -107,7 +107,7 @@ export type Employee = {
   status?: string;
   ausente?: boolean;
   ordem?: number;
-  location?: string;
+  local?: string;
 };
 
 export type DepartmentOption = {

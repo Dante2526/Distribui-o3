@@ -362,7 +362,7 @@ function AppContent() {
         dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
         dssEmployees.forEach((emp) => {
-          const locationParts = (emp.location || "").split("-");
+          const locationParts = (emp.local || "").split("-");
           const boardType = locationParts[0];
           const mainArea = locationParts[1];
           const subArea = locationParts[2];
@@ -1653,106 +1653,82 @@ function AppContent() {
     const activeIdVal = active?.id;
     if (activeIdVal) handleStopEditRef.current(activeIdVal);
 
-    if (over && activeIdVal) {
-      let initialTitle = "";
-      let employeeName = "";
-      let employeeLine = "";
-      let employeeMachine = "";
-      if (clonedDepartmentsRef.current) {
-        for (const dept of clonedDepartmentsRef.current) {
-          const emp = dept.data.find((e) => e.id === activeIdVal);
-          if (emp) {
-            initialTitle = dept.title;
-            employeeName = emp.name;
-            employeeLine = emp.line || "";
-            employeeMachine = emp.machine || "";
-            break;
-          }
-        }
+    if (!over || !activeIdVal) {
+      setActiveId(null);
+      activeIdRef.current = null;
+      setActiveSupportId(null);
+      setOverId(null);
+      dragSourceRef.current = null;
+      return;
+    }
+
+    const overId = over.id;
+    if (activeIdVal === overId) {
+      setActiveId(null);
+      activeIdRef.current = null;
+      setActiveSupportId(null);
+      setOverId(null);
+      dragSourceRef.current = null;
+      return;
+    }
+
+    // Identificar a origem (para logging se necessário)
+    let employeeName = "";
+    const allEmployees = [
+      ...departmentsDataRef.current.flatMap((d) => d.data),
+      ...supportRolesDataRef.current.flatMap((g) => g),
+      ...specialShiftDataRef.current,
+    ];
+    const emp = allEmployees.find((e) => e.id === activeIdVal);
+    if (emp) employeeName = emp.name;
+
+    // Determinar o formato do novo "local" no DSS
+    let newLocal = "";
+    let newRole = "";
+
+    // Mapear destinos
+    if (overId === "recepcao") {
+      newLocal = "board-Recepcao";
+      newRole = "MAQUINISTA";
+    } else if (overId === "classificacao") {
+      newLocal = "board-Classificacao";
+      newRole = "MAQUINISTA";
+    } else if (overId === "formacao") {
+      newLocal = "board-Formacao";
+      newRole = "MAQUINISTA";
+    } else if (overId.toString().startsWith("Recepcao ")) {
+      newLocal = `board-Recepcao-${overId}`;
+      newRole = "MAQUINISTA";
+    } else if (overId === "special-shift") {
+      newLocal = "special";
+      newRole = "MAQUINISTA";
+    } else if (overId.toString().startsWith("support-group-")) {
+      const idx = overId.toString().split("-")[2];
+      newLocal = `support-${idx}`; // Ex: support-0
+      newRole = "OOF";
+    } else {
+      // Tentar descobrir se caiu em cima de um funcionario
+      const overEmp = allEmployees.find((e) => e.id === overId);
+      if (overEmp) {
+        // Pega o local do funcionario sobreposto
+        newLocal = overEmp.local || "";
+        newRole = overEmp.tagType || "MAQUINISTA";
       }
-      if (!initialTitle && clonedSupportRef.current) {
-        const supportTitles = ["Recepção", "Classificação", "Formação"];
-        for (let i = 0; i < clonedSupportRef.current.length; i++) {
-          const emp = clonedSupportRef.current[i].find(
-            (e) => e.id === activeIdVal,
-          );
-          if (emp) {
-            initialTitle = `Apoio - ${supportTitles[i] || `Grupo ${i + 1}`}`;
-            employeeName = emp.name;
-            employeeMachine = emp.matricula || "";
-            break;
-          }
-        }
-      }
-      if (!initialTitle && clonedSpecialShiftRef.current) {
-        const emp = clonedSpecialShiftRef.current.find(
-          (e) => e.id === activeIdVal,
+    }
+
+    // Se temos um novo local e um ID valido, enviamos pro DSS!
+    if (newLocal && selectedTurmaRef.current) {
+      firestoreService.updateEmployeeLocalDSS(
+        selectedTurmaRef.current,
+        activeIdVal,
+        newLocal,
+      );
+      if (newRole) {
+        firestoreService.updateEmployeeRoleDSS(
+          selectedTurmaRef.current,
+          activeIdVal,
+          newRole,
         );
-        if (emp) {
-          initialTitle = "Turno 6H";
-          employeeName = emp.name;
-          employeeLine = emp.line || "";
-          employeeMachine = emp.machine || "";
-        }
-      }
-
-      let finalTitle = "";
-      for (const dept of departmentsDataRef.current) {
-        if (dept.data.some((e) => e.id === activeIdVal)) {
-          finalTitle = dept.title;
-          break;
-        }
-      }
-      if (!finalTitle) {
-        const supportTitles = ["Recepção", "Classificação", "Formação"];
-        for (let i = 0; i < supportRolesDataRef.current.length; i++) {
-          if (
-            supportRolesDataRef.current[i].some((e) => e.id === activeIdVal)
-          ) {
-            finalTitle = `Apoio - ${supportTitles[i] || `Grupo ${i + 1}`}`;
-            break;
-          }
-        }
-      }
-      if (!finalTitle) {
-        if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
-          finalTitle = "Turno 6H";
-        }
-      }
-
-      if (
-        initialTitle &&
-        finalTitle &&
-        initialTitle !== finalTitle &&
-        employeeName
-      ) {
-        logMovement(
-          employeeName,
-          initialTitle,
-          finalTitle,
-          employeeLine,
-          employeeMachine,
-        );
-
-        // Atualiza a função no DSS baseado no destino final
-        let newRole = "";
-        if (
-          finalTitle === "Turno 6H" ||
-          departmentsDataRef.current.some((d) => d.title === finalTitle)
-        ) {
-          newRole = "MAQUINISTA";
-        } else if (finalTitle.startsWith("Apoio -")) {
-          newRole = "OOF";
-        }
-
-        if (newRole && selectedTurmaRef.current) {
-          // Bug 17: Usar selectedTurmaRef.current ao invés de selectedTurma (closure stale)
-          firestoreService.updateEmployeeRoleDSS(
-            selectedTurmaRef.current,
-            activeIdVal,
-            newRole,
-          );
-        }
       }
     }
 
