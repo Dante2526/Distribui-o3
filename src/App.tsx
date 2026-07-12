@@ -362,10 +362,7 @@ function AppContent() {
         dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
         dssEmployees.forEach((emp) => {
-          const locationParts = (emp.local || "").split("-");
-          const boardType = locationParts[0];
-          const mainArea = locationParts[1];
-          const subArea = locationParts[2];
+          const rawLocal = emp.local || "";
 
           if (emp.ausente) {
             const statusNormal = emp.status
@@ -388,28 +385,26 @@ function AppContent() {
             return; // Skip other boards if absent
           }
 
-          if (boardType === "board") {
-            const dept = newDepts.find((d) => d.id === mainArea);
-            if (dept) {
-              if (dept.hasSubGroups && subArea) {
-                const subGroup = dept.subGroups.find((g) => g.id === subArea);
-                if (subGroup) subGroup.employees.push(emp);
-                else dept.employees.push(emp);
-              } else {
-                dept.employees.push(emp);
-              }
+          if (rawLocal === "Classificacao") {
+            newDepts.find((d) => d.id === "Classificacao")?.employees.push(emp);
+          } else if (rawLocal === "Formacao") {
+            newDepts.find((d) => d.id === "Formacao")?.employees.push(emp);
+          } else if (rawLocal === "Triagem") {
+            newDepts.find((d) => d.id === "Triagem")?.employees.push(emp);
+          } else if (rawLocal.startsWith("Recepcao ")) {
+            const rec = newDepts.find((d) => d.id === "Recepcao");
+            if (rec) {
+              const sub = rec.subGroups.find((g) => g.id === rawLocal);
+              if (sub) sub.employees.push(emp);
+              else rec.employees.push(emp);
             }
-          } else if (boardType === "support") {
-            const role = newSupport.find((r) => r.id === mainArea);
-            if (role) role.employees.push(emp);
-          } else if (boardType === "annotation_left") {
-            const ann = newAnnotationsLeft.find((a) => a.id === mainArea);
-            if (ann) ann.employees.push(emp);
-          } else if (boardType === "annotation_right") {
-            const ann = newAnnotationsRight.find((a) => a.id === mainArea);
-            if (ann) ann.employees.push(emp);
-          } else if (boardType === "special") {
+          } else if (rawLocal === "Turno 6H") {
             newSpecial.push(emp);
+          } else if (rawLocal.startsWith("Apoio ")) {
+            const role = newSupport.find(
+              (r) => r.id === rawLocal.replace("Apoio ", ""),
+            );
+            if (role) role.employees.push(emp);
           }
         });
 
@@ -1688,23 +1683,23 @@ function AppContent() {
 
     // Mapear destinos
     if (overId === "recepcao") {
-      newLocal = "board-Recepcao";
+      newLocal = "Recepcao"; // Nao devera acontecer muito por causa dos subgrupos
       newRole = "MAQUINISTA";
     } else if (overId === "classificacao") {
-      newLocal = "board-Classificacao";
+      newLocal = "Classificacao";
       newRole = "MAQUINISTA";
     } else if (overId === "formacao") {
-      newLocal = "board-Formacao";
+      newLocal = "Formacao";
       newRole = "MAQUINISTA";
     } else if (overId.toString().startsWith("Recepcao ")) {
-      newLocal = `board-Recepcao-${overId}`;
+      newLocal = overId.toString(); // Ex: "Recepcao 1"
       newRole = "MAQUINISTA";
     } else if (overId === "special-shift") {
-      newLocal = "special";
+      newLocal = "Turno 6H";
       newRole = "MAQUINISTA";
     } else if (overId.toString().startsWith("support-group-")) {
       const idx = overId.toString().split("-")[2];
-      newLocal = `support-${idx}`; // Ex: support-0
+      newLocal = `Apoio ${idx}`; // Ex: Apoio 0
       newRole = "OOF";
     } else {
       // Tentar descobrir se caiu em cima de um funcionario
