@@ -828,6 +828,58 @@ export function useDragAndDrop({
           newLocal,
           newRole,
         );
+
+        // Atualizar a ORDEM de todos os elementos da coluna de destino
+        const updates: { id: string; ordem: number }[] = [];
+        const localLower = newLocal.toLowerCase();
+
+        if (localLower === "classificacao" || localLower === "classificação") {
+          const dept = departmentsDataRef.current.find(
+            (d) => d.id === "classificacao",
+          );
+          dept?.data.forEach((emp, i) =>
+            updates.push({ id: emp.id, ordem: i }),
+          );
+        } else if (localLower === "formacao" || localLower === "formação") {
+          const dept = departmentsDataRef.current.find(
+            (d) => d.id === "formacao",
+          );
+          dept?.data.forEach((emp, i) =>
+            updates.push({ id: emp.id, ordem: i }),
+          );
+        } else if (
+          localLower.startsWith("recepcao") ||
+          localLower.startsWith("recepção")
+        ) {
+          const dept = departmentsDataRef.current.find(
+            (d) => d.id === "recepcao",
+          );
+          dept?.data.forEach((emp, i) =>
+            updates.push({ id: emp.id, ordem: i }),
+          );
+        } else if (localLower === "turno 6h") {
+          specialShiftDataRef.current.forEach((emp, i) =>
+            updates.push({ id: emp.id, ordem: i }),
+          );
+        } else if (localLower.startsWith("apoio ")) {
+          const suffix = localLower.replace("apoio ", "").trim();
+          let idx = -1;
+          if (suffix === "recepcao" || suffix === "recepção") idx = 0;
+          else if (suffix === "classificacao" || suffix === "classificação")
+            idx = 1;
+          else if (suffix === "formacao" || suffix === "formação") idx = 2;
+          else idx = parseInt(suffix, 10);
+
+          if (!isNaN(idx) && supportRolesDataRef.current[idx]) {
+            supportRolesDataRef.current[idx].forEach((emp, i) =>
+              updates.push({ id: emp.id, ordem: i }),
+            );
+          }
+        }
+
+        if (updates.length > 0) {
+          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+        }
       } else {
         // Fallback: se não conseguiu determinar um novo local válido, reverte!
         if (clonedDepartmentsRef.current)

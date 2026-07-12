@@ -60,7 +60,7 @@ export const EmployeeRow = React.memo(
     index: number;
     department: Department;
     departmentOptions: DepartmentOption[];
-    onMove: (targetDeptId: string, empIndex: number) => void;
+    onMove: (sourceId: string, targetId: string, empIndex: number) => void;
     onUpdateEmployee: (
       deptId: string,
       empIndex: number,
@@ -141,9 +141,9 @@ export const EmployeeRow = React.memo(
 
     const handleMoveLocal = useCallback(
       (targetId: string) => {
-        onMove(targetId, index);
+        onMove(department.id, targetId, index);
       },
-      [onMove, index],
+      [onMove, department.id, index],
     );
 
     const handleUpdateEmployeeFieldLocal = useCallback(
@@ -177,8 +177,11 @@ export const EmployeeRow = React.memo(
       onDelete: handleDeleteLocal,
       onTransfer: handleMoveLocal,
       onAbsent: handleMarkAbsentLocal,
-      onSelectLine: (linha: string) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); },
-      onClose: () => setIsMenuOpen(false)
+      onSelectLine: (linha: string) => {
+        setLocalLine(linha);
+        handleUpdateEmployeeFieldLocal("line", linha);
+      },
+      onClose: () => setIsMenuOpen(false),
     });
 
     useEffect(() => {
@@ -186,8 +189,11 @@ export const EmployeeRow = React.memo(
         onDelete: handleDeleteLocal,
         onTransfer: handleMoveLocal,
         onAbsent: handleMarkAbsentLocal,
-        onSelectLine: (linha: string) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); },
-        onClose: () => setIsMenuOpen(false)
+        onSelectLine: (linha: string) => {
+          setLocalLine(linha);
+          handleUpdateEmployeeFieldLocal("line", linha);
+        },
+        onClose: () => setIsMenuOpen(false),
       };
     });
 
@@ -287,7 +293,12 @@ export const EmployeeRow = React.memo(
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsMenuOpen(true);
-                    openPortal('avatar', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
+                    openPortal(
+                      "avatar",
+                      e.currentTarget.getBoundingClientRect(),
+                      emp.id,
+                      { actionsRef, isDarkMode },
+                    );
                   }}
                   className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none avatar-emp ${
                     emp.error
@@ -317,7 +328,12 @@ export const EmployeeRow = React.memo(
                   if (!isAdmin) return;
                   e.stopPropagation();
                   setIsMenuOpen(true);
-                  openPortal('absent', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
+                  openPortal(
+                    "absent",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    { actionsRef, isDarkMode },
+                  );
                 }}
                 className="h-[34px] w-[70px] sm:w-[80px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150"
               >
@@ -340,7 +356,12 @@ export const EmployeeRow = React.memo(
                   if (!isAdmin) return;
                   e.stopPropagation();
                   setIsMenuOpen(true);
-                  openPortal('transfer', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, otherDepts, isDarkMode });
+                  openPortal(
+                    "transfer",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    { actionsRef, otherDepts, isDarkMode },
+                  );
                 }}
                 className={`w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-all outline-none btn-emp-swap cursor-pointer ${
                   emp.error
@@ -365,7 +386,12 @@ export const EmployeeRow = React.memo(
                 onFocus={(e) => {
                   if (!isAdmin) return;
                   setIsMenuOpen(true);
-                  openPortal('line', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, localLine, isDarkMode });
+                  openPortal(
+                    "line",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    { actionsRef, localLine, isDarkMode },
+                  );
                   handleStartEditLocal();
                 }}
                 onBlur={(e) => {
@@ -388,7 +414,19 @@ export const EmployeeRow = React.memo(
                 onChange={(e) => {
                   if (!isAdmin) return;
                   setLocalLine(e.target.value);
-                  openPortal('line', e.currentTarget.getBoundingClientRect(), emp.id, { onSelectLine: (linha) => { setLocalLine(linha); handleUpdateEmployeeFieldLocal("line", linha); }, localLine: e.target.value, isDarkMode });
+                  openPortal(
+                    "line",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    {
+                      onSelectLine: (linha) => {
+                        setLocalLine(linha);
+                        handleUpdateEmployeeFieldLocal("line", linha);
+                      },
+                      localLine: e.target.value,
+                      isDarkMode,
+                    },
+                  );
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {

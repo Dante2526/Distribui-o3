@@ -166,6 +166,33 @@ export const firestoreService = {
     }
   },
 
+  async updateEmployeeOrdersDSS(
+    turma: string,
+    updates: { id: string; ordem: number }[],
+  ): Promise<void> {
+    if (!dbDSS || updates.length === 0) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const batch = writeBatch(dbDSS);
+
+      updates.forEach((update) => {
+        if (
+          update.id.startsWith("emp-dept") ||
+          update.id.startsWith("emp-supp") ||
+          update.id.startsWith("emp-imp")
+        )
+          return; // Ignora mock IDs
+
+        const docRef = doc(dbDSS, collectionName, update.id);
+        batch.update(docRef, { ordem: update.ordem });
+      });
+
+      await batch.commit();
+    } catch (e) {
+      console.error("Erro ao atualizar ordem no DSS:", e);
+    }
+  },
+
   async updateEmployeeFieldDSS(
     turma: string,
     employeeId: string,

@@ -2698,6 +2698,25 @@ function AppContent() {
         targetGroup.push(movedEmployee);
         newGroups[sourceGroupIndex] = sourceGroup;
         newGroups[targetGroupIndex] = targetGroup;
+
+        if (selectedTurma && movedEmployee && movedEmployee.id) {
+          const names = ["Recepcao", "Classificacao", "Formacao"];
+          const newLocal = `Apoio ${names[targetGroupIndex] || targetGroupIndex}`;
+
+          firestoreService.updateEmployeeLocationAndRoleDSS(
+            selectedTurma,
+            movedEmployee.id,
+            newLocal,
+            "OOF",
+          );
+
+          const updates = targetGroup.map((emp, i) => ({
+            id: emp.id,
+            ordem: i,
+          }));
+          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+        }
+
         return newGroups;
       });
     },
@@ -2759,6 +2778,14 @@ function AppContent() {
           data: targetData,
           count: targetData.length,
         };
+
+        if (selectedTurma) {
+          const updates = targetData.map((emp, i) => ({
+            id: emp.id,
+            ordem: i,
+          }));
+          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+        }
 
         return newDepts;
       });
