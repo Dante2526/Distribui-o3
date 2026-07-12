@@ -1,8 +1,22 @@
-import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { MouseSensor, TouchSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
-import { Department, SupportRole, Employee, TurmaType } from '../types';
-import { firestoreService } from '../services/firestoreService';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
+import {
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { Department, SupportRole, Employee, TurmaType } from "../types";
+import { firestoreService } from "../services/firestoreService";
 
 export interface UseDragAndDropProps {
   isAdmin: boolean;
@@ -54,8 +68,8 @@ export function useDragAndDrop({
       () => ({
         activationConstraint: { distance: isAdmin ? 5 : 999999 },
       }),
-      [isAdmin]
-    )
+      [isAdmin],
+    ),
   );
 
   const touchSensor = useSensor(
@@ -67,8 +81,8 @@ export function useDragAndDrop({
           tolerance: isAdmin ? 5 : 0,
         },
       }),
-      [isAdmin]
-    )
+      [isAdmin],
+    ),
   );
 
   const sensors = useSensors(mouseSensor, touchSensor);
@@ -99,7 +113,7 @@ export function useDragAndDrop({
       if (!sourceContainer) {
         for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
           const emp = supportRolesDataRef.current[idx].find(
-            (e) => e.id === activeIdVal
+            (e) => e.id === activeIdVal,
           );
           if (emp) {
             sourceContainer = `support-group-${idx}`;
@@ -142,7 +156,7 @@ export function useDragAndDrop({
       specialShiftDataRef,
       dragSourceRef,
       setActiveSupportId,
-    ]
+    ],
   );
 
   const handleDragCancel = useCallback(() => {
@@ -155,8 +169,7 @@ export function useDragAndDrop({
     dragSourceRef.current = null;
     if (clonedDepartmentsRef.current)
       setDepartmentsData(clonedDepartmentsRef.current);
-    if (clonedSupportRef.current)
-      setSupportRolesData(clonedSupportRef.current);
+    if (clonedSupportRef.current) setSupportRolesData(clonedSupportRef.current);
     if (clonedSpecialShiftRef.current)
       setSpecialShiftData(clonedSpecialShiftRef.current);
   }, [
@@ -207,7 +220,7 @@ export function useDragAndDrop({
       if (!activeType) {
         for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
           const supportIdx = supportRolesDataRef.current[idx].findIndex(
-            (e) => e.id === activeId
+            (e) => e.id === activeId,
           );
           if (supportIdx !== -1) {
             activeContainer = `support-group-${idx}`;
@@ -221,7 +234,7 @@ export function useDragAndDrop({
 
       if (!activeType) {
         const idx = specialShiftDataRef.current.findIndex(
-          (e) => e.id === activeId
+          (e) => e.id === activeId,
         );
         if (idx !== -1) {
           activeContainer = "special-shift";
@@ -270,7 +283,7 @@ export function useDragAndDrop({
         if (!overContainer) {
           const groupIdx = parseInt(
             overId.toString().replace("support-group-", ""),
-            10
+            10,
           );
           if (
             !isNaN(groupIdx) &&
@@ -282,7 +295,7 @@ export function useDragAndDrop({
           } else {
             for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
               const supportIdx = supportRolesDataRef.current[idx].findIndex(
-                (e) => e.id === overId
+                (e) => e.id === overId,
               );
               if (supportIdx !== -1) {
                 overContainer = `support-group-${idx}`;
@@ -296,7 +309,7 @@ export function useDragAndDrop({
 
         if (!overContainer) {
           const specialIdx = specialShiftDataRef.current.findIndex(
-            (e) => e.id === overId
+            (e) => e.id === overId,
           );
           if (specialIdx !== -1) {
             overContainer = "special-shift";
@@ -311,7 +324,7 @@ export function useDragAndDrop({
       if (activeContainer === overContainer) {
         if (activeType === "maquinista") {
           const dept = departmentsDataRef.current.find(
-            (d) => d.id === activeContainer
+            (d) => d.id === activeContainer,
           );
           if (dept) {
             const activeIndex = dept.data.findIndex((e) => e.id === activeId);
@@ -330,21 +343,21 @@ export function useDragAndDrop({
                     data: d.data.filter((e) => e.id !== activeId),
                     count: Math.max(
                       0,
-                      d.data.filter((e) => e.id !== activeId).length
+                      d.data.filter((e) => e.id !== activeId).length,
                     ),
                   };
-                })
+                }),
               );
             }
           }
         } else if (activeType === "apoio") {
           const groupIdx = parseInt(
             activeContainer.replace("support-group-", ""),
-            10
+            10,
           );
           if (!isNaN(groupIdx)) {
             const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(
-              (e) => e.id === activeId
+              (e) => e.id === activeId,
             );
             const overIndex =
               overIdx >= 0
@@ -356,19 +369,19 @@ export function useDragAndDrop({
                   if (idx === groupIdx)
                     return arrayMove(g, activeIndex, overIndex);
                   return g;
-                })
+                }),
               );
             }
           }
         } else if (activeType === "special") {
           const activeIndex = specialShiftDataRef.current.findIndex(
-            (e) => e.id === activeId
+            (e) => e.id === activeId,
           );
           const overIndex =
             overIdx >= 0 ? overIdx : specialShiftDataRef.current.length - 1;
           if (activeIndex !== overIndex && activeIndex !== -1) {
             setSpecialShiftData((prev) =>
-              arrayMove(prev, activeIndex, overIndex)
+              arrayMove(prev, activeIndex, overIndex),
             );
           }
         }
@@ -401,7 +414,7 @@ export function useDragAndDrop({
               data: d.data.filter((e) => e.id !== activeId),
               count: Math.max(
                 0,
-                d.data.filter((e) => e.id !== activeId).length
+                d.data.filter((e) => e.id !== activeId).length,
               ),
             };
           });
@@ -412,11 +425,11 @@ export function useDragAndDrop({
       else if (activeType === "apoio" && overType === "apoio") {
         const activeGroupIdx = parseInt(
           activeContainer.replace("support-group-", ""),
-          10
+          10,
         );
         const overGroupIdx = parseInt(
           overContainer.replace("support-group-", ""),
-          10
+          10,
         );
         if (!isNaN(activeGroupIdx) && !isNaN(overGroupIdx)) {
           setSupportRolesData((prev) => {
@@ -445,7 +458,7 @@ export function useDragAndDrop({
       else if (activeType === "maquinista" && overType === "apoio") {
         const overGroupIdx = parseInt(
           overContainer.replace("support-group-", ""),
-          10
+          10,
         );
         if (!isNaN(overGroupIdx)) {
           const adaptedSupport: SupportRole = {
@@ -466,10 +479,10 @@ export function useDragAndDrop({
                 data: d.data.filter((e) => e.id !== activeId),
                 count: Math.max(
                   0,
-                  d.data.filter((e) => e.id !== activeId).length
+                  d.data.filter((e) => e.id !== activeId).length,
                 ),
               };
-            })
+            }),
           );
 
           setSupportRolesData((prev) =>
@@ -482,7 +495,7 @@ export function useDragAndDrop({
                 return newData;
               }
               return group.filter((e) => e.id !== activeId);
-            })
+            }),
           );
         }
       }
@@ -491,7 +504,7 @@ export function useDragAndDrop({
       else if (activeType === "apoio" && overType === "maquinista") {
         const activeGroupIdx = parseInt(
           activeContainer.replace("support-group-", ""),
-          10
+          10,
         );
         if (!isNaN(activeGroupIdx)) {
           const adaptedEmployee: Employee = {
@@ -508,7 +521,7 @@ export function useDragAndDrop({
               if (idx === activeGroupIdx)
                 return group.filter((e) => e.id !== activeId);
               return group.filter((e) => e.id !== activeId);
-            })
+            }),
           );
 
           setDepartmentsData((prev) =>
@@ -525,10 +538,10 @@ export function useDragAndDrop({
                 data: d.data.filter((e) => e.id !== activeId),
                 count: Math.max(
                   0,
-                  d.data.filter((e) => e.id !== activeId).length
+                  d.data.filter((e) => e.id !== activeId).length,
                 ),
               };
-            })
+            }),
           );
         }
       }
@@ -560,10 +573,10 @@ export function useDragAndDrop({
               data: d.data.filter((e) => e.id !== activeId),
               count: Math.max(
                 0,
-                d.data.filter((e) => e.id !== activeId).length
+                d.data.filter((e) => e.id !== activeId).length,
               ),
             };
-          })
+          }),
         );
       }
 
@@ -571,7 +584,7 @@ export function useDragAndDrop({
       else if (activeType === "special" && overType === "apoio") {
         const overGroupIdx = parseInt(
           overContainer.replace("support-group-", ""),
-          10
+          10,
         );
         if (!isNaN(overGroupIdx)) {
           const adaptedSupport: SupportRole = {
@@ -593,7 +606,7 @@ export function useDragAndDrop({
                 return newData;
               }
               return group.filter((e) => e.id !== activeId);
-            })
+            }),
           );
         }
       }
@@ -615,9 +628,9 @@ export function useDragAndDrop({
             ? parseInt(
                 dragSourceRef.current?.originalContainer.replace(
                   "support-group-",
-                  ""
+                  "",
                 ) || "0",
-                10
+                10,
               )
             : undefined,
           originalSupportRole: isOriginallyApoio
@@ -636,14 +649,14 @@ export function useDragAndDrop({
               data: d.data.filter((e) => e.id !== activeId),
               count: Math.max(
                 0,
-                d.data.filter((e) => e.id !== activeId).length
+                d.data.filter((e) => e.id !== activeId).length,
               ),
             };
-          })
+          }),
         );
 
         setSupportRolesData((prev) =>
-          prev.map((group) => group.filter((e) => e.id !== activeId))
+          prev.map((group) => group.filter((e) => e.id !== activeId)),
         );
 
         setSpecialShiftData((prev) => {
@@ -659,7 +672,7 @@ export function useDragAndDrop({
       else if (activeType === "apoio" && overType === "special") {
         const activeGroupIdx = parseInt(
           activeContainer.replace("support-group-", ""),
-          10
+          10,
         );
         if (!isNaN(activeGroupIdx)) {
           const adaptedSpecial: Employee = {
@@ -678,7 +691,7 @@ export function useDragAndDrop({
               if (idx === activeGroupIdx)
                 return group.filter((e) => e.id !== activeId);
               return group.filter((e) => e.id !== activeId);
-            })
+            }),
           );
 
           setSpecialShiftData((prev) => {
@@ -700,7 +713,7 @@ export function useDragAndDrop({
       setSupportRolesData,
       setSpecialShiftData,
       dragSourceRef,
-    ]
+    ],
   );
 
   const handleDragEnd = useCallback(
@@ -744,7 +757,7 @@ export function useDragAndDrop({
 
       // Mapear destinos
       if (overId === "recepcao") {
-        newLocal = "Recepcao"; 
+        newLocal = "Recepcao";
         newRole = "MAQUINISTA";
       } else if (overId === "classificacao") {
         newLocal = "Classificacao";
@@ -753,7 +766,7 @@ export function useDragAndDrop({
         newLocal = "Formacao";
         newRole = "MAQUINISTA";
       } else if (overId.toString().startsWith("Recepcao ")) {
-        newLocal = overId.toString(); 
+        newLocal = overId.toString();
         newRole = "MAQUINISTA";
       } else if (overId === "special-shift") {
         newLocal = "Turno 6H";
@@ -779,15 +792,8 @@ export function useDragAndDrop({
           selectedTurma,
           activeIdVal as string,
           newLocal,
-          newRole
+          newRole,
         );
-        if (newRole) {
-          firestoreService.updateEmployeeRoleDSS(
-            selectedTurma,
-            activeIdVal as string,
-            newRole
-          );
-        }
       }
 
       setActiveId(null);
@@ -807,7 +813,7 @@ export function useDragAndDrop({
       supportRolesDataRef,
       specialShiftDataRef,
       selectedTurma,
-    ]
+    ],
   );
 
   return {

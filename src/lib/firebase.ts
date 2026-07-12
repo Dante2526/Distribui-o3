@@ -40,10 +40,8 @@ const dssConfig = {
 
 const appDSS = safeInitializeApp(dssConfig, "dss");
 
-// Ativando o cache persistente (IndexedDB)
-export const dbDSS = appDSS
-  ? initializeFirestore(appDSS, { localCache: persistentLocalCache() })
-  : null;
+// Usando getFirestore padrão para comunicação mais rápida (sem atrasos do IndexedDB)
+export const dbDSS = appDSS ? getFirestore(appDSS) : null;
 export const authDSS = appDSS ? getAuth(appDSS) : null;
 
 // Função para logar anonimamente
