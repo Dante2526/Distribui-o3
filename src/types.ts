@@ -106,6 +106,8 @@ export type Employee = {
   tagType?: "MAQUINISTA" | "OOF";
   status?: string;
   ausente?: boolean;
+  ordem?: number;
+  location?: string;
 };
 
 export type DepartmentOption = {

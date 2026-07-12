@@ -15,7 +15,7 @@ import {
   serverTimestamp,
   writeBatch,
 } from "firebase/firestore";
-import { dbDSS, dbRegistros } from "../lib/firebase";
+import { dbDSS } from "../lib/firebase";
 import type {
   Department,
   SupportRole,
@@ -191,13 +191,13 @@ export const firestoreService = {
     turma: TurmaType,
     callback: (state: BoardState | null) => void,
   ) {
-    if (!dbRegistros) {
+    if (!dbDSS) {
       // Se não houver firebase, não faz nada
       return () => {};
     }
 
     const collectionName = `turma ${turma.toLowerCase()}`;
-    const boardDocRef = doc(dbRegistros, collectionName, "estado_painel");
+    const boardDocRef = doc(dbDSS, collectionName, "estado_painel");
 
     return onSnapshot(
       boardDocRef,
@@ -247,12 +247,12 @@ export const firestoreService = {
 
   // SALVAR O ESTADO DO PAINEL (COM DEBOUNCE PARA NÃO SOBRECARREGAR)
   saveBoardState(turma: TurmaType, state: BoardState, immediate = false) {
-    if (!dbRegistros) return; // Local mode sem variáveis
+    if (!dbDSS) return; // Local mode sem variáveis
 
     const executeSave = async () => {
       try {
         const collectionName = `turma ${turma.toLowerCase()}`;
-        const boardDocRef = doc(dbRegistros, collectionName, "estado_painel");
+        const boardDocRef = doc(dbDSS, collectionName, "estado_painel");
 
         // O truque JSON.parse(JSON.stringify()) remove qualquer undefined oculto que faria o Firestore estourar erro.
         // E mapeamos supportRolesData para objetos {items: []} porque o Firestore PROÍBE Arrays dentro de Arrays.
@@ -391,12 +391,12 @@ export const firestoreService = {
 
   // GRAVAR HISTÓRICO DE MOVIMENTAÇÃO
   async saveMovementLog(turma: TurmaType, log: MovementLog) {
-    if (!dbRegistros) return;
+    if (!dbDSS) return;
 
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const historyCol = collection(
-        dbRegistros,
+        dbDSS,
         collectionName,
         "estado_painel",
         "historico",
@@ -416,11 +416,11 @@ export const firestoreService = {
     turma: TurmaType,
     callback: (logs: MovementLog[]) => void,
   ) {
-    if (!dbRegistros) return () => {};
+    if (!dbDSS) return () => {};
 
     const collectionName = `turma ${turma.toLowerCase()}`;
     const historyCol = collection(
-      dbRegistros,
+      dbDSS,
       collectionName,
       "estado_painel",
       "historico",

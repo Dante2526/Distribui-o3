@@ -22,7 +22,6 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 
 import {
-  BoardState,
   Employee,
   Department,
   SupportRole,
@@ -154,6 +153,9 @@ const deduplicateSupportRoles = (
 
 function AppContent() {
   const lastNetworkWriteRef = useRef<Record<string, number>>({});
+  const dssEmployeesRef = useRef<Employee[]>([]);
+  const hasInitialDataLoadedRef = useRef(false);
+  const lastUpdateSourceRef = useRef("none");
   const {
     departmentsData,
     setDepartmentsData,
@@ -279,183 +281,7 @@ function AppContent() {
 
   // Efeito principal de sincronização de dados (Firebase vs Mock)
   useEffect(() => {
-    if (isDemoMode) {
-      // Modo Demo: carrega os mock data localmente
-      setDepartmentsData(initialDepartmentsData);
-      setSupportRolesData(initialSupportData);
-      setAnnotationsLeft(initialAnnotationsLeft);
-      setAnnotationsRight(initialAnnotationsRight);
-      setSpecialShiftData([
-        {
-          id: "emp-60",
-          name: "FABIANO SILVA",
-          line: "X4",
-          machine: "222",
-          tagType: "MAQUINISTA",
-        },
-        {
-          id: "emp-61",
-          name: "MAURICIO SOUZA",
-          line: "X6",
-          machine: "280",
-          tagType: "MAQUINISTA",
-        },
-      ]);
-      setIsLoadingData(false);
-      return;
-    }
-
-    if (!selectedTurma || !isTabVisible) return;
-
-    // Modo Normal: escuta o Firebase
-    // O loading global é desativado no callback
-
-    const unsubscribe = firestoreService.subscribeToBoardState(
-      selectedTurma,
-      (state) => {
-        isReceivingSnapshotRef.current = true;
-
-        const hasEmployeesInDepartments =
-          state?.departmentsData?.some((d) => d.data && d.data.length > 0) ||
-          false;
-        const hasEmployeesInSupport =
-          state?.supportRolesData?.some((g) => g && g.length > 0) || false;
-        const hasEmployeesInSpecial =
-          state?.specialShiftData?.length > 0 || false;
-        const hasAnyEmployee =
-          hasEmployeesInDepartments ||
-          hasEmployeesInSupport ||
-          hasEmployeesInSpecial;
-
-        // Se Firebase retornar dados válidos E tiver pelo menos 1 funcionário salvo
-        if (
-          state &&
-          state.departmentsData &&
-          state.departmentsData.length > 0 &&
-          hasAnyEmployee
-        ) {
-          const healEmployee = (emp: Employee) => {
-            if (
-              !emp.matricula &&
-              emp.machine &&
-              emp.machine.length >= 7 &&
-              /^\d+$/.test(emp.machine)
-            ) {
-              return { ...emp, matricula: emp.machine, machine: "" };
-            }
-            return emp;
-          };
-
-          const globalSeen = new Set<string>();
-
-          // Bug 8 e Correção de Duplicatas: normaliza e deduplica globalmente
-          setDepartmentsData(
-            state.departmentsData.map((d) => {
-              const healedAndDeduped = deduplicateEmployees(
-                (d.data || []).map(healEmployee),
-                globalSeen,
-              );
-              return {
-                ...d,
-                data: healedAndDeduped,
-                count: healedAndDeduped.length,
-              };
-            }),
-          );
-          if (state.supportRolesData && state.supportRolesData.length > 0) {
-            setSupportRolesData(
-              deduplicateSupportRoles(state.supportRolesData, globalSeen),
-            );
-          }
-          if (state.annotationsLeft && state.annotationsLeft.length > 0) {
-            setAnnotationsLeft(
-              deduplicateAnnotationItems(state.annotationsLeft).map((g) =>
-                g.title === "FÉRIAS/TE/TREIN./REVEZA"
-                  ? { ...g, title: "TE/TREIN./REVEZA" }
-                  : g,
-              ),
-            );
-          }
-          if (state.annotationsRight && state.annotationsRight.length > 0) {
-            setAnnotationsRight(
-              deduplicateAnnotationItems(state.annotationsRight),
-            );
-          }
-          if (state.specialShiftData) {
-            setSpecialShiftData(
-              deduplicateEmployees(
-                state.specialShiftData.map(healEmployee),
-                globalSeen,
-              ),
-            );
-          }
-          setIsLoadingData(false);
-          setTimeout(() => {
-            isReceivingSnapshotRef.current = false;
-          }, 200);
-        } else {
-          // Inicialização Automática! O documento não existe ou está vazio.
-          // Puxamos os nomes direto do DSS para a turma selecionada.
-          firestoreService
-            .fetchEmployeesDSS(selectedTurma)
-            .then((dssEmployees) => {
-              // Cria estrutura de departamentos zerada
-              const emptyDepts = initialDepartmentsData.map((d) => ({
-                ...d,
-                data: [] as Employee[],
-              }));
-              const supportGroup: SupportRole[] = [];
-
-              dssEmployees.forEach((emp) => {
-                // Bug 9: _role é o campo extra não tipado armazenado pelo fetchEmployeesDSS
-                const roleStr = ((emp as any)._role || "").toLowerCase().trim();
-                const isOof = roleStr === "oof" || roleStr === "apoio";
-
-                const empId =
-                  emp.id || `dss-${Math.random().toString(36).substr(2, 9)}`;
-
-                if (isOof) {
-                  supportGroup.push({
-                    id: empId,
-                    name: emp.name,
-                    matricula: emp.matricula,
-                    role: "VIRADOR", // Default role no painel de apoio
-                  });
-                } else {
-                  // Se for maquinista (ou vazio/outro), coloca na Recepção por padrão para o supervisor distribuir depois
-                  emptyDepts[0].data.push({
-                    id: empId,
-                    name: emp.name,
-                    matricula: emp.matricula || "",
-                    line: "",
-                    machine: "",
-                    error: false,
-                    tagType: "MAQUINISTA",
-                  });
-                }
-              });
-
-              setDepartmentsData(emptyDepts);
-              // O layout original tem 3 grupos de apoio. Vamos colocar os OOF no primeiro grupo
-              setSupportRolesData([supportGroup, [], []]);
-
-              // Zera anotações e turnos especiais
-              setAnnotationsLeft(
-                initialAnnotationsLeft.map((a) => ({ ...a, items: [] })),
-              );
-              setAnnotationsRight(
-                initialAnnotationsRight.map((a) => ({ ...a, items: [] })),
-              );
-              setSpecialShiftData([]);
-
-              setIsLoadingData(false);
-              setTimeout(() => {
-                isReceivingSnapshotRef.current = false;
-              }, 200);
-            });
-        }
-      },
-    );
+    if (!selectedTurma || isDemoMode || !isTabVisible) return;
 
     // Escuta edições ativas em tempo real
     const unsubscribeEdits = firestoreService.subscribeToActiveEdits(
@@ -490,7 +316,6 @@ function AppContent() {
     }, 5000);
 
     return () => {
-      unsubscribe();
       unsubscribeEdits();
       clearInterval(cleanupInterval);
     };
@@ -515,217 +340,100 @@ function AppContent() {
     };
   }, [isDemoMode, selectedTurma, isAuditLogModalOpen, isTabVisible]);
 
-  // Efeito de Sincronização Contínua e Inteligente com o DSS (Dupla-Mão)
+  // Efeito ÚNICO de Montagem da Interface (Single Database)
   useEffect(() => {
-    if (
-      isDemoMode ||
-      !selectedTurma ||
-      !isTabVisible ||
-      departmentsData.length === 0 ||
-      isLoadingData
-    ) {
-      return;
-    }
+    if (isDemoMode || !selectedTurma || !isTabVisible) return;
 
     const unsubscribeDSS = firestoreService.subscribeToDSS(
       selectedTurma,
       (dssEmployees) => {
-        // Ignora se estamos processando um snapshot do BoardState para evitar race conditions
-        if (isReceivingSnapshotRef.current) return;
+        dssEmployeesRef.current = dssEmployees;
 
-        // Lê o estado atual via Refs para não re-assinar a cada drag
-        const currentDepts = departmentsDataRef.current;
-        const currentSupport = supportRolesDataRef.current;
-        const currentSpecial = specialShiftDataRef.current;
-        const currentLeft = annotationsLeftRef.current;
-        const currentRight = annotationsRightRef.current;
+        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData));
+        const newSupport = JSON.parse(JSON.stringify(initialSupportData));
+        const newAnnotationsLeft = JSON.parse(
+          JSON.stringify(initialAnnotationsLeft),
+        );
+        const newAnnotationsRight = JSON.parse(
+          JSON.stringify(initialAnnotationsRight),
+        );
+        const newSpecial = [];
 
-        const boardIds = new Set<string>();
-        currentDepts.forEach((d) => d.data.forEach((e) => boardIds.add(e.id)));
-        currentSupport.forEach((g) => g.forEach((e) => boardIds.add(e.id)));
-        currentSpecial.forEach((e) => boardIds.add(e.id));
-        currentLeft.forEach((g) => g.items.forEach((e) => boardIds.add(e.id)));
-        currentRight.forEach((g) => g.items.forEach((e) => boardIds.add(e.id)));
+        dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
-        // 1. Atualizar Existentes
-        const dssMap = new Map(dssEmployees.map((e) => [e.id, e]));
+        dssEmployees.forEach((emp) => {
+          const locationParts = (emp.location || "").split("-");
+          const boardType = locationParts[0];
+          const mainArea = locationParts[1];
+          const subArea = locationParts[2];
 
-        const updateDataArray = (dataArray: any[]) => {
-          let modified = false;
-          const next = dataArray.map((emp) => {
-            const dssEmp = dssMap.get(emp.id);
-            if (
-              dssEmp &&
-              (dssEmp.name !== emp.name || dssEmp.matricula !== emp.matricula)
-            ) {
-              modified = true;
-              return { ...emp, name: dssEmp.name, matricula: dssEmp.matricula };
-            }
-            return emp;
-          });
-          return { modified, next };
-        };
-
-        setDepartmentsData((prev) => {
-          let anyModified = false;
-          const nextDepts = prev.map((d) => {
-            const { modified, next } = updateDataArray(d.data);
-            if (modified) anyModified = true;
-            return modified ? { ...d, data: next } : d;
-          });
-          return anyModified ? nextDepts : prev;
-        });
-
-        setSupportRolesData((prev) => {
-          let anyModified = false;
-          const nextGroups = prev.map((g) => {
-            const { modified, next } = updateDataArray(g);
-            if (modified) anyModified = true;
-            return modified ? next : g;
-          });
-          return anyModified ? nextGroups : prev;
-        });
-
-        setSpecialShiftData((prev) => {
-          const { modified, next } = updateDataArray(prev);
-          return modified ? next : prev;
-        });
-
-        const updateAnnotations = (setter: any) => {
-          setter((prev: any[]) => {
-            let anyModified = false;
-            const nextGroups = prev.map((g) => {
-              const { modified, next } = updateDataArray(g.items);
-              if (modified) anyModified = true;
-              return modified ? { ...g, items: next } : g;
-            });
-            return anyModified ? nextGroups : prev;
-          });
-        };
-        updateAnnotations(setAnnotationsLeft);
-        updateAnnotations(setAnnotationsRight);
-
-        // 2. Adicionar Novos do DSS
-        const newFromDSS = dssEmployees.filter((emp) => !boardIds.has(emp.id));
-        if (newFromDSS.length > 0) {
-          const deptsToAdd: any[] = [];
-          const supportToAdd: any[] = [];
-          const rightAnnotationsToAdd: any[] = [];
-
-          newFromDSS.forEach((newEmp) => {
-            const role = (newEmp._role || "").toUpperCase();
-            if (role.includes("OOF") || role.includes("APOIO")) {
-              supportToAdd.push({
-                id: newEmp.id,
-                name: newEmp.name,
-                matricula: newEmp.matricula,
-                role: "VIRADOR",
-              });
-            } else if (role.includes("ESTÁGIO") || role.includes("ESTAGIO")) {
-              rightAnnotationsToAdd.push({
-                id: newEmp.id,
-                name: newEmp.name,
-                matricula: newEmp.matricula,
-                status: "ESTÁGIO",
-              });
+          if (emp.ausente) {
+            const statusNormal = emp.status
+              ? emp.status
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+              : "";
+            if (statusNormal.includes("ferias")) {
+              newAnnotationsRight[2].employees.push(emp);
+            } else if (statusNormal.includes("inss")) {
+              newAnnotationsRight[0].employees.push(emp);
+            } else if (statusNormal.includes("fora")) {
+              newAnnotationsRight[1].employees.push(emp);
+            } else if (statusNormal.includes("atestado")) {
+              newAnnotationsLeft[1].employees.push(emp);
             } else {
-              deptsToAdd.push({
-                id: newEmp.id,
-                name: newEmp.name,
-                matricula: newEmp.matricula,
-                line: "",
-                machine: "",
-                error: false,
-                tagType: "MAQUINISTA",
-              });
+              newAnnotationsRight[1].employees.push(emp); // Default Fora
             }
-          });
+            return; // Skip other boards if absent
+          }
 
-          if (deptsToAdd.length > 0) {
-            setDepartmentsData((prev) => {
-              const next = [...prev];
-              if (next[0]) {
-                next[0].data = [...next[0].data, ...deptsToAdd];
-                next[0].count = next[0].data.length;
+          if (boardType === "board") {
+            const dept = newDepts.find((d) => d.id === mainArea);
+            if (dept) {
+              if (dept.hasSubGroups && subArea) {
+                const subGroup = dept.subGroups.find((g) => g.id === subArea);
+                if (subGroup) subGroup.employees.push(emp);
+                else dept.employees.push(emp);
+              } else {
+                dept.employees.push(emp);
               }
-              return next;
-            });
+            }
+          } else if (boardType === "support") {
+            const role = newSupport.find((r) => r.id === mainArea);
+            if (role) role.employees.push(emp);
+          } else if (boardType === "annotation_left") {
+            const ann = newAnnotationsLeft.find((a) => a.id === mainArea);
+            if (ann) ann.employees.push(emp);
+          } else if (boardType === "annotation_right") {
+            const ann = newAnnotationsRight.find((a) => a.id === mainArea);
+            if (ann) ann.employees.push(emp);
+          } else if (boardType === "special") {
+            newSpecial.push(emp);
           }
+        });
 
-          if (supportToAdd.length > 0) {
-            setSupportRolesData((prev) => {
-              const next = [...prev];
-              if (next[0]) next[0] = [...next[0], ...supportToAdd];
-              return next;
-            });
-          }
-
-          if (rightAnnotationsToAdd.length > 0) {
-            setAnnotationsRight((prev) => {
-              const next = [...prev];
-              if (next.length > 0)
-                next[0].items = [...next[0].items, ...rightAnnotationsToAdd];
-              return next;
-            });
-          }
+        if (!hasInitialDataLoadedRef.current) {
+          hasInitialDataLoadedRef.current = true;
+          setIsLoadingData(false);
+          lastUpdateSourceRef.current = "dss_init";
+        } else {
+          lastUpdateSourceRef.current = "dss_update";
         }
+
+        setDepartmentsData(newDepts);
+        setSupportRolesData(newSupport);
+        setAnnotationsLeft(newAnnotationsLeft);
+        setAnnotationsRight(newAnnotationsRight);
+        setSpecialShiftData(newSpecial);
+        // setBoardState({}); Removido
       },
     );
 
     return () => {
       unsubscribeDSS();
     };
-  }, [
-    selectedTurma,
-    isDemoMode,
-    isTabVisible,
-    isLoadingData,
-    departmentsData.length,
-  ]);
-
-  // Efeito para salvar alterações locais no Firebase
-  const saveBoardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (
-      isDemoMode ||
-      isReceivingSnapshotRef.current ||
-      isLoadingData ||
-      !selectedTurma
-    )
-      return;
-
-    // Evita sobrescrever o banco com dados vazios logo no início se isLoadingData falhar de alguma forma
-    if (departmentsData[0]?.id) {
-      if (saveBoardTimeoutRef.current)
-        clearTimeout(saveBoardTimeoutRef.current);
-      saveBoardTimeoutRef.current = setTimeout(() => {
-        firestoreService.saveBoardState(selectedTurma, {
-          departmentsData,
-          supportRolesData,
-          annotationsLeft,
-          annotationsRight,
-          specialShiftData,
-        });
-      }, 2000);
-    }
-
-    return () => {
-      if (saveBoardTimeoutRef.current)
-        clearTimeout(saveBoardTimeoutRef.current);
-    };
-  }, [
-    departmentsData,
-    supportRolesData,
-    annotationsLeft,
-    annotationsRight,
-    specialShiftData,
-    isDemoMode,
-    isLoadingData,
-    selectedTurma,
-  ]);
+  }, [selectedTurma, isDemoMode, isTabVisible]);
 
   const loginToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
