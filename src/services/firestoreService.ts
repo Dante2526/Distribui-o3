@@ -161,6 +161,7 @@ export const firestoreService = {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
       await updateDoc(docRef, { local, função: role });
+    } catch (e) {
       console.error("Erro ao atualizar local e funcao no DSS:", e);
     }
   },
