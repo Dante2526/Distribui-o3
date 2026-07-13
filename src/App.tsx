@@ -257,13 +257,10 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo de Colisão: a pedido do usuário, DEVE respeitar 100% a posição do mouse.
-  // Se o mouse (ou dedo) estiver solto em cima da "Recepção", vai pra Recepção.
-  const customCollisionDetection = useCallback((args: any) => {
-    const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) return pointerCollisions;
-    return rectIntersection(args);
-  }, []);
+  // Algoritmo de Colisão:
+  // Como o DragOverlay foi implementado, não há mais offset visual.
+  // closestCenter é o algoritmo mais natural para listas de arrastar e soltar.
+  const customCollisionDetection = closestCenter;
 
   // Configurações e estados do painel
 
