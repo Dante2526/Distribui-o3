@@ -170,6 +170,7 @@ export function useDragAndDrop({
         type: sourceType,
         originalContainer: sourceContainer,
         originalRole: sourceRole,
+        originalIndex: activeIdx,
       };
 
       const isSupport = sourceType === "apoio";
@@ -357,67 +358,47 @@ export function useDragAndDrop({
 
       if (activeContainer === overContainer) {
         if (activeType === "maquinista") {
-          const dept = departmentsDataRef.current.find(
-            (d) => d.id === activeContainer,
-          );
-          if (dept) {
-            const activeIndex = dept.data.findIndex((e) => e.id === activeId);
-            const overIndex = overIdx >= 0 ? overIdx : dept.data.length - 1;
-            if (activeIndex !== overIndex && activeIndex !== -1) {
-              setDepartmentsData((prev) =>
-                prev.map((d) => {
-                  if (d.id === activeContainer) {
-                    return {
-                      ...d,
-                      data: arrayMove(d.data, activeIndex, overIndex),
-                    };
-                  }
+          setDepartmentsData((prev) =>
+            prev.map((d) => {
+              if (d.id === activeContainer) {
+                const currActiveIdx = d.data.findIndex((e) => e.id === activeId);
+                const currOverIdx = d.data.findIndex((e) => e.id === overId);
+                if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
                   return {
                     ...d,
-                    data: d.data.filter((e) => e.id !== activeId),
-                    count: Math.max(
-                      0,
-                      d.data.filter((e) => e.id !== activeId).length,
-                    ),
+                    data: arrayMove(d.data, currActiveIdx, currOverIdx),
                   };
-                }),
-              );
-            }
-          }
+                }
+              }
+              return d;
+            }),
+          );
         } else if (activeType === "apoio") {
           const groupIdx = parseInt(
             activeContainer.replace("support-group-", ""),
             10,
           );
-          if (!isNaN(groupIdx)) {
-            const activeIndex = supportRolesDataRef.current[groupIdx].findIndex(
-              (e) => e.id === activeId,
+            setSupportRolesData((prev) =>
+              prev.map((g, idx) => {
+                if (idx === groupIdx) {
+                  const currActiveIdx = g.findIndex((e) => e.id === activeId);
+                  const currOverIdx = g.findIndex((e) => e.id === overId);
+                  if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
+                    return arrayMove(g, currActiveIdx, currOverIdx);
+                  }
+                }
+                return g;
+              }),
             );
-            const overIndex =
-              overIdx >= 0
-                ? overIdx
-                : supportRolesDataRef.current[groupIdx].length - 1;
-            if (activeIndex !== overIndex && activeIndex !== -1) {
-              setSupportRolesData((prev) =>
-                prev.map((g, idx) => {
-                  if (idx === groupIdx)
-                    return arrayMove(g, activeIndex, overIndex);
-                  return g;
-                }),
-              );
-            }
-          }
         } else if (activeType === "special") {
-          const activeIndex = specialShiftDataRef.current.findIndex(
-            (e) => e.id === activeId,
-          );
-          const overIndex =
-            overIdx >= 0 ? overIdx : specialShiftDataRef.current.length - 1;
-          if (activeIndex !== overIndex && activeIndex !== -1) {
-            setSpecialShiftData((prev) =>
-              arrayMove(prev, activeIndex, overIndex),
-            );
-          }
+          setSpecialShiftData((prev) => {
+            const currActiveIdx = prev.findIndex((e) => e.id === activeId);
+            const currOverIdx = prev.findIndex((e) => e.id === overId);
+            if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
+              return arrayMove(prev, currActiveIdx, currOverIdx);
+            }
+            return prev;
+          });
         }
         return;
       }
@@ -780,31 +761,36 @@ export function useDragAndDrop({
         // O handleDragOver pode já ter movido o item otimisticamente.
         let currentLocal = "";
         
-        // Descobre onde o cartão está *agora* (pós-dragOver otimista)
+        // Descobre onde o cartão está *agora* (pós-dragOver otimista) e em qual índice
+        let currentIndex = -1;
         for (const dept of departmentsDataRef.current) {
-          if (dept.data.some((e) => e.id === activeIdVal)) {
+          currentIndex = dept.data.findIndex((e) => e.id === activeIdVal);
+          if (currentIndex !== -1) {
             currentLocal = dept.id;
             break;
           }
         }
         if (!currentLocal) {
           for (let i = 0; i < supportRolesDataRef.current.length; i++) {
-            if (supportRolesDataRef.current[i].some((e) => e.id === activeIdVal)) {
+            currentIndex = supportRolesDataRef.current[i].findIndex((e) => e.id === activeIdVal);
+            if (currentIndex !== -1) {
               currentLocal = `support-group-${i}`;
               break;
             }
           }
         }
         if (!currentLocal) {
-          if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+          currentIndex = specialShiftDataRef.current.findIndex((e) => e.id === activeIdVal);
+          if (currentIndex !== -1) {
             currentLocal = "special-shift";
           }
         }
 
         const originalLocal = dragSourceRef.current?.originalContainer;
+        const originalIndex = dragSourceRef.current?.originalIndex;
 
-        // Se a coluna for diferente da original, não é no-op, então DEIXA PASSAR!
-        if (currentLocal === originalLocal) {
+        // Se a coluna for a mesma e o índice for o mesmo, então SIM é um no-op. REVERTE.
+        if (currentLocal === originalLocal && currentIndex === originalIndex) {
           if (clonedDepartmentsRef.current)
             setDepartmentsData(clonedDepartmentsRef.current);
           if (clonedSupportRef.current)
@@ -820,8 +806,8 @@ export function useDragAndDrop({
           return;
         }
 
-        // NÃO é no-op: guarda o destino real já sabido, pra não deixar
-        // o overId (que é o próprio active.id) confundir o mapeamento abaixo
+        // NÃO é no-op (ou mudou de coluna, ou mudou de posição na mesma coluna)
+        // Guarda o destino real já sabido, pra não deixar o overId confundir o mapeamento abaixo
         selfDropTargetLocal = currentLocal; // ex: "classificacao", "formacao", "support-group-1", "special-shift"
       }
 
