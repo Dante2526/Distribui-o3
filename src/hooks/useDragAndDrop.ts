@@ -856,14 +856,7 @@ export function useDragAndDrop({
 
       // Se temos um novo local e um ID valido, enviamos pro DSS!
       if (newLocal && selectedTurma) {
-        firestoreService.updateEmployeeLocationAndRoleDSS(
-          selectedTurma,
-          activeIdVal as string,
-          newLocal,
-          newRole,
-        );
-
-        // Atualizar a ORDEM de todos os elementos da coluna de destino usando o estado mais atual
+        // Usa setDepartmentsData e etc APENAS para calcular a ordem final já sincronizada localmente
         const localLower = newLocal.toLowerCase();
 
         if (
@@ -885,16 +878,30 @@ export function useDragAndDrop({
             dept?.data.forEach((emp, i) =>
               updates.push({ id: emp.id, ordem: i }),
             );
-            if (updates.length > 0)
-              firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+            if (updates.length > 0) {
+              firestoreService.moveEmployeeDSS(
+                selectedTurma,
+                activeIdVal as string,
+                newLocal,
+                newRole,
+                updates,
+              );
+            }
             return prev;
           });
         } else if (localLower === "turno 6h") {
           setSpecialShiftData((prev) => {
             const updates: { id: string; ordem: number }[] = [];
             prev.forEach((emp, i) => updates.push({ id: emp.id, ordem: i }));
-            if (updates.length > 0)
-              firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+            if (updates.length > 0) {
+              firestoreService.moveEmployeeDSS(
+                selectedTurma,
+                activeIdVal as string,
+                newLocal,
+                newRole,
+                updates,
+              );
+            }
             return prev;
           });
         } else if (localLower.startsWith("apoio ")) {
@@ -912,14 +919,27 @@ export function useDragAndDrop({
               prev[idx].forEach((emp, i) =>
                 updates.push({ id: emp.id, ordem: i }),
               );
-              if (updates.length > 0)
-                firestoreService.updateEmployeeOrdersDSS(
+              if (updates.length > 0) {
+                firestoreService.moveEmployeeDSS(
                   selectedTurma,
+                  activeIdVal as string,
+                  newLocal,
+                  newRole,
                   updates,
                 );
+              }
             }
             return prev;
           });
+        } else {
+          // Caso genérico se não caiu em nenhum if de ordem (quase impossível, mas para segurança)
+          firestoreService.moveEmployeeDSS(
+            selectedTurma,
+            activeIdVal as string,
+            newLocal,
+            newRole,
+            [],
+          );
         }
       } else {
         // Fallback: se não conseguiu determinar um novo local válido, reverte!

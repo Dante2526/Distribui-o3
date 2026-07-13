@@ -166,6 +166,41 @@ export const firestoreService = {
     }
   },
 
+  async moveEmployeeDSS(
+    turma: string,
+    employeeId: string,
+    local: string,
+    role: string,
+    updates: { id: string; ordem: number }[],
+  ): Promise<void> {
+    if (!dbDSS) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const batch = writeBatch(dbDSS);
+
+      // 1. Atualizar local e função do ativo
+      const activeDocRef = doc(dbDSS, collectionName, employeeId);
+      batch.update(activeDocRef, { local, função: role });
+
+      // 2. Atualizar todas as ordens
+      updates.forEach((update) => {
+        if (
+          update.id.startsWith("emp-dept") ||
+          update.id.startsWith("emp-supp") ||
+          update.id.startsWith("emp-imp")
+        )
+          return; // Ignora mock IDs
+
+        const docRef = doc(dbDSS, collectionName, update.id);
+        batch.update(docRef, { ordem: update.ordem });
+      });
+
+      await batch.commit();
+    } catch (e) {
+      console.error("Erro ao mover e ordenar no DSS:", e);
+    }
+  },
+
   async updateEmployeeOrdersDSS(
     turma: string,
     updates: { id: string; ordem: number }[],
