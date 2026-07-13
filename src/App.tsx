@@ -257,10 +257,42 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo de Colisão:
-  // closestCenter é o algoritmo mais natural para listas de arrastar e soltar.
-  // Ele garante que o item sempre caia na coluna onde a maior parte do cartão está visualmente.
-  const customCollisionDetection = closestCenter;
+  // Algoritmo de Colisão customizado:
+  // Previne o bug de "voltar pra trás" ao soltar no topo de uma coluna vazia
+  // (onde o closestCenter achava que um item da coluna vizinha estava mais perto do que o centro da coluna vazia).
+  const customCollisionDetection = useCallback((args: any) => {
+    // 1. Onde está o mouse de fato?
+    const pointerCollisions = pointerWithin(args);
+
+    if (pointerCollisions.length > 0) {
+      // Se achou itens sob o mouse, vê se algum é um container principal
+      const containerCollisions = pointerCollisions.filter(
+        (c) =>
+          c.id === "recepcao" ||
+          c.id === "classificacao" ||
+          c.id === "formacao" ||
+          c.id === "special-shift" ||
+          String(c.id).startsWith("support-group-")
+      );
+
+      // Se o mouse está sobre um container, priorize ele! Isso resolve a coluna vazia.
+      if (containerCollisions.length > 0) {
+        // Se houver mais colisões (como um cartão específico sob o mouse), retorne todas
+        // para o dnd-kit decidir a ordem correta usando closestCenter internamente para o Sortable.
+        return pointerCollisions;
+      }
+      return pointerCollisions;
+    }
+
+    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa a interseção do cartão fantasma
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+
+    // 3. Fallback absoluto
+    return closestCenter(args);
+  }, []);
 
   // Configurações e estados do painel
 

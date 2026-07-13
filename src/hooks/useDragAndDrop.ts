@@ -878,30 +878,26 @@ export function useDragAndDrop({
             dept?.data.forEach((emp, i) =>
               updates.push({ id: emp.id, ordem: i }),
             );
-            if (updates.length > 0) {
-              firestoreService.moveEmployeeDSS(
-                selectedTurma,
-                activeIdVal as string,
-                newLocal,
-                newRole,
-                updates,
-              );
-            }
+            firestoreService.moveEmployeeDSS(
+              selectedTurma,
+              activeIdVal as string,
+              newLocal,
+              newRole,
+              updates,
+            );
             return prev;
           });
         } else if (localLower === "turno 6h") {
           setSpecialShiftData((prev) => {
             const updates: { id: string; ordem: number }[] = [];
             prev.forEach((emp, i) => updates.push({ id: emp.id, ordem: i }));
-            if (updates.length > 0) {
-              firestoreService.moveEmployeeDSS(
-                selectedTurma,
-                activeIdVal as string,
-                newLocal,
-                newRole,
-                updates,
-              );
-            }
+            firestoreService.moveEmployeeDSS(
+              selectedTurma,
+              activeIdVal as string,
+              newLocal,
+              newRole,
+              updates,
+            );
             return prev;
           });
         } else if (localLower.startsWith("apoio ")) {
@@ -919,15 +915,13 @@ export function useDragAndDrop({
               prev[idx].forEach((emp, i) =>
                 updates.push({ id: emp.id, ordem: i }),
               );
-              if (updates.length > 0) {
-                firestoreService.moveEmployeeDSS(
-                  selectedTurma,
-                  activeIdVal as string,
-                  newLocal,
-                  newRole,
-                  updates,
-                );
-              }
+              firestoreService.moveEmployeeDSS(
+                selectedTurma,
+                activeIdVal as string,
+                newLocal,
+                newRole,
+                updates,
+              );
             }
             return prev;
           });
