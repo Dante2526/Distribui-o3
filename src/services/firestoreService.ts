@@ -57,7 +57,7 @@ export const firestoreService = {
             line: data.linha || data.line || "",
             machine: data.loco || data.machine || "",
             error: data.error || false,
-            originalDeptId: data.originalDeptId,
+            localOriginal: data.localOriginal,
             originalSupportGroupIndex: data.originalSupportGroupIndex,
             originalSupportRole: data.originalSupportRole,
             status: data.status,
@@ -171,20 +171,22 @@ export const firestoreService = {
     employeeId: string,
     ausente: boolean,
     status: string,
-    originalDeptId?: string,
+    localOriginal?: string,
     originalSupportGroupIndex?: number,
-    originalSupportRole?: string
+    originalSupportRole?: string,
   ): Promise<void> {
     if (!dbDSS) return;
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
-      
+
       const updateData: any = { ausente, status };
-      if (originalDeptId !== undefined) updateData.originalDeptId = originalDeptId;
-      if (originalSupportGroupIndex !== undefined) updateData.originalSupportGroupIndex = originalSupportGroupIndex;
-      if (originalSupportRole !== undefined) updateData.originalSupportRole = originalSupportRole;
-      
+      if (localOriginal !== undefined) updateData.localOriginal = localOriginal;
+      if (originalSupportGroupIndex !== undefined)
+        updateData.originalSupportGroupIndex = originalSupportGroupIndex;
+      if (originalSupportRole !== undefined)
+        updateData.originalSupportRole = originalSupportRole;
+
       await updateDoc(docRef, updateData);
     } catch (e) {
       console.error("Erro ao atualizar status de ausência no DSS:", e);

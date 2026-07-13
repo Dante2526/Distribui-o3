@@ -100,7 +100,7 @@ export type Employee = {
   line: string;
   machine: string;
   error?: boolean;
-  originalDeptId?: string;
+  localOriginal?: string;
   originalSupportGroupIndex?: number;
   originalSupportRole?: string;
   tagType?: "MAQUINISTA" | "OOF";
@@ -134,7 +134,7 @@ export type AnnotationItem = {
   name: string;
   status: string;
   matricula?: string;
-  originalDeptId?: string;
+  localOriginal?: string;
 };
 
 export type AnnotationGroup = {

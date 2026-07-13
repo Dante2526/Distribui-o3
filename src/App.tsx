@@ -1613,7 +1613,7 @@ function AppContent() {
         line: activeItem.line || "",
         machine: activeItem.machine || "",
         tagType: isOriginallyApoio ? "OOF" : "MAQUINISTA",
-        originalDeptId: isOriginallyApoio
+        localOriginal: isOriginallyApoio
           ? undefined
           : dragSourceRef.current?.originalContainer || activeContainer,
         originalSupportGroupIndex: isOriginallyApoio
@@ -2126,7 +2126,7 @@ function AppContent() {
         ...prev,
         {
           ...movedEmployee,
-          originalDeptId: sourceDeptId,
+          localOriginal: sourceDeptId,
           tagType: "MAQUINISTA",
         },
       ]);
@@ -3047,7 +3047,7 @@ function AppContent() {
               name: empName,
               status: absenceType,
               matricula: empMatricula,
-              originalDeptId: deptId,
+              localOriginal: deptId,
             };
           } else {
             items.push({
@@ -3055,7 +3055,7 @@ function AppContent() {
               name: empName,
               status: absenceType,
               matricula: empMatricula,
-              originalDeptId: deptId,
+              localOriginal: deptId,
             });
           }
           newGroups[targetLeftGroupIndex] = { ...group, items };
@@ -3082,7 +3082,7 @@ function AppContent() {
               name: empName,
               status: absenceType,
               matricula: empMatricula,
-              originalDeptId: deptId,
+              localOriginal: deptId,
             };
           } else {
             items.push({
@@ -3090,7 +3090,7 @@ function AppContent() {
               name: empName,
               status: absenceType,
               matricula: empMatricula,
-              originalDeptId: deptId,
+              localOriginal: deptId,
             });
           }
           newGroups[targetRightGroupIndex] = { ...group, items };
@@ -3166,7 +3166,7 @@ function AppContent() {
             name: empName,
             status: absenceType,
             matricula: empMatricula,
-            originalDeptId: undefined,
+            localOriginal: undefined,
             originalSupportGroupIndex,
             originalSupportRole,
           };
@@ -3195,7 +3195,7 @@ function AppContent() {
             name: empName,
             status: absenceType,
             matricula: empMatricula,
-            originalDeptId: undefined,
+            localOriginal: undefined,
             originalSupportGroupIndex,
             originalSupportRole,
           };
@@ -3218,7 +3218,7 @@ function AppContent() {
       if (
         !item ||
         !item.name.trim() ||
-        (!item.originalDeptId &&
+        (!item.localOriginal &&
           (item as any).originalSupportGroupIndex === undefined)
       )
         return;
@@ -3264,9 +3264,9 @@ function AppContent() {
           });
           return newSupport;
         });
-      } else if (item.originalDeptId) {
-        let deptName = item.originalDeptId;
-        const dept = departmentsData?.find((d) => d.id === item.originalDeptId);
+      } else if (item.localOriginal) {
+        let deptName = item.localOriginal;
+        const dept = departmentsData?.find((d) => d.id === item.localOriginal);
         if (dept) deptName = dept.title;
 
         logMovement(
@@ -3286,7 +3286,7 @@ function AppContent() {
         setDepartmentsData((prev) => {
           const newDepts = [...prev];
           const targetDeptIdx = newDepts.findIndex(
-            (d) => d.id === item.originalDeptId,
+            (d) => d.id === item.localOriginal,
           );
           if (targetDeptIdx === -1) return prev;
           if (

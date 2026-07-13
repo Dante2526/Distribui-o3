@@ -118,7 +118,9 @@ export function useDragAndDrop({
         } else {
           if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
             aType = "special";
-            aItem = specialShiftDataRef.current.find((e) => e.id === activeIdVal);
+            aItem = specialShiftDataRef.current.find(
+              (e) => e.id === activeIdVal,
+            );
           }
         }
       }
@@ -162,7 +164,9 @@ export function useDragAndDrop({
       }
 
       if (!sourceContainer) {
-        activeIdx = specialShiftDataRef.current.findIndex((e) => e.id === activeIdVal);
+        activeIdx = specialShiftDataRef.current.findIndex(
+          (e) => e.id === activeIdVal,
+        );
         if (activeIdx !== -1) {
           sourceContainer = "special-shift";
           sourceType = "special";
@@ -365,9 +369,15 @@ export function useDragAndDrop({
           setDepartmentsData((prev) =>
             prev.map((d) => {
               if (d.id === activeContainer) {
-                const currActiveIdx = d.data.findIndex((e) => e.id === activeId);
+                const currActiveIdx = d.data.findIndex(
+                  (e) => e.id === activeId,
+                );
                 const currOverIdx = d.data.findIndex((e) => e.id === overId);
-                if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
+                if (
+                  currActiveIdx !== -1 &&
+                  currOverIdx !== -1 &&
+                  currActiveIdx !== currOverIdx
+                ) {
                   return {
                     ...d,
                     data: arrayMove(d.data, currActiveIdx, currOverIdx),
@@ -382,23 +392,31 @@ export function useDragAndDrop({
             activeContainer.replace("support-group-", ""),
             10,
           );
-            setSupportRolesData((prev) =>
-              prev.map((g, idx) => {
-                if (idx === groupIdx) {
-                  const currActiveIdx = g.findIndex((e) => e.id === activeId);
-                  const currOverIdx = g.findIndex((e) => e.id === overId);
-                  if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
-                    return arrayMove(g, currActiveIdx, currOverIdx);
-                  }
+          setSupportRolesData((prev) =>
+            prev.map((g, idx) => {
+              if (idx === groupIdx) {
+                const currActiveIdx = g.findIndex((e) => e.id === activeId);
+                const currOverIdx = g.findIndex((e) => e.id === overId);
+                if (
+                  currActiveIdx !== -1 &&
+                  currOverIdx !== -1 &&
+                  currActiveIdx !== currOverIdx
+                ) {
+                  return arrayMove(g, currActiveIdx, currOverIdx);
                 }
-                return g;
-              }),
-            );
+              }
+              return g;
+            }),
+          );
         } else if (activeType === "special") {
           setSpecialShiftData((prev) => {
             const currActiveIdx = prev.findIndex((e) => e.id === activeId);
             const currOverIdx = prev.findIndex((e) => e.id === overId);
-            if (currActiveIdx !== -1 && currOverIdx !== -1 && currActiveIdx !== currOverIdx) {
+            if (
+              currActiveIdx !== -1 &&
+              currOverIdx !== -1 &&
+              currActiveIdx !== currOverIdx
+            ) {
               return arrayMove(prev, currActiveIdx, currOverIdx);
             }
             return prev;
@@ -640,7 +658,7 @@ export function useDragAndDrop({
           line: activeItem.line || "",
           machine: activeItem.machine || "",
           tagType: isOriginallyApoio ? "OOF" : "MAQUINISTA",
-          originalDeptId: isOriginallyApoio
+          localOriginal: isOriginallyApoio
             ? undefined
             : dragSourceRef.current?.originalContainer || activeContainer,
           originalSupportGroupIndex: isOriginallyApoio
@@ -761,10 +779,10 @@ export function useDragAndDrop({
       const overId = over.id as string;
       let selfDropTargetLocal: string | null = null;
       if (activeIdVal === overId) {
-        // Verifica se a coluna realmente não mudou. 
+        // Verifica se a coluna realmente não mudou.
         // O handleDragOver pode já ter movido o item otimisticamente.
         let currentLocal = "";
-        
+
         // Descobre onde o cartão está *agora* (pós-dragOver otimista) e em qual índice
         let currentIndex = -1;
         for (const dept of departmentsDataRef.current) {
@@ -776,7 +794,9 @@ export function useDragAndDrop({
         }
         if (!currentLocal) {
           for (let i = 0; i < supportRolesDataRef.current.length; i++) {
-            currentIndex = supportRolesDataRef.current[i].findIndex((e) => e.id === activeIdVal);
+            currentIndex = supportRolesDataRef.current[i].findIndex(
+              (e) => e.id === activeIdVal,
+            );
             if (currentIndex !== -1) {
               currentLocal = `support-group-${i}`;
               break;
@@ -784,7 +804,9 @@ export function useDragAndDrop({
           }
         }
         if (!currentLocal) {
-          currentIndex = specialShiftDataRef.current.findIndex((e) => e.id === activeIdVal);
+          currentIndex = specialShiftDataRef.current.findIndex(
+            (e) => e.id === activeIdVal,
+          );
           if (currentIndex !== -1) {
             currentLocal = "special-shift";
           }

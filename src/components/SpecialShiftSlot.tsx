@@ -62,8 +62,16 @@ export const SpecialShiftSlot = React.memo(
       ...(activeEdit
         ? { outline: `2.5px solid ${activeEdit.color}`, outlineOffset: "1.5px" }
         : {}),
-      ...(isDragging && !isDragOverlay ? { zIndex: 50, position: "relative" } : {}),
-      ...(isDragOverlay ? { zIndex: 1000, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)" } : {}),
+      ...(isDragging && !isDragOverlay
+        ? { zIndex: 50, position: "relative" }
+        : {}),
+      ...(isDragOverlay
+        ? {
+            zIndex: 1000,
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)",
+          }
+        : {}),
     };
 
     const [showOofMenu, setShowOofMenu] = useState(false);
@@ -194,7 +202,7 @@ export const SpecialShiftSlot = React.memo(
               onClick={(e) => {
                 if (!isAdmin) return;
                 e.stopPropagation();
-                handleTransferLocal(emp.originalDeptId || "recepcao");
+                handleTransferLocal(emp.localOriginal || "recepcao");
               }}
               className="h-[24px] px-1.5 font-bold text-white bg-gradient-to-r from-[#0052B3] to-[#003D8A] rounded shadow-sm transition-all duration-300 text-[9px] whitespace-nowrap hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
             >
