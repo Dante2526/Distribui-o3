@@ -3064,9 +3064,10 @@ function AppContent() {
           newGroups[targetRightGroupIndex] = { ...group, items };
           return newGroups;
         });
+        });
       }
     },
-    [],
+    [departmentsData, selectedTurma, logMovement],
   );
 
   const handleMarkSupportAbsent = useCallback(
@@ -3164,9 +3165,10 @@ function AppContent() {
           newGroups[targetRightGroupIndex] = { ...g, items };
           return newGroups;
         });
+        });
       }
     },
-    [],
+    [supportRolesData, selectedTurma, logMovement],
   );
 
   const handleReturnFromAnnotation = useCallback(
@@ -3286,7 +3288,7 @@ function AppContent() {
         });
       }
     },
-    [logMovement],
+    [selectedTurma, departmentsData, logMovement],
   );
 
   const handleReturnFromAnnotationLeft = useCallback(
