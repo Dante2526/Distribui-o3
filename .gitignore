@@ -13,3 +13,7 @@ docs/superpowers/
 # Agentes
 .agents/
 .worktrees/
+
+# Playwright
+playwright-report/
+test-results/
