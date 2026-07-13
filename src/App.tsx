@@ -322,11 +322,11 @@ function AppContent() {
     if (isDemoMode || !selectedTurma || !isTabVisible) return;
 
     if (isMock) {
-      const mockEmployees: Employee[] = [
-        { id: "emp-dept-1", name: "NAYLAN MOREIRA", matricula: "81025193", local: "Recepcao", tagType: "MAQUINISTA" },
-        { id: "emp-dept-2", name: "LUCAS SILVA", matricula: "12345678", local: "Classificacao", tagType: "MAQUINISTA" },
-        { id: "emp-dept-3", name: "MARIA SOUSA", matricula: "87654321", local: "Formacao", tagType: "MAQUINISTA" },
-      ];
+      const mockEmployees = [
+        { id: "emp-dept-1", name: "NAYLAN MOREIRA", matricula: "81025193", local: "Recepcao", tagType: "MAQUINISTA", line: "", machine: "" },
+        { id: "emp-dept-2", name: "LUCAS SILVA", matricula: "12345678", local: "Classificacao", tagType: "MAQUINISTA", line: "", machine: "" },
+        { id: "emp-dept-3", name: "MARIA SOUSA", matricula: "87654321", local: "Formacao", tagType: "MAQUINISTA", line: "", machine: "" },
+      ] as Employee[];
       dssEmployeesRef.current = mockEmployees;
 
       const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map(
