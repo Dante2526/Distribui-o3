@@ -775,19 +775,49 @@ export function useDragAndDrop({
 
       const overId = over.id as string;
       if (activeIdVal === overId) {
-        if (clonedDepartmentsRef.current)
-          setDepartmentsData(clonedDepartmentsRef.current);
-        if (clonedSupportRef.current)
-          setSupportRolesData(clonedSupportRef.current);
-        if (clonedSpecialShiftRef.current)
-          setSpecialShiftData(clonedSpecialShiftRef.current);
+        // Verifica se a coluna realmente não mudou. 
+        // O handleDragOver pode já ter movido o item otimisticamente.
+        let currentLocal = "";
+        
+        // Descobre onde o cartão está *agora* (pós-dragOver otimista)
+        for (const dept of departmentsDataRef.current) {
+          if (dept.data.some((e) => e.id === activeIdVal)) {
+            currentLocal = dept.id;
+            break;
+          }
+        }
+        if (!currentLocal) {
+          for (let i = 0; i < supportRolesDataRef.current.length; i++) {
+            if (supportRolesDataRef.current[i].some((e) => e.id === activeIdVal)) {
+              currentLocal = `support-group-${i}`;
+              break;
+            }
+          }
+        }
+        if (!currentLocal) {
+          if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+            currentLocal = "special-shift";
+          }
+        }
 
-        setActiveId(null);
-        activeIdRef.current = null;
-        setActiveSupportId(null);
-        setOverId(null);
-        dragSourceRef.current = null;
-        return;
+        const originalLocal = dragSourceRef.current?.originalContainer;
+
+        // Se a coluna for diferente da original, não é no-op, então DEIXA PASSAR!
+        if (currentLocal === originalLocal) {
+          if (clonedDepartmentsRef.current)
+            setDepartmentsData(clonedDepartmentsRef.current);
+          if (clonedSupportRef.current)
+            setSupportRolesData(clonedSupportRef.current);
+          if (clonedSpecialShiftRef.current)
+            setSpecialShiftData(clonedSpecialShiftRef.current);
+
+          setActiveId(null);
+          activeIdRef.current = null;
+          setActiveSupportId(null);
+          setOverId(null);
+          dragSourceRef.current = null;
+          return;
+        }
       }
 
       // Identificar a origem (para logging se necessário)
