@@ -774,6 +774,7 @@ export function useDragAndDrop({
       }
 
       const overId = over.id as string;
+      let selfDropTargetLocal: string | null = null;
       if (activeIdVal === overId) {
         // Verifica se a coluna realmente não mudou. 
         // O handleDragOver pode já ter movido o item otimisticamente.
@@ -818,6 +819,10 @@ export function useDragAndDrop({
           dragSourceRef.current = null;
           return;
         }
+
+        // NÃO é no-op: guarda o destino real já sabido, pra não deixar
+        // o overId (que é o próprio active.id) confundir o mapeamento abaixo
+        selfDropTargetLocal = currentLocal; // ex: "classificacao", "formacao", "support-group-1", "special-shift"
       }
 
       // Identificar a origem (para logging se necessário)
@@ -835,7 +840,26 @@ export function useDragAndDrop({
       let newRole = "";
 
       // Mapear destinos
-      if (overId === "recepcao") {
+      if (selfDropTargetLocal) {
+        if (selfDropTargetLocal === "recepcao") {
+          newLocal = "Recepcao";
+          newRole = "MAQUINISTA";
+        } else if (selfDropTargetLocal === "classificacao") {
+          newLocal = "Classificacao";
+          newRole = "MAQUINISTA";
+        } else if (selfDropTargetLocal === "formacao") {
+          newLocal = "Formacao";
+          newRole = "MAQUINISTA";
+        } else if (selfDropTargetLocal === "special-shift") {
+          newLocal = "Turno 6H";
+          newRole = "MAQUINISTA";
+        } else if (selfDropTargetLocal.startsWith("support-group-")) {
+          const idx = parseInt(selfDropTargetLocal.split("-")[2], 10);
+          const names = ["Recepcao", "Classificacao", "Formacao"];
+          newLocal = `Apoio ${names[idx] || idx}`;
+          newRole = "OOF";
+        }
+      } else if (overId === "recepcao") {
         newLocal = "Recepcao";
         newRole = "MAQUINISTA";
       } else if (overId === "classificacao") {
