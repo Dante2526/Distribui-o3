@@ -257,13 +257,10 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo de Colisão a pedido do usuário: deve seguir RIGOROSAMENTE onde o ponteiro do mouse/dedo está.
-  const customCollisionDetection = useCallback((args: any) => {
-    const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) return pointerCollisions;
-    // Fallback caso o mouse seja solto exatamente no vão livre (gap) entre duas colunas
-    return rectIntersection(args);
-  }, []);
+  // Algoritmo de Colisão:
+  // closestCenter é o algoritmo mais natural para listas de arrastar e soltar.
+  // Ele garante que o item sempre caia na coluna onde a maior parte do cartão está visualmente.
+  const customCollisionDetection = closestCenter;
 
   // Configurações e estados do painel
 
