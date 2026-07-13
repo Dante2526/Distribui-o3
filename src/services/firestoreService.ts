@@ -171,12 +171,21 @@ export const firestoreService = {
     employeeId: string,
     ausente: boolean,
     status: string,
+    originalDeptId?: string,
+    originalSupportGroupIndex?: number,
+    originalSupportRole?: string
   ): Promise<void> {
     if (!dbDSS) return;
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
-      await updateDoc(docRef, { ausente, status });
+      
+      const updateData: any = { ausente, status };
+      if (originalDeptId !== undefined) updateData.originalDeptId = originalDeptId;
+      if (originalSupportGroupIndex !== undefined) updateData.originalSupportGroupIndex = originalSupportGroupIndex;
+      if (originalSupportRole !== undefined) updateData.originalSupportRole = originalSupportRole;
+      
+      await updateDoc(docRef, updateData);
     } catch (e) {
       console.error("Erro ao atualizar status de ausência no DSS:", e);
     }

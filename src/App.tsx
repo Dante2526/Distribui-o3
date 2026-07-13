@@ -2966,7 +2966,7 @@ function AppContent() {
       if (!empName || !empName.trim()) return;
 
       logMovement(empName, dept.title, absenceType, emp.line, empMatricula);
-      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType);
+      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType, dept.id);
 
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
@@ -3083,7 +3083,7 @@ function AppContent() {
       const supportTitles = ["Recepção", "Classificação", "Formação"];
       const groupName = `Apoio - ${supportTitles[groupIndex] || `Grupo ${groupIndex + 1}`}`;
       logMovement(empName, groupName, absenceType, undefined, empMatricula);
-      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType);
+      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType, undefined, groupIndex, emp.role);
 
       setSupportRolesData((prev) => {
         const newSupport = prev.map((g) => [...g]);
