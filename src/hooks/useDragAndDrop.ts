@@ -135,9 +135,11 @@ export function useDragAndDrop({
       let sourceContainer = "";
       let sourceType: "maquinista" | "apoio" | "special" = "maquinista";
       let sourceRole: string | undefined = undefined;
+      let activeIdx = -1;
 
       for (const dept of departmentsDataRef.current) {
-        if (dept.data.some((e) => e.id === activeIdVal)) {
+        activeIdx = dept.data.findIndex((e) => e.id === activeIdVal);
+        if (activeIdx !== -1) {
           sourceContainer = dept.id;
           sourceType = "maquinista";
           break;
@@ -146,10 +148,11 @@ export function useDragAndDrop({
 
       if (!sourceContainer) {
         for (let idx = 0; idx < supportRolesDataRef.current.length; idx++) {
-          const emp = supportRolesDataRef.current[idx].find(
+          activeIdx = supportRolesDataRef.current[idx].findIndex(
             (e) => e.id === activeIdVal,
           );
-          if (emp) {
+          if (activeIdx !== -1) {
+            const emp = supportRolesDataRef.current[idx][activeIdx];
             sourceContainer = `support-group-${idx}`;
             sourceType = "apoio";
             sourceRole = emp.role;
@@ -159,7 +162,8 @@ export function useDragAndDrop({
       }
 
       if (!sourceContainer) {
-        if (specialShiftDataRef.current.some((e) => e.id === activeIdVal)) {
+        activeIdx = specialShiftDataRef.current.findIndex((e) => e.id === activeIdVal);
+        if (activeIdx !== -1) {
           sourceContainer = "special-shift";
           sourceType = "special";
         }
