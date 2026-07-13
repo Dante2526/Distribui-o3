@@ -161,8 +161,23 @@ export const firestoreService = {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
       await updateDoc(docRef, { local, função: role });
-    } catch (e) {
       console.error("Erro ao atualizar local e funcao no DSS:", e);
+    }
+  },
+
+  async updateEmployeeAbsentDSS(
+    turma: string,
+    employeeId: string,
+    ausente: boolean,
+    status: string,
+  ): Promise<void> {
+    if (!dbDSS) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const docRef = doc(dbDSS, collectionName, employeeId);
+      await updateDoc(docRef, { ausente, status });
+    } catch (e) {
+      console.error("Erro ao atualizar status de ausência no DSS:", e);
     }
   },
 
