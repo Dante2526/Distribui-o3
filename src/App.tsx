@@ -3787,7 +3787,7 @@ function AppContent() {
 
                       <DragOverlay dropAnimation={null}>
                         {activeItem && activeType === "maquinista" ? (
-                          <div className="w-[450px]">
+                          <div className="w-[500px]">
                             <EmployeeRow
                               emp={activeItem}
                               index={0}
