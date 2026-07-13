@@ -257,10 +257,13 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo de Colisão:
-  // Como o DragOverlay foi implementado, não há mais offset visual.
-  // closestCenter é o algoritmo mais natural para listas de arrastar e soltar.
-  const customCollisionDetection = closestCenter;
+  // Algoritmo de Colisão a pedido do usuário: deve seguir RIGOROSAMENTE onde o ponteiro do mouse/dedo está.
+  const customCollisionDetection = useCallback((args: any) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    // Fallback caso o mouse seja solto exatamente no vão livre (gap) entre duas colunas
+    return rectIntersection(args);
+  }, []);
 
   // Configurações e estados do painel
 
