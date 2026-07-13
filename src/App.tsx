@@ -272,7 +272,7 @@ function AppContent() {
           c.id === "classificacao" ||
           c.id === "formacao" ||
           c.id === "special-shift" ||
-          String(c.id).startsWith("support-group-")
+          String(c.id).startsWith("support-group-"),
       );
 
       // Se o mouse está sobre um container, priorize ele! Isso resolve a coluna vazia.
@@ -352,17 +352,43 @@ function AppContent() {
 
     if (isMock) {
       const mockEmployees = [
-        { id: "emp-dept-1", name: "NAYLAN MOREIRA", matricula: "81025193", local: "Recepcao", tagType: "MAQUINISTA", line: "", machine: "" },
-        { id: "emp-dept-2", name: "LUCAS SILVA", matricula: "12345678", local: "Classificacao", tagType: "MAQUINISTA", line: "", machine: "" },
-        { id: "emp-dept-3", name: "MARIA SOUSA", matricula: "87654321", local: "Formacao", tagType: "MAQUINISTA", line: "", machine: "" },
+        {
+          id: "emp-dept-1",
+          name: "NAYLAN MOREIRA",
+          matricula: "81025193",
+          local: "Recepcao",
+          tagType: "MAQUINISTA",
+          line: "",
+          machine: "",
+        },
+        {
+          id: "emp-dept-2",
+          name: "LUCAS SILVA",
+          matricula: "12345678",
+          local: "Classificacao",
+          tagType: "MAQUINISTA",
+          line: "",
+          machine: "",
+        },
+        {
+          id: "emp-dept-3",
+          name: "MARIA SOUSA",
+          matricula: "87654321",
+          local: "Formacao",
+          tagType: "MAQUINISTA",
+          line: "",
+          machine: "",
+        },
       ] as Employee[];
       dssEmployeesRef.current = mockEmployees;
 
       const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map(
         (dept: any) => {
-          const empLocal = mockEmployees.filter((e) => e.local?.toLowerCase().includes(dept.id.toLowerCase()));
+          const empLocal = mockEmployees.filter((e) =>
+            e.local?.toLowerCase().includes(dept.id.toLowerCase()),
+          );
           return { ...dept, count: empLocal.length, data: empLocal };
-        }
+        },
       );
       setDepartmentsData(newDepts);
       setIsLoadingData(false);
@@ -2966,7 +2992,13 @@ function AppContent() {
       if (!empName || !empName.trim()) return;
 
       logMovement(empName, dept.title, absenceType, emp.line, empMatricula);
-      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType, dept.id);
+      firestoreService.updateEmployeeAbsentDSS(
+        selectedTurma,
+        emp.id,
+        true,
+        absenceType,
+        dept.id,
+      );
 
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
@@ -3064,7 +3096,6 @@ function AppContent() {
           newGroups[targetRightGroupIndex] = { ...group, items };
           return newGroups;
         });
-        });
       }
     },
     [departmentsData, selectedTurma, logMovement],
@@ -3084,7 +3115,15 @@ function AppContent() {
       const supportTitles = ["Recepção", "Classificação", "Formação"];
       const groupName = `Apoio - ${supportTitles[groupIndex] || `Grupo ${groupIndex + 1}`}`;
       logMovement(empName, groupName, absenceType, undefined, empMatricula);
-      firestoreService.updateEmployeeAbsentDSS(selectedTurma, emp.id, true, absenceType, undefined, groupIndex, emp.role);
+      firestoreService.updateEmployeeAbsentDSS(
+        selectedTurma,
+        emp.id,
+        true,
+        absenceType,
+        undefined,
+        groupIndex,
+        emp.role,
+      );
 
       setSupportRolesData((prev) => {
         const newSupport = prev.map((g) => [...g]);
@@ -3165,7 +3204,6 @@ function AppContent() {
           newGroups[targetRightGroupIndex] = { ...g, items };
           return newGroups;
         });
-        });
       }
     },
     [supportRolesData, selectedTurma, logMovement],
@@ -3198,7 +3236,12 @@ function AppContent() {
           undefined,
           item.matricula,
         );
-        firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, false, "");
+        firestoreService.updateEmployeeAbsentDSS(
+          selectedTurma,
+          item.id,
+          false,
+          "",
+        );
 
         setSupportRolesData((prev) => {
           const newSupport = prev.map((group) => [...group]);
@@ -3233,7 +3276,12 @@ function AppContent() {
           undefined,
           item.matricula,
         );
-        firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, false, "");
+        firestoreService.updateEmployeeAbsentDSS(
+          selectedTurma,
+          item.id,
+          false,
+          "",
+        );
 
         setDepartmentsData((prev) => {
           const newDepts = [...prev];
@@ -3829,7 +3877,11 @@ function AppContent() {
                             <EmployeeRow
                               emp={activeItem}
                               index={0}
-                              department={departmentsData.find((d) => d.data.some((e) => e.id === activeItem.id)) || departmentsData[0]}
+                              department={
+                                departmentsData.find((d) =>
+                                  d.data.some((e) => e.id === activeItem.id),
+                                ) || departmentsData[0]
+                              }
                               departmentOptions={departmentOptions}
                               onMove={() => {}}
                               onUpdateEmployee={() => {}}
