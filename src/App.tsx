@@ -289,8 +289,7 @@ function AppContent() {
 
     if (pointerCollisions.length > 0) {
       // Se o mouse estiver tocando em qualquer área (containers ou cards),
-      // não retornamos a lista cega (que prioriza ordem do DOM e causa o bug do Turno 6H).
-      // Filtramos os droppables apenas para os que o mouse toca, e usamos closestCenter para desempatar matematicamente.
+      // filtramos os droppables apenas para os que o mouse toca, e usamos closestCenter para desempatar matematicamente.
       return closestCenter({
         ...args,
         droppableContainers: args.droppableContainers.filter((container: any) =>
@@ -299,10 +298,20 @@ function AppContent() {
       });
     }
 
-    // 2. Se o mouse estiver num gap (espaço vazio fora de áreas droppable),
-    // usamos closestCenter globalmente em vez de rectIntersection, evitando que
-    // a ponta do card esbarre no Turno 6H e roube a colisão.
-    return closestCenter(args);
+    // 2. Fallback: Se o mouse estiver num gap (espaço vazio fora de áreas droppable),
+    // o closestCenter padrão tende a puxar o card para o Turno 6H. Isso ocorre pelo "viés vertical":
+    // o centro das colunas (que são altas) fica lá embaixo, enquanto o centro do Turno 6H fica
+    // no topo (perto de onde o card está sendo arrastado).
+    // Correção: Removemos o Turno 6H e seus cards da avaliação de fallback! Ele só poderá ser
+    // focado se o ponteiro do mouse entrar fisicamente nele (acionando o if acima).
+    return closestCenter({
+      ...args,
+      droppableContainers: args.droppableContainers.filter(
+        (container: any) =>
+          container.id !== "special-shift" &&
+          container.data?.current?.type !== "special",
+      ),
+    });
   }, []);
 
   // Configurações e estados do painel
