@@ -1,8 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Department } from "../types";
 
-export const generateDailyReportPDF = (departmentsData: Department[]) => {
+export const generateDailyReportPDF = async (departmentsData: Department[]) => {
+  const jsPDF = (await import("jspdf")).default;
+  const autoTable = (await import("jspdf-autotable")).default;
+
   // Configurando uma página longa (210mm x 1200mm) para não haver quebra de página (um PDF "grandão")
   const doc = new jsPDF({
     orientation: "portrait",

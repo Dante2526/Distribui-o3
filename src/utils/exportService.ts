@@ -1,6 +1,4 @@
-import * as htmlToImage from "html-to-image";
-import { jsPDF } from "jspdf";
-import * as XLSX from "xlsx";
+import type * as XLSXTypes from "xlsx";
 import { yieldToMain } from "./asyncHelpers";
 
 export interface PdfReportData {
@@ -19,6 +17,7 @@ export interface PdfReportData {
 }
 export const exportToPng = async (elementId: string, filename: string) => {
   try {
+    const htmlToImage = await import("html-to-image");
     const element = document.getElementById(elementId);
     if (!element) throw new Error("Element not found");
 
@@ -53,6 +52,7 @@ export const exportToPng = async (elementId: string, filename: string) => {
 };
 
 export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
+  const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -262,6 +262,9 @@ export const exportToPdf = async (
       typeof _elementIdOrData === "object" ? _elementIdOrData : reportData;
 
     if (!data) {
+      const htmlToImage = await import("html-to-image");
+      const { jsPDF } = await import("jspdf");
+
       const element = document.getElementById(_elementIdOrData as string);
       if (!element) throw new Error("Element not found");
       const dataUrl = await htmlToImage.toPng(element, {
@@ -273,6 +276,9 @@ export const exportToPdf = async (
         width: element.offsetWidth,
         height: element.offsetHeight,
       };
+
+      await yieldToMain();
+
       const pdf = new jsPDF({
         orientation: imgProps.width > imgProps.height ? "l" : "p",
         unit: "px",
@@ -320,7 +326,10 @@ export const exportToDoc = (text: string, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const createSheetForReport = (data: PdfReportData): XLSX.WorkSheet => {
+const createSheetForReport = (
+  XLSX: typeof XLSXTypes,
+  data: PdfReportData,
+): XLSXTypes.WorkSheet => {
   const rows: any[][] = [];
 
   // 1. Cabeçalho Principal
@@ -426,10 +435,11 @@ const createSheetForReport = (data: PdfReportData): XLSX.WorkSheet => {
 };
 
 export const generateExcelBlob = async (
-  dataOrArray: PdfReportData | Array<any>,
-  onProgress?: (current: number) => void
+  dataOrArray: PdfReportData | any[] | PdfReportData[],
+  onProgress?: (current: number) => void,
 ): Promise<Blob> => {
   try {
+    const XLSX = await import("xlsx");
     const wb = XLSX.utils.book_new();
 
     const isPdfReportDataArray =
@@ -443,7 +453,7 @@ export const generateExcelBlob = async (
       const reports = dataOrArray as PdfReportData[];
       for (let index = 0; index < reports.length; index++) {
         const data = reports[index];
-        const ws = createSheetForReport(data);
+        const ws = createSheetForReport(XLSX, data);
         let safeDate = (data.dataFormatada || "")
           .replace(/\//g, "-")
           .substring(0, 10);
@@ -452,14 +462,14 @@ export const generateExcelBlob = async (
           sheetName = `${sheetName.substring(0, 27)}_${index}`;
         }
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        
+
         // Pausa para renderização a cada sheet gerada
         await yieldToMain();
         if (onProgress) onProgress(index + 1);
       }
     } else if (!Array.isArray(dataOrArray)) {
       const data = dataOrArray as PdfReportData;
-      const ws = createSheetForReport(data);
+      const ws = createSheetForReport(XLSX, data);
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
     } else {
       // Fallback para o modo antigo (array de objetos)

@@ -47,7 +47,6 @@ import {
 } from "../../utils/exportService";
 import { yieldToMain } from "../../utils/asyncHelpers";
 import { SearchIcon } from "./icons";
-import { jsPDF } from "jspdf";
 import ExportDropdown from "./ExportDropdown";
 
 // Cores do status compacto
@@ -256,7 +255,10 @@ const HistoryModal: React.FC<{
   const [isSearching, setIsSearching] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isExportingZip, setIsExportingZip] = useState(false);
-  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
+  const [exportProgress, setExportProgress] = useState({
+    current: 0,
+    total: 0,
+  });
   const [selectedRecordsToExport, setSelectedRecordsToExport] = useState<
     string[]
   >([]);
@@ -566,7 +568,7 @@ const HistoryModal: React.FC<{
       if (format === "EXCEL" && recordsToDownload.length > 1) {
         setExportProgress({ current: 0, total: recordsToDownload.length });
         await yieldToMain();
-        
+
         const pdfDataList: PdfReportData[] = recordsToDownload.map((rec) => ({
           turma: rec.turma,
           dataFormatada: rec.data,
@@ -581,11 +583,11 @@ const HistoryModal: React.FC<{
           mainShiftLabel: rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
           shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
         }));
-        
+
         const blob = await generateExcelBlob(pdfDataList, (current) => {
           setExportProgress((prev) => ({ ...prev, current }));
         });
-        
+
         const safeSearchTerm = searchTerm
           .replace(/[^a-zA-Z0-9]/g, "_")
           .substring(0, 20);
@@ -610,7 +612,7 @@ const HistoryModal: React.FC<{
       for (let i = 0; i < recordsToDownload.length; i++) {
         const rec = recordsToDownload[i];
         await yieldToMain();
-        
+
         const dataStr = (rec.data || rec.dataISO || "data").replace(/\//g, "-");
         const baseName = `historico-${rec.turma}-${dataStr}`;
 
@@ -636,7 +638,8 @@ const HistoryModal: React.FC<{
             totalAusentes: rec.totalAusentes,
             totalMal: rec.totalMal,
             totalPendentes: rec.totalPendentes,
-            mainShiftLabel: rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
+            mainShiftLabel:
+              rec.turma === "C" || rec.turma === "D" ? "19H" : "7H",
             shiftLabel: rec.turma === "C" || rec.turma === "D" ? "18H" : "6H",
           };
 
@@ -648,7 +651,7 @@ const HistoryModal: React.FC<{
             filesToZip.push({ name: `${baseName}.xlsx`, content });
           }
         }
-        
+
         setExportProgress({ current: i + 1, total: recordsToDownload.length });
       }
 
@@ -883,11 +886,15 @@ const HistoryModal: React.FC<{
                           : selectedRecordsToExport.length > 0
                             ? `BAIXAR ${selectedRecordsToExport.length} SELECIONADOS`
                             : "BAIXAR TODOS"}
-                        
+
                         {/* Barra de progresso absoluta dentro do botão */}
                         {isExportingZip && exportProgress.total > 0 && (
-                          <div className="absolute bottom-0 left-0 h-1 bg-indigo-500 transition-all duration-300 rounded-b-lg" 
-                               style={{ width: `${Math.max(5, (exportProgress.current / exportProgress.total) * 100)}%` }} />
+                          <div
+                            className="absolute bottom-0 left-0 h-1 bg-indigo-500 transition-all duration-300 rounded-b-lg"
+                            style={{
+                              width: `${Math.max(5, (exportProgress.current / exportProgress.total) * 100)}%`,
+                            }}
+                          />
                         )}
                       </button>
 
