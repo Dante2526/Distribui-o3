@@ -282,45 +282,26 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // Algoritmo de Colisão customizado:
-  // Previne o bug de "voltar pra trás" ao soltar no topo de uma coluna vazia
-  // (onde o closestCenter achava que um item da coluna vizinha estava mais perto do que o centro da coluna vazia).
+  // Algoritmo de Colisão customizado e robusto
   const customCollisionDetection = useCallback((args: any) => {
     // 1. Onde está o mouse de fato?
     const pointerCollisions = pointerWithin(args);
 
     if (pointerCollisions.length > 0) {
-      // Se achou itens sob o mouse, vê se algum é um container principal
-      const containerCollisions = pointerCollisions.filter(
-        (c) =>
-          c.id === "recepcao" ||
-          c.id === "classificacao" ||
-          c.id === "formacao" ||
-          c.id === "special-shift" ||
-          String(c.id).startsWith("support-group-"),
-      );
-      // Se o mouse está sobre um container, priorize ele! Isso resolve a coluna vazia.
-      if (containerCollisions.length > 0) {
-        // Resolve a colisão entre múltiplos containers (ex: special-shift vs classificacao)
-        // pegando apenas os containers que o mouse está tocando e ordenando pelo centro mais próximo.
-        return closestCenter({
-          ...args,
-          droppableContainers: args.droppableContainers.filter(
-            (container: any) =>
-              pointerCollisions.some((c: any) => c.id === container.id),
-          ),
-        });
-      }
-      return pointerCollisions;
+      // Se o mouse estiver tocando em qualquer área (containers ou cards),
+      // não retornamos a lista cega (que prioriza ordem do DOM e causa o bug do Turno 6H).
+      // Filtramos os droppables apenas para os que o mouse toca, e usamos closestCenter para desempatar matematicamente.
+      return closestCenter({
+        ...args,
+        droppableContainers: args.droppableContainers.filter((container: any) =>
+          pointerCollisions.some((c: any) => c.id === container.id),
+        ),
+      });
     }
 
-    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa a interseção do cartão fantasma
-    const rectCollisions = rectIntersection(args);
-    if (rectCollisions.length > 0) {
-      return rectCollisions;
-    }
-
-    // 3. Fallback absoluto
+    // 2. Se o mouse estiver num gap (espaço vazio fora de áreas droppable),
+    // usamos closestCenter globalmente em vez de rectIntersection, evitando que
+    // a ponta do card esbarre no Turno 6H e roube a colisão.
     return closestCenter(args);
   }, []);
 
