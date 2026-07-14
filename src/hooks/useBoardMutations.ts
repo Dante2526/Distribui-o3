@@ -95,7 +95,7 @@ export function useBoardMutations({
     const totalTurno6H = specialShiftData.filter(
       (emp) => emp.name.trim() !== "",
     ).length;
-    const totalFuncionarios = totalMaquinistas + totalApoio + totalTurno6H;
+    const totalFuncionários = totalMaquinistas + totalApoio + totalTurno6H;
 
     const todasAnotacoes = [
       ...annotationsLeft.flatMap((g) => g.items),
@@ -115,7 +115,7 @@ export function useBoardMutations({
     ).length;
 
     let report = `RESUMO GERAL - DISTRIBUIÇÃO DE EQUIPES\n`;
-    report += `• Total de Funcionários Ativos: ${totalFuncionarios}\n`;
+    report += `• Total de Funcionários Ativos: ${totalFuncionários}\n`;
     report += `• Maquinistas: ${totalMaquinistas}\n`;
     report += `• Apoio: ${totalApoio}\n`;
     report += `• Turno 6H: ${totalTurno6H}\n\n`;
@@ -123,24 +123,24 @@ export function useBoardMutations({
     report += `• Férias: ${totalFerias}\n`;
     report += `• Fora: ${totalFora}\n`;
     report += `• ATM: ${totalATM}\n`;
-    report += `• Restrição: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("RESTRI") || (item.status || "").toUpperCase().includes("RESTRICAO")).length}\n`;
-    report += `• Estágio: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("ESTÁGIO") || (item.status || "").toUpperCase().includes("ESTAGIO")).length}\n`;
+    report += `• Restrição: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("RESTRIÇÃO") || (item.status || "").toUpperCase().includes("RESTRICAO")).length}\n`;
+    report += `• Estágio: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("ESTÃGIO") || (item.status || "").toUpperCase().includes("ESTAGIO")).length}\n`;
     report += `• INSS: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase() === "INSS").length}\n`;
     report += `• Treinamento: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("TREINA")).length}\n`;
     report += `• Revezamento: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("REVEZA")).length}\n\n`;
     report += `\n--- COLABORADORES POR SETOR ---\n`;
     departmentsData.forEach((d) => {
-      let icon = "🟢";
+      let icon = "ðŸŸ¢";
       if (
         d.id.toLowerCase() === "classificacao" ||
         d.id.toLowerCase() === "classificação"
       )
-        icon = "🟡";
+        icon = "ðŸŸ¡";
       if (
         d.id.toLowerCase() === "formacao" ||
         d.id.toLowerCase() === "formação"
       )
-        icon = "🔵";
+        icon = "ðŸ”µ";
       report += `\n[${d.title.toUpperCase()}] (${d.count} COLAB.)\n`;
       d.data.forEach((e) => {
         if (e.name.trim())
@@ -154,7 +154,7 @@ export function useBoardMutations({
       if (activeGroup.length > 0) {
         report += `\n[GRUPO DE APOIO ${idx + 1}]\n`;
         activeGroup.forEach((e) => {
-          report += `🟣 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"})\n\n`;
+          report += `ðŸŸ£ ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"})\n\n`;
         });
       }
     });
@@ -163,7 +163,7 @@ export function useBoardMutations({
     if (activeSpecial.length > 0) {
       report += `\n--- TURNO 6H ---\n`;
       activeSpecial.forEach((e) => {
-        report += `🟠 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
+        report += `ðŸŸ  ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
       });
     }
 
@@ -180,7 +180,7 @@ export function useBoardMutations({
 
     setReportContent(report);
     setReportStats({
-      presentes: totalFuncionarios,
+      presentes: totalFuncionários,
       afastados: todasAnotacoes.length,
       afastadosList: todasAnotacoes.map((a) => a.name),
       ausentes: todasAnotacoes.filter((item) => {
@@ -190,23 +190,23 @@ export function useBoardMutations({
           s.includes("FERIA") ||
           s === "FORA" ||
           s.includes("ATM") ||
-          s.includes("RESTRI") ||
+          s.includes("RESTRIÇÃO") ||
           s.includes("RESTRICAO") ||
           s === "INSS"
         );
       }).length,
-      ativos: totalFuncionarios,
+      ativos: totalFuncionários,
       ferias: totalFerias,
       fora: totalFora,
       atm: totalATM,
       restricao: todasAnotacoes.filter(
         (item) =>
-          (item.status || "").toUpperCase().includes("RESTRI") ||
+          (item.status || "").toUpperCase().includes("RESTRIÇÃO") ||
           (item.status || "").toUpperCase().includes("RESTRICAO"),
       ).length,
       estagio: todasAnotacoes.filter(
         (item) =>
-          (item.status || "").toUpperCase().includes("ESTÁGIO") ||
+          (item.status || "").toUpperCase().includes("ESTÃGIO") ||
           (item.status || "").toUpperCase().includes("ESTAGIO"),
       ).length,
       inss: todasAnotacoes.filter(
@@ -843,7 +843,7 @@ export function useBoardMutations({
       else if (absenceType === "INSS") targetRightGroupIndex = 2;
       else if (absenceType === "TREINAMENTO" || absenceType === "REVEZAMENTO")
         targetLeftGroupIndex = 0;
-      else if (absenceType === "ESTÁGIO") targetRightGroupIndex = 0;
+      else if (absenceType === "ESTÃGIO") targetRightGroupIndex = 0;
 
       if (targetLeftGroupIndex !== -1) {
         setAnnotationsLeft((prev) => {
@@ -960,7 +960,7 @@ export function useBoardMutations({
       else if (absenceType === "INSS") targetRightGroupIndex = 2;
       else if (absenceType === "TREINAMENTO" || absenceType === "REVEZAMENTO")
         targetLeftGroupIndex = 0;
-      else if (absenceType === "ESTÁGIO") targetRightGroupIndex = 0;
+      else if (absenceType === "ESTÃGIO") targetRightGroupIndex = 0;
 
       const originalSupportGroupIndex = groupIndex;
       const originalSupportRole = emp.role;
