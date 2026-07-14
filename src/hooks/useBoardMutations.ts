@@ -487,7 +487,7 @@ export function useBoardMutations({
           firestoreService.updateEmployeeFieldDSS(
             selectedTurma,
             oldEmp.id,
-            "função",
+            "funcaoApoio",
             newRole,
           );
         }

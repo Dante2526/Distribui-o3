@@ -53,7 +53,12 @@ export const firestoreService = {
             id: doc.id,
             name: data.name || "",
             matricula: data.matricula || "",
-            tagType: data.tagType || "N/A",
+            tagType:
+              data["função"] ||
+              data.funcao ||
+              data.role ||
+              data.tagType ||
+              "N/A",
             line: data.linha || data.line || "",
             machine: data.loco || data.machine || "",
             error: data.error || false,
@@ -65,7 +70,7 @@ export const firestoreService = {
             ordem: data.ordem || 0,
             local: data.local || "",
           };
-          emp._role = data["função"] || data.funcao || data.role || "";
+          emp._role = data["funcaoApoio"] || data.funcaoApoio || "";
           allEmployees.push(emp);
         });
         callback(allEmployees);
@@ -136,7 +141,7 @@ export const firestoreService = {
           line: data.linha || data.line || "",
           machine: data.loco || data.machine || "",
         };
-        emp._role = data["função"] || data.funcao || data.role || "";
+        emp._role = data["funcaoApoio"] || data.funcaoApoio || "";
         allEmployees.push(emp);
       });
 
