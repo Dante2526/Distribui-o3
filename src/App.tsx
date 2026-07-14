@@ -299,11 +299,10 @@ function AppContent() {
           c.id === "special-shift" ||
           String(c.id).startsWith("support-group-"),
       );
-
       // Se o mouse está sobre um container, priorize ele! Isso resolve a coluna vazia.
       if (containerCollisions.length > 0) {
-        // Em vez de retornar todos às cegas (o que pode dar prioridade errada para containers renderizados antes,
-        // como o Turno 6H), usamos closestCenter apenas nos itens que o mouse está tocando.
+        // Resolve a colisão entre múltiplos containers (ex: special-shift vs classificacao)
+        // pegando apenas os containers que o mouse está tocando e ordenando pelo centro mais próximo.
         return closestCenter({
           ...args,
           droppableContainers: args.droppableContainers.filter(
@@ -315,8 +314,13 @@ function AppContent() {
       return pointerCollisions;
     }
 
-    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa closestCenter em vez de rectIntersection
-    // para evitar que as bordas do cartão encostem em containers distantes (como Turno 6H).
+    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa a interseção do cartão fantasma
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+
+    // 3. Fallback absoluto
     return closestCenter(args);
   }, []);
 
