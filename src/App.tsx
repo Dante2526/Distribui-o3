@@ -517,12 +517,13 @@ function AppContent() {
             else idx = parseInt(suffix, 10);
 
             if (!isNaN(idx) && newSupport[idx]) {
-              newSupport[idx].push(emp);
+              newSupport[idx].push({ ...emp, role: (emp as any)._role || "" });
             }
           } else {
             // Fallback para quando o local não está definido (como quando recém-criado)
             if (emp.tagType === "OOF") {
-              if (newSupport[1]) newSupport[1].push(emp);
+              if (newSupport[1])
+                newSupport[1].push({ ...emp, role: (emp as any)._role || "" });
             } else {
               newDepts
                 .find((d: any) => d.id === "classificacao")
