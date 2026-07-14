@@ -302,20 +302,21 @@ function AppContent() {
 
       // Se o mouse está sobre um container, priorize ele! Isso resolve a coluna vazia.
       if (containerCollisions.length > 0) {
-        // Se houver mais colisões (como um cartão específico sob o mouse), retorne todas
-        // para o dnd-kit decidir a ordem correta usando closestCenter internamente para o Sortable.
-        return pointerCollisions;
+        // Em vez de retornar todos às cegas (o que pode dar prioridade errada para containers renderizados antes,
+        // como o Turno 6H), usamos closestCenter apenas nos itens que o mouse está tocando.
+        return closestCenter({
+          ...args,
+          droppableContainers: args.droppableContainers.filter(
+            (container: any) =>
+              pointerCollisions.some((c: any) => c.id === container.id),
+          ),
+        });
       }
       return pointerCollisions;
     }
 
-    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa a interseção do cartão fantasma
-    const rectCollisions = rectIntersection(args);
-    if (rectCollisions.length > 0) {
-      return rectCollisions;
-    }
-
-    // 3. Fallback absoluto
+    // 2. Se o mouse estiver fora (ex: arrasto rápido no touch), usa closestCenter em vez de rectIntersection
+    // para evitar que as bordas do cartão encostem em containers distantes (como Turno 6H).
     return closestCenter(args);
   }, []);
 
