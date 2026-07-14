@@ -843,7 +843,7 @@ export function useBoardMutations({
       else if (absenceType === "INSS") targetRightGroupIndex = 2;
       else if (absenceType === "TREINAMENTO" || absenceType === "REVEZAMENTO")
         targetLeftGroupIndex = 0;
-      else if (absenceType === "ESTÃGIO") targetRightGroupIndex = 0;
+      else if (absenceType === "ESTÁGIO") targetRightGroupIndex = 0;
 
       if (targetLeftGroupIndex !== -1) {
         setAnnotationsLeft((prev) => {
@@ -960,7 +960,7 @@ export function useBoardMutations({
       else if (absenceType === "INSS") targetRightGroupIndex = 2;
       else if (absenceType === "TREINAMENTO" || absenceType === "REVEZAMENTO")
         targetLeftGroupIndex = 0;
-      else if (absenceType === "ESTÃGIO") targetRightGroupIndex = 0;
+      else if (absenceType === "ESTÁGIO") targetRightGroupIndex = 0;
 
       const originalSupportGroupIndex = groupIndex;
       const originalSupportRole = emp.role;
