@@ -534,11 +534,10 @@ export const firestoreService = {
     if (!dbDSS) return;
 
     try {
-      const collectionName = `turma ${turma.toLowerCase()}`;
       const historyCol = collection(
         dbDSS,
-        collectionName,
-        "estado_painel",
+        "registros_auditoria",
+        `turma_${turma.toLowerCase()}`,
         "historico",
       );
 
@@ -558,11 +557,10 @@ export const firestoreService = {
   ) {
     if (!dbDSS) return () => {};
 
-    const collectionName = `turma ${turma.toLowerCase()}`;
     const historyCol = collection(
       dbDSS,
-      collectionName,
-      "estado_painel",
+      "registros_auditoria",
+      `turma_${turma.toLowerCase()}`,
       "historico",
     );
     const historyQuery = query(
