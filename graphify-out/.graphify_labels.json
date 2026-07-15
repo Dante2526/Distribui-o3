@@ -1,0 +1,19 @@
+{
+  "0": "HistoryModal.tsx",
+  "1": "types.ts",
+  "2": "App.tsx",
+  "3": "RowPortalsContext.tsx",
+  "4": "dependencies",
+  "5": "devDependencies",
+  "6": "ModalsContainer.tsx",
+  "7": "compilerOptions",
+  "8": "package.json",
+  "9": "ErrorBoundary",
+  "10": "RadialMenu.tsx",
+  "11": "ThemeSelectionScreen.tsx",
+  "12": "CustomDatePicker.tsx",
+  "13": "limpar.js",
+  "14": "KaizenLogo.tsx",
+  "15": "vite-env.d.ts",
+  "16": "vite.config.ts"
+}

@@ -1708,7 +1708,7 @@ function AppContent() {
                         </div>
                       </div>
 
-                      <DragOverlay dropAnimation={null}>
+                      <DragOverlay dropAnimation={undefined}>
                         {activeItem && activeType === "maquinista" ? (
                           <div className="w-[500px]">
                             <EmployeeRow
@@ -1728,7 +1728,7 @@ function AppContent() {
                               isDarkMode={isDarkMode}
                               is6HActive={is6HActive}
                               isDragOverlay={true}
-                              activeEdit={null}
+                              activeEdit={undefined}
                               onStartEdit={() => {}}
                               onStopEdit={() => {}}
                               isGhost={false}
@@ -1753,7 +1753,7 @@ function AppContent() {
                               onDelete={() => {}}
                               isDragOverlay={true}
                               isDragActive={true}
-                              activeEdit={null}
+                              activeEdit={undefined}
                               onStartEdit={() => {}}
                               onStopEdit={() => {}}
                               isAdmin={isAdmin}
