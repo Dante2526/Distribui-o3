@@ -189,9 +189,9 @@ export function AdminModal({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={`rounded-[24px] shadow-2xl w-full text-center relative flex flex-col transition-colors duration-300 ${
               isAdmin
-                ? "max-w-[448px] max-h-[85vh] px-4 py-4 md:px-8 md:py-8"
-                : "max-w-[370px] max-h-full px-4 py-6 md:p-8"
-            } overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+                ? "max-w-[448px] max-h-[85vh]"
+                : "max-w-[370px]"
+            } overflow-hidden ${
               isDarkMode
                 ? "bg-[#1E2029] border border-white/10 text-white"
                 : "bg-white border border-gray-100 text-[#1F2937]"
@@ -225,7 +225,7 @@ export function AdminModal({
 
             {isAdmin ? (
               // Painel de opções do administrador
-              <>
+              <div className="flex flex-col min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <div className="shrink-0 mb-4 mt-6 md:mt-2 px-6">
                   <h2
                     className={`text-[18px] md:text-[20px] font-black uppercase tracking-wide text-center ${
@@ -511,10 +511,10 @@ export function AdminModal({
                     )}
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
               // Formulário de login
-              <>
+              <div className="px-4 py-6 md:p-8">
                 <h2
                   className={`text-xl font-bold mb-6 uppercase tracking-wide ${
                     isDarkMode ? "text-white" : "text-[#1F2937]"
@@ -610,7 +610,7 @@ export function AdminModal({
                     ENTRAR
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </motion.div>
         </motion.div>
