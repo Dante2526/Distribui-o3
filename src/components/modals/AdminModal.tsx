@@ -598,6 +598,10 @@ export function AdminModal({
                     )}
                   </div>
 
+                  <p className="text-yellow-500 text-xs font-semibold text-left px-1">
+                    * Digite tudo em Minusculo
+                  </p>
+
                   <button
                     type="button"
                     onClick={handleSubmit}
