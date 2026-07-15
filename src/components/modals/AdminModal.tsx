@@ -201,10 +201,10 @@ export function AdminModal({
           >
             <button
               onClick={handleClose}
-              className={`absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors cursor-pointer ${
+              className={`absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 rounded-full flex items-center justify-center z-20 transition-colors cursor-pointer ${
                 isDarkMode
-                  ? "hover:bg-white/10 text-gray-400 hover:text-white"
-                  : "hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  ? "bg-[#1E2029]/80 backdrop-blur-sm hover:bg-white/10 text-gray-400 hover:text-white"
+                  : "bg-white/80 backdrop-blur-sm hover:bg-gray-100 text-gray-400 hover:text-gray-600"
               }`}
             >
               <X className="w-5 h-5" strokeWidth={2.5} />
@@ -225,7 +225,7 @@ export function AdminModal({
 
             {isAdmin ? (
               // Painel de opções do administrador
-              <div className="flex flex-col min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex flex-col min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-8 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-button]:hidden">
                 <div className="shrink-0 mb-4 mt-6 md:mt-2 px-6">
                   <h2
                     className={`text-[18px] md:text-[20px] font-black uppercase tracking-wide text-center ${
