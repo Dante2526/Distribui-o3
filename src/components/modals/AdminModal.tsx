@@ -189,9 +189,9 @@ export function AdminModal({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={`rounded-[24px] shadow-2xl w-full text-center relative flex flex-col transition-colors duration-300 ${
               isAdmin
-                ? "max-w-[448px] px-4 py-4 md:px-8 md:py-8"
-                : "max-w-[370px] px-4 py-6 md:p-8"
-            } max-h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+                ? "max-w-[448px] max-h-[85vh] px-4 py-4 md:px-8 md:py-8"
+                : "max-w-[370px] max-h-full px-4 py-6 md:p-8"
+            } overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
               isDarkMode
                 ? "bg-[#1E2029] border border-white/10 text-white"
                 : "bg-white border border-gray-100 text-[#1F2937]"
@@ -599,7 +599,7 @@ export function AdminModal({
                   </div>
 
                   <p className="text-yellow-500 text-xs font-semibold text-left px-1">
-                    * Digite tudo em Minusculo
+                    * Digite tudo em minúsculo
                   </p>
 
                   <button
