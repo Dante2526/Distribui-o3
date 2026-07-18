@@ -536,7 +536,7 @@ export const firestoreService = {
     try {
       const historyCol = collection(
         dbDSS,
-        "registros_auditoria",
+        "log_auditoria_distribui",
         `turma_${turma.toLowerCase()}`,
         "historico",
       );
@@ -559,7 +559,7 @@ export const firestoreService = {
 
     const historyCol = collection(
       dbDSS,
-      "registros_auditoria",
+      "log_auditoria_distribui",
       `turma_${turma.toLowerCase()}`,
       "historico",
     );
