@@ -73,9 +73,9 @@ export async function onRequest(context) {
 
   // Inicializa o Firebase (Lite version para Cloudflare Edge)
   const firebaseConfig = {
-    apiKey: env.VITE_apiKey_distribuicao,
-    authDomain: env.VITE_authDomain_distribuicao,
-    projectId: env.VITE_projectId_distribuicao,
+    apiKey: env.VITE_apiKey_dss,
+    authDomain: env.VITE_authDomain_dss,
+    projectId: env.VITE_projectId_dss,
   };
 
   // C1 fix: Reutiliza o Firebase App se já foi inicializado neste isolate

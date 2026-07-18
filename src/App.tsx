@@ -355,9 +355,7 @@ function AppContent() {
     const unsubscribeLogs = firestoreService.subscribeToHistory(
       selectedTurma,
       (logs) => {
-        if (logs && logs.length > 0) {
-          setMovementLogs(logs);
-        }
+        setMovementLogs(logs);
       },
     );
 
