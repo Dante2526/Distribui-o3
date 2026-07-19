@@ -798,10 +798,12 @@ function AppContent() {
 
   const handleStartEditRef = useRef(handleStartEdit);
   const handleStopEditRef = useRef(handleStopEdit);
+  const logMovementRef = useRef(logMovement);
   useEffect(() => {
     handleStartEditRef.current = handleStartEdit;
     handleStopEditRef.current = handleStopEdit;
-  }, [handleStartEdit, handleStopEdit]);
+    logMovementRef.current = logMovement;
+  }, [handleStartEdit, handleStopEdit, logMovement]);
 
   const {
     sensors,
@@ -818,6 +820,7 @@ function AppContent() {
     isAdmin,
     handleStartEditRef,
     handleStopEditRef,
+    logMovementRef,
     departmentsData,
     supportRolesData,
     specialShiftData,

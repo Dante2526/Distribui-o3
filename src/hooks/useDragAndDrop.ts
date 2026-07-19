@@ -46,10 +46,31 @@ function resolveContainerId(
   return "";
 }
 
+function getLabelForContainer(id: string): string {
+  if (id === "recepcao") return "Recepção";
+  if (id === "classificacao") return "Classificação";
+  if (id === "formacao") return "Formação";
+  if (id === "special-shift") return "Turno 6H";
+  if (id === "support-group-0") return "Apoio Recepção";
+  if (id === "support-group-1") return "Apoio Classificação";
+  if (id === "support-group-2") return "Apoio Formação";
+  if (id.startsWith("support-group-")) return "Apoio";
+  return id;
+}
+
 export interface UseDragAndDropProps {
   isAdmin: boolean;
   handleStartEditRef: React.MutableRefObject<(id: string) => void>;
   handleStopEditRef: React.MutableRefObject<(id: string) => void>;
+  logMovementRef: React.MutableRefObject<
+    (
+      name: string,
+      from: string,
+      to: string,
+      line?: string,
+      machine?: string,
+    ) => void
+  >;
   departmentsData: Department[];
   supportRolesData: SupportRole[][];
   specialShiftData: Employee[];
@@ -63,6 +84,7 @@ export function useDragAndDrop({
   isAdmin,
   handleStartEditRef,
   handleStopEditRef,
+  logMovementRef,
   departmentsData,
   supportRolesData,
   specialShiftData,
@@ -896,13 +918,27 @@ export function useDragAndDrop({
 
       // Identificar a origem (para logging se necessário)
       let employeeName = "";
-      const allEmployees = [
-        ...departmentsDataRef.current.flatMap((d) => d.data),
-        ...supportRolesDataRef.current.flatMap((g) => g),
-        ...specialShiftDataRef.current,
+      const originalEmployees = [
+        ...(clonedDepartmentsRef.current?.flatMap((d) => d.data) ?? []),
+        ...(clonedSupportRef.current?.flatMap((g) => g) ?? []),
+        ...(clonedSpecialShiftRef.current ?? []),
       ];
-      const emp = allEmployees.find((e) => e.id === activeIdVal);
-      if (emp) employeeName = emp.name;
+      const originalEmp = originalEmployees.find((e) => e.id === activeIdVal);
+      if (originalEmp) employeeName = originalEmp.name;
+
+      if (
+        originContainer &&
+        destContainer &&
+        originContainer !== destContainer
+      ) {
+        logMovementRef.current(
+          employeeName,
+          getLabelForContainer(originContainer),
+          getLabelForContainer(destContainer),
+          originalEmp?.line,
+          originalEmp?.machine,
+        );
+      }
 
       // Determinar o formato do novo "local" no DSS
       let newLocal = "";
@@ -969,7 +1005,7 @@ export function useDragAndDrop({
           newRole = "MAQUINISTA";
         } else {
           // Último recurso (fallback legado)
-          const overEmp = allEmployees.find((e) => e.id === overId);
+          const overEmp = originalEmployees.find((e) => e.id === overId);
           if (overEmp) {
             newLocal = overEmp.local || "";
             newRole = overEmp.tagType || "MAQUINISTA";
