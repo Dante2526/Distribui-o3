@@ -15,8 +15,26 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { generateKeyBetween } from "fractional-indexing";
 import { Department, SupportRole, Employee, TurmaType } from "../types";
 import { firestoreService } from "../services/firestoreService";
+
+function getFractionalKey(
+  arr: Array<{ id: string; ordem?: string | number }>,
+  targetId: string,
+): string {
+  const idx = arr.findIndex((e) => e.id === targetId);
+  if (idx === -1) return generateKeyBetween(null, null);
+  const prev = arr[idx - 1];
+  const next = arr[idx + 1];
+  const prevKey = prev && typeof prev.ordem === "string" ? prev.ordem : null;
+  const nextKey = next && typeof next.ordem === "string" ? next.ordem : null;
+  try {
+    return generateKeyBetween(prevKey, nextKey);
+  } catch {
+    return generateKeyBetween(null, null);
+  }
+}
 
 function resolveContainerId(
   id: string,
@@ -1035,16 +1053,20 @@ export function useDragAndDrop({
           localLower.startsWith("recepção")
         ) {
           setDepartmentsData((prev) => {
-            const updates: { id: string; ordem: number }[] = [];
+            const updates: { id: string; ordem: string | number }[] = [];
             const deptId = localLower.includes("classifica")
               ? "classificacao"
               : localLower.includes("formacao")
                 ? "formacao"
                 : "recepcao";
             const dept = prev.find((d) => d.id === deptId);
-            dept?.data.forEach((emp, i) =>
-              updates.push({ id: emp.id, ordem: i }),
-            );
+            if (dept) {
+              const newOrdem = getFractionalKey(
+                dept.data,
+                activeIdVal as string,
+              );
+              updates.push({ id: activeIdVal as string, ordem: newOrdem });
+            }
             firestoreService.moveEmployeeDSS(
               selectedTurma,
               activeIdVal as string,
@@ -1057,8 +1079,8 @@ export function useDragAndDrop({
           });
         } else if (localLower === "turno 6h") {
           setSpecialShiftData((prev) => {
-            const updates: { id: string; ordem: number }[] = [];
-            prev.forEach((emp, i) => updates.push({ id: emp.id, ordem: i }));
+            const newOrdem = getFractionalKey(prev, activeIdVal as string);
+            const updates = [{ id: activeIdVal as string, ordem: newOrdem }];
             firestoreService.moveEmployeeDSS(
               selectedTurma,
               activeIdVal as string,
@@ -1071,7 +1093,7 @@ export function useDragAndDrop({
           });
         } else if (localLower.startsWith("apoio ")) {
           setSupportRolesData((prev) => {
-            const updates: { id: string; ordem: number }[] = [];
+            const updates: { id: string; ordem: string | number }[] = [];
             const suffix = localLower.replace("apoio ", "").trim();
             let idx = -1;
             if (suffix === "recepcao" || suffix === "recepção") idx = 0;
@@ -1081,9 +1103,11 @@ export function useDragAndDrop({
             else idx = parseInt(suffix, 10);
 
             if (!isNaN(idx) && prev[idx]) {
-              prev[idx].forEach((emp, i) =>
-                updates.push({ id: emp.id, ordem: i }),
+              const newOrdem = getFractionalKey(
+                prev[idx],
+                activeIdVal as string,
               );
+              updates.push({ id: activeIdVal as string, ordem: newOrdem });
               firestoreService.moveEmployeeDSS(
                 selectedTurma,
                 activeIdVal as string,

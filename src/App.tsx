@@ -22,6 +22,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { generateKeyBetween } from "fractional-indexing";
 
 import {
   Employee,
@@ -285,6 +286,13 @@ function AppContent() {
     setAdministrators,
   );
 
+  const currentAdminName = useMemo(() => {
+    if (!adminUser) return null;
+    return adminUser.funcao
+      ? `${adminUser.name} (${adminUser.funcao})`
+      : adminUser.name;
+  }, [adminUser]);
+
   // Inicializa o state do history se não existir
   useEffect(() => {
     if (!window.history.state || !window.history.state.page) {
@@ -336,6 +344,8 @@ function AppContent() {
   const isDragActiveRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);
   const adminUserRef = useRef(adminUser);
+  const isAdminRef = useRef(isAdmin);
+  const hasMigratedRef = useRef(false);
 
   // Ref para evitar stale closure em callbacks com dependências vazias (logMovement, handleDragEnd, etc.)
   const selectedTurmaRef = useRef(selectedTurma);
@@ -343,12 +353,20 @@ function AppContent() {
   const annotationsRightRef = useRef(annotationsRight);
 
   useEffect(() => {
+    isAdminRef.current = isAdmin;
     adminUserRef.current = adminUser;
     isDemoModeRef.current = isDemoMode;
     selectedTurmaRef.current = selectedTurma;
     annotationsLeftRef.current = annotationsLeft;
     annotationsRightRef.current = annotationsRight;
-  }, [adminUser, isDemoMode, selectedTurma, annotationsLeft, annotationsRight]);
+  }, [
+    isAdmin,
+    adminUser,
+    isDemoMode,
+    selectedTurma,
+    annotationsLeft,
+    annotationsRight,
+  ]);
 
   // Efeito principal de sincronização de dados (Firebase vs Mock) extraído para Hook
   useFirebaseSync({
@@ -447,7 +465,12 @@ function AppContent() {
         }));
         const newSpecial: any[] = [];
 
-        dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+        dssEmployees.sort((a, b) => {
+          const aO = a.ordem ?? 0;
+          const bO = b.ordem ?? 0;
+          if (typeof aO === "number" && typeof bO === "number") return aO - bO;
+          return String(aO).localeCompare(String(bO));
+        });
 
         dssEmployees.forEach((emp) => {
           const rawLocal = emp.local || "";
@@ -583,6 +606,28 @@ function AppContent() {
           return mergeArray(prev, merged);
         });
         setSpecialShiftData((prev) => mergeArray(prev, newSpecial));
+
+        if (isAdminRef.current && !hasMigratedRef.current) {
+          const needsMigration = dssEmployees.some(
+            (emp) => typeof emp.ordem === "number",
+          );
+          if (needsMigration) {
+            hasMigratedRef.current = true;
+            let prevKey: string | null = null;
+            const updates: { id: string; ordem: string | number }[] = [];
+            dssEmployees.forEach((emp) => {
+              const newKey = generateKeyBetween(prevKey, null);
+              updates.push({ id: emp.id, ordem: newKey });
+              prevKey = newKey;
+            });
+            if (selectedTurmaRef.current) {
+              firestoreService.updateEmployeeOrdersDSS(
+                selectedTurmaRef.current,
+                updates,
+              );
+            }
+          }
+        }
       },
     );
 
@@ -1692,6 +1737,7 @@ function AppContent() {
                                   onUpdate={handleUpdateSpecialShiftEmployee}
                                   onTransfer={handleTransferFromSpecialShift}
                                   activeEdit={activeEdits[emp.id]}
+                                  currentAdminName={currentAdminName}
                                   onStartEdit={handleStartEdit}
                                   onStopEdit={handleStopEdit}
                                   isAdmin={isAdmin}
@@ -1722,6 +1768,7 @@ function AppContent() {
                                 activeEdits={
                                   editsByDept[dept.id] || EMPTY_OBJECT
                                 }
+                                currentAdminName={currentAdminName}
                                 onStartEdit={handleStartEdit}
                                 onStopEdit={handleStopEdit}
                                 isDragActive={isDragActive}

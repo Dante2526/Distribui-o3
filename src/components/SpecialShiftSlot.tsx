@@ -25,6 +25,7 @@ export const SpecialShiftSlot = React.memo(
     isAdmin,
     isDarkMode,
     isDragOverlay,
+    currentAdminName,
   }: {
     emp: Employee;
     index: number;
@@ -37,7 +38,9 @@ export const SpecialShiftSlot = React.memo(
     isAdmin?: boolean;
     isDarkMode?: boolean;
     isDragOverlay?: boolean;
+    currentAdminName?: string | null;
   }) => {
+    const isLocked = !!activeEdit && activeEdit.userName !== currentAdminName;
     const {
       attributes,
       listeners,
@@ -217,7 +220,7 @@ export const SpecialShiftSlot = React.memo(
               <button
                 ref={oofButtonRef}
                 onClick={(e) => {
-                  if (!isAdmin) return;
+                  if (!isAdmin || isLocked) return;
                   e.stopPropagation();
                   setShowOofMenu(true);
                 }}
@@ -233,7 +236,10 @@ export const SpecialShiftSlot = React.memo(
                 <input
                   type="text"
                   value={emp.line}
-                  onFocus={handleStartEditLocal}
+                  onFocus={(e) => {
+                    if (isLocked) return;
+                    handleStartEditLocal();
+                  }}
                   onBlur={(e) => {
                     const related = e.relatedTarget as HTMLElement | null;
                     if (related && related.dataset.empId === emp.id) {
@@ -246,7 +252,7 @@ export const SpecialShiftSlot = React.memo(
                     handleUpdateLocal("line", e.target.value.toUpperCase())
                   }
                   placeholder="LINHA"
-                  readOnly={!isAdmin}
+                  readOnly={!isAdmin || isLocked}
                   data-emp-id={emp.id}
                   className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
@@ -255,7 +261,10 @@ export const SpecialShiftSlot = React.memo(
                 <input
                   type="text"
                   value={emp.machine}
-                  onFocus={handleStartEditLocal}
+                  onFocus={(e) => {
+                    if (isLocked) return;
+                    handleStartEditLocal();
+                  }}
                   onBlur={(e) => {
                     const related = e.relatedTarget as HTMLElement | null;
                     if (related && related.dataset.empId === emp.id) {
@@ -268,7 +277,7 @@ export const SpecialShiftSlot = React.memo(
                     handleUpdateLocal("machine", e.target.value.toUpperCase())
                   }
                   placeholder="LOCO"
-                  readOnly={!isAdmin}
+                  readOnly={!isAdmin || isLocked}
                   data-emp-id={emp.id}
                   className="input-linha-loco h-[34px] px-1 rounded-md text-[12px] font-semibold w-[95px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-colors"
                 />
@@ -342,7 +351,8 @@ export const SpecialShiftSlot = React.memo(
       prevProps.activeEdit === nextProps.activeEdit &&
       prevProps.index === nextProps.index &&
       prevProps.isAdmin === nextProps.isAdmin &&
-      prevProps.isDarkMode === nextProps.isDarkMode
+      prevProps.isDragOverlay === nextProps.isDragOverlay &&
+      prevProps.currentAdminName === nextProps.currentAdminName
     );
   },
 );

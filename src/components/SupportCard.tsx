@@ -26,6 +26,7 @@ export const SupportCard = React.memo(
     onStartEdit,
     onStopEdit,
     isAdmin,
+    currentAdminName,
   }: {
     roles: SupportRole[];
     groupIndex: number;
@@ -63,6 +64,7 @@ export const SupportCard = React.memo(
     onStartEdit?: (empId: string) => void;
     onStopEdit?: (empId: string) => void;
     isAdmin?: boolean;
+    currentAdminName?: string | null;
   }) => {
     const themes = [
       {
@@ -164,6 +166,7 @@ export const SupportCard = React.memo(
                 onDelete={onDeleteSupport}
                 isDragActive={isDragActive}
                 activeEdit={activeEdits?.[emp.id || ""]}
+                currentAdminName={currentAdminName}
                 onStartEdit={onStartEdit}
                 onStopEdit={onStopEdit}
                 isAdmin={isAdmin}
@@ -200,6 +203,7 @@ export const SupportCard = React.memo(
       prevProps.isDragActive === nextProps.isDragActive &&
       prevProps.groupIndex === nextProps.groupIndex &&
       prevProps.isAdmin === nextProps.isAdmin &&
+      prevProps.currentAdminName === nextProps.currentAdminName &&
       !activeEditsChanged
     );
   },

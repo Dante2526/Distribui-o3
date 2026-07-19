@@ -106,7 +106,7 @@ export type Employee = {
   tagType?: "MAQUINISTA" | "OOF";
   status?: string;
   ausente?: boolean;
-  ordem?: number;
+  ordem?: string | number;
   local?: string;
 };
 

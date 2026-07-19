@@ -55,6 +55,7 @@ export const EmployeeRow = React.memo(
     isGhost,
     isDragActive,
     isAdmin,
+    currentAdminName,
   }: {
     emp: Employee;
     index: number;
@@ -79,7 +80,9 @@ export const EmployeeRow = React.memo(
     isGhost?: boolean;
     isDragActive?: boolean;
     isAdmin?: boolean;
+    currentAdminName?: string | null;
   }) => {
+    const isLocked = !!activeEdit && activeEdit.userName !== currentAdminName;
     const { openPortal, closePortal } = useRowPortalsDispatch();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -384,7 +387,7 @@ export const EmployeeRow = React.memo(
                 type="text"
                 value={localLine}
                 onFocus={(e) => {
-                  if (!isAdmin) return;
+                  if (!isAdmin || isLocked) return;
                   setIsMenuOpen(true);
                   openPortal(
                     "line",
@@ -433,7 +436,7 @@ export const EmployeeRow = React.memo(
                     e.currentTarget.blur();
                   }
                 }}
-                readOnly={!isAdmin}
+                readOnly={!isAdmin || isLocked}
                 data-emp-id={emp.id}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
@@ -446,7 +449,7 @@ export const EmployeeRow = React.memo(
                 type="text"
                 value={localMachine}
                 onFocus={(e) => {
-                  if (!isAdmin) return;
+                  if (!isAdmin || isLocked) return;
                   handleStartEditLocal();
                 }}
                 onBlur={(e) => {
@@ -471,7 +474,7 @@ export const EmployeeRow = React.memo(
                     e.currentTarget.blur();
                   }
                 }}
-                readOnly={!isAdmin}
+                readOnly={!isAdmin || isLocked}
                 data-emp-id={emp.id}
                 className="input-linha-loco h-[42px] px-2 rounded-[8px] text-[18px] font-semibold w-[95px] sm:w-[105px] text-center uppercase focus:outline-none border border-transparent shadow-inner transition-all"
               />
@@ -492,7 +495,8 @@ export const EmployeeRow = React.memo(
       prevProps.index === nextProps.index &&
       prevProps.isDarkMode === nextProps.isDarkMode &&
       prevProps.is6HActive === nextProps.is6HActive &&
-      prevProps.isAdmin === nextProps.isAdmin
+      prevProps.isAdmin === nextProps.isAdmin &&
+      prevProps.currentAdminName === nextProps.currentAdminName
     );
   },
 );

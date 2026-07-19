@@ -228,7 +228,7 @@ export const firestoreService = {
     employeeId: string,
     local: string,
     role: string,
-    updates: { id: string; ordem: number }[],
+    updates: { id: string; ordem: string | number }[],
     options?: { clearLineFields?: boolean },
   ): Promise<void> {
     if (!dbDSS) return;
@@ -266,7 +266,7 @@ export const firestoreService = {
 
   async updateEmployeeOrdersDSS(
     turma: string,
-    updates: { id: string; ordem: number }[],
+    updates: { id: string; ordem: string | number }[],
   ): Promise<void> {
     if (!dbDSS || updates.length === 0) return;
     try {

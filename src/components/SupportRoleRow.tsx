@@ -37,6 +37,7 @@ export const SupportRoleRow = React.memo(
     activeEdit,
     onStartEdit,
     onStopEdit,
+    currentAdminName,
   }: {
     emp: SupportRole;
     index: number;
@@ -77,7 +78,9 @@ export const SupportRoleRow = React.memo(
     activeEdit?: ActiveEdit;
     onStartEdit?: (empId: string) => void;
     onStopEdit?: (empId: string) => void;
+    currentAdminName?: string | null;
   }) => {
+    const isLocked = !!activeEdit && activeEdit.userName !== currentAdminName;
     const { openPortal } = useRowPortalsDispatch();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -169,7 +172,7 @@ export const SupportRoleRow = React.memo(
       onTransfer: handleMoveLocal,
       onAbsent: handleMarkAbsentLocal,
       onSelectRole: handleUpdateRoleLocal,
-      onClose: () => setIsMenuOpen(false)
+      onClose: () => setIsMenuOpen(false),
     });
 
     useEffect(() => {
@@ -178,7 +181,7 @@ export const SupportRoleRow = React.memo(
         onTransfer: handleMoveLocal,
         onAbsent: handleMarkAbsentLocal,
         onSelectRole: handleUpdateRoleLocal,
-        onClose: () => setIsMenuOpen(false)
+        onClose: () => setIsMenuOpen(false),
       };
     });
 
@@ -250,9 +253,15 @@ export const SupportRoleRow = React.memo(
         <div className="flex items-center min-w-0 flex-1 mr-4">
           <button
             onClick={(e) => {
+              if (isLocked) return;
               e.stopPropagation();
               setIsMenuOpen(true);
-              openPortal('avatar', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
+              openPortal(
+                "avatar",
+                e.currentTarget.getBoundingClientRect(),
+                emp.id,
+                { actionsRef, isDarkMode },
+              );
             }}
             className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mr-2.5 shadow-sm hover:scale-105 active:scale-95 transition-all outline-none ${theme.bg} ${theme.text}`}
           >
@@ -270,7 +279,7 @@ export const SupportRoleRow = React.memo(
                 type="text"
                 value={emp.matricula || ""}
                 onFocus={() => {
-                  if (!isAdmin) return;
+                  if (!isAdmin || isLocked) return;
                   if (emp.id) onStartEdit?.(emp.id);
                 }}
                 onBlur={() => {
@@ -283,7 +292,7 @@ export const SupportRoleRow = React.memo(
                 }}
                 placeholder="N/A"
                 maxLength={8}
-                readOnly={!isAdmin}
+                readOnly={!isAdmin || isLocked}
                 className="bg-transparent text-[#A0A0A5] text-[10px] font-medium focus:outline-none placeholder:text-[#A0A0A5]/30 w-[80px] leading-none input-matricula-val"
               />
             </div>
@@ -298,7 +307,12 @@ export const SupportRoleRow = React.memo(
                 if (!isAdmin) return;
                 e.stopPropagation();
                 setIsMenuOpen(true);
-                openPortal('absent', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, isDarkMode });
+                openPortal(
+                  "absent",
+                  e.currentTarget.getBoundingClientRect(),
+                  emp.id,
+                  { actionsRef, isDarkMode },
+                );
               }}
               className="h-[34px] w-[75px] flex items-center justify-center font-bold text-white bg-[#F59E0B] hover:bg-[#D97706] rounded-[8px] shadow-none border-none text-[10px] tracking-tight text-center leading-none whitespace-nowrap px-1 cursor-pointer transition-colors duration-150 shrink-0"
             >
@@ -325,7 +339,20 @@ export const SupportRoleRow = React.memo(
                 onClick={(e) => {
                   if (!isAdmin) return;
                   setIsMenuOpen(true);
-                  openPortal('transfer', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, otherDepts: [{ id: "0", title: "Apoio 1", order: 0 }, { id: "1", title: "Apoio 2", order: 1 }, { id: "2", title: "Apoio 3", order: 2 }].filter(d => d.id !== groupIndex.toString()), isDarkMode });
+                  openPortal(
+                    "transfer",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    {
+                      actionsRef,
+                      otherDepts: [
+                        { id: "0", title: "Apoio 1", order: 0 },
+                        { id: "1", title: "Apoio 2", order: 1 },
+                        { id: "2", title: "Apoio 3", order: 2 },
+                      ].filter((d) => d.id !== groupIndex.toString()),
+                      isDarkMode,
+                    },
+                  );
                 }}
                 className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0 transition-colors outline-none bg-white/5 text-[#a0aec0] hover:bg-white/10 hover:text-white cursor-pointer"
               >
@@ -339,7 +366,12 @@ export const SupportRoleRow = React.memo(
                 onClick={(e) => {
                   if (!isAdmin) return;
                   setIsMenuOpen(true);
-                  openPortal('role', e.currentTarget.getBoundingClientRect(), emp.id, { actionsRef, localLine: emp.role, isDarkMode });
+                  openPortal(
+                    "role",
+                    e.currentTarget.getBoundingClientRect(),
+                    emp.id,
+                    { actionsRef, localLine: emp.role, isDarkMode },
+                  );
                 }}
                 className="relative flex items-center justify-center text-[#a0aec0] hover:text-white text-xs font-bold bg-[#1A202C] border border-white/5 hover:bg-[#4a5568] px-3 h-[34px] rounded-lg transition-colors outline-none shadow-sm w-full min-w-[130px] shrink-0 cursor-pointer"
               >
@@ -351,7 +383,6 @@ export const SupportRoleRow = React.memo(
             </div>
           </div>
         </div>
-
       </div>
     );
   },
@@ -360,11 +391,12 @@ export const SupportRoleRow = React.memo(
       prevProps.emp === nextProps.emp &&
       prevProps.isDragActive === nextProps.isDragActive &&
       prevProps.index === nextProps.index &&
-      prevProps.isDarkMode === nextProps.isDarkMode &&
+      prevProps.isGhost === nextProps.isGhost &&
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.groupIndex === nextProps.groupIndex &&
       prevProps.activeEdit === nextProps.activeEdit &&
-      prevProps.isAdmin === nextProps.isAdmin
+      prevProps.isAdmin === nextProps.isAdmin &&
+      prevProps.currentAdminName === nextProps.currentAdminName
     );
   },
 );

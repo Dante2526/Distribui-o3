@@ -33,6 +33,7 @@ export const DepartmentCard = React.memo(
     onStopEdit,
     isDragActive,
     isAdmin,
+    currentAdminName,
   }: {
     department: Department;
     departmentOptions: DepartmentOption[];
@@ -58,6 +59,7 @@ export const DepartmentCard = React.memo(
     onStopEdit: (empId: string) => void;
     isDragActive?: boolean;
     isAdmin?: boolean;
+    currentAdminName?: string | null;
   }) => {
     const theme = getDeptTheme(department.id);
     const { setNodeRef } = useDroppable({
@@ -139,6 +141,7 @@ export const DepartmentCard = React.memo(
                   isDarkMode={isDarkMode}
                   is6HActive={is6HActive}
                   activeEdit={activeEdits[emp.id]}
+                  currentAdminName={currentAdminName}
                   onStartEdit={onStartEdit}
                   onStopEdit={onStopEdit}
                   isDragActive={isDragActive}
@@ -177,6 +180,7 @@ export const DepartmentCard = React.memo(
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.isDragActive === nextProps.isDragActive &&
       prevProps.isAdmin === nextProps.isAdmin &&
+      prevProps.currentAdminName === nextProps.currentAdminName &&
       !activeEditsChanged
     );
   },
