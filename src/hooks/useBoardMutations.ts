@@ -130,17 +130,17 @@ export function useBoardMutations({
     report += `• Revezamento: ${todasAnotacoes.filter((item) => (item.status || "").toUpperCase().includes("REVEZA")).length}\n\n`;
     report += `\n--- COLABORADORES POR SETOR ---\n`;
     departmentsData.forEach((d) => {
-      let icon = "ðŸŸ¢";
+      let icon = "🟢";
       if (
         d.id.toLowerCase() === "classificacao" ||
         d.id.toLowerCase() === "classificação"
       )
-        icon = "ðŸŸ¡";
+        icon = "🟡";
       if (
         d.id.toLowerCase() === "formacao" ||
         d.id.toLowerCase() === "formação"
       )
-        icon = "ðŸ”µ";
+        icon = "🔵";
       report += `\n[${d.title.toUpperCase()}] (${d.count} COLAB.)\n`;
       d.data.forEach((e) => {
         if (e.name.trim())
@@ -154,7 +154,7 @@ export function useBoardMutations({
       if (activeGroup.length > 0) {
         report += `\n[GRUPO DE APOIO ${idx + 1}]\n`;
         activeGroup.forEach((e) => {
-          report += `ðŸŸ£ ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"})\n\n`;
+          report += `🟣 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"})\n\n`;
         });
       }
     });
@@ -163,7 +163,7 @@ export function useBoardMutations({
     if (activeSpecial.length > 0) {
       report += `\n--- TURNO 6H ---\n`;
       activeSpecial.forEach((e) => {
-        report += `ðŸŸ  ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
+        report += `🟠 ${e.name.toUpperCase()}\n  (MAT: ${e.matricula || "S/N"}) - LINHA: ${e.line ? e.line.toUpperCase() : "---"} - LOCO: ${e.machine ? e.machine.toUpperCase() : "---"}\n\n`;
       });
     }
 
@@ -380,6 +380,7 @@ export function useBoardMutations({
   const handleTransferFromSpecialShift = useCallback(
     (empIndex: number, targetDeptId: string) => {
       const movedEmployee = specialShiftData[empIndex];
+      if (!movedEmployee) return;
       if (!movedEmployee.name.trim()) return;
 
       setSpecialShiftData((prev) => {

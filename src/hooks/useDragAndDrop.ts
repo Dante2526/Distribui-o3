@@ -485,7 +485,7 @@ export function useDragAndDrop({
                 newData.splice(targetIdx, 0, activeItem);
                 return newData;
               }
-              return group.filter((e) => e.id !== activeId);
+              return group;
             });
           });
         }
@@ -557,7 +557,7 @@ export function useDragAndDrop({
             prev.map((group, idx) => {
               if (idx === activeGroupIdx)
                 return group.filter((e) => e.id !== activeId);
-              return group.filter((e) => e.id !== activeId);
+              return group;
             }),
           );
 
@@ -727,7 +727,7 @@ export function useDragAndDrop({
             prev.map((group, idx) => {
               if (idx === activeGroupIdx)
                 return group.filter((e) => e.id !== activeId);
-              return group.filter((e) => e.id !== activeId);
+              return group;
             }),
           );
 
