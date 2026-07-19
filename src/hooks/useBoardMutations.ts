@@ -232,7 +232,11 @@ export function useBoardMutations({
   const handleReorganize = useCallback(() => {
     setDepartmentsData((prev) =>
       prev.map((dept) => {
-        const sortedData = [...dept.data].sort(() => Math.random() - 0.5);
+        const sortedData = [...dept.data];
+        for (let i = sortedData.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [sortedData[i], sortedData[j]] = [sortedData[j], sortedData[i]];
+        }
         return { ...dept, data: sortedData };
       }),
     );

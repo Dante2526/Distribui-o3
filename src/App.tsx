@@ -636,7 +636,11 @@ function AppContent() {
             // Adicionando à recepção por padrão
             const newData = [...dept.data];
             newData.push({
-              id: "emp-imp-" + Date.now(),
+              id:
+                "emp-imp-" +
+                Date.now() +
+                "-" +
+                Math.random().toString(36).substring(2, 9),
               name,
               matricula,
               line: `TURMA ${sourceTurma}`,

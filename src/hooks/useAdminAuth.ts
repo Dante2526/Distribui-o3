@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { firestoreService } from "../services/firestoreService";
 import {
   isMobileCellularWithBiometrics,
@@ -30,6 +30,13 @@ export function useAdminAuth(
 
   const loginToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (loginToastTimerRef.current) clearTimeout(loginToastTimerRef.current);
+      if (errorToastTimerRef.current) clearTimeout(errorToastTimerRef.current);
+    };
+  }, []);
 
   const handleAdminLogin = useCallback(
     async (adminData: { name: string; email: string; color?: string }) => {
