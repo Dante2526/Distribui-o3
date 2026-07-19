@@ -556,8 +556,8 @@ export function useBoardMutations({
           }
 
           pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
-            const fromStr = `Loco: ${originalOldValue || "(vazio)"}`;
-            const toStr = `Loco: ${newMatricula || "(vazio)"}`;
+            const fromStr = `Matrícula: ${originalOldValue || "(vazio)"}`;
+            const toStr = `Matrícula: ${newMatricula || "(vazio)"}`;
             if (originalOldValue !== newMatricula) {
               logMovement(empName, fromStr, toStr, undefined, newMatricula);
             }

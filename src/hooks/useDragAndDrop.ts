@@ -46,15 +46,17 @@ function resolveContainerId(
   return "";
 }
 
+const SUPPORT_TITLES = ["Recepção", "Classificação", "Formação"];
+
 function getLabelForContainer(id: string): string {
   if (id === "recepcao") return "Recepção";
   if (id === "classificacao") return "Classificação";
   if (id === "formacao") return "Formação";
   if (id === "special-shift") return "Turno 6H";
-  if (id === "support-group-0") return "Apoio Recepção";
-  if (id === "support-group-1") return "Apoio Classificação";
-  if (id === "support-group-2") return "Apoio Formação";
-  if (id.startsWith("support-group-")) return "Apoio";
+  if (id.startsWith("support-group-")) {
+    const idx = Number(id.replace("support-group-", ""));
+    return `Apoio - ${SUPPORT_TITLES[idx] || `Grupo ${idx + 1}`}`;
+  }
   return id;
 }
 
@@ -931,12 +933,18 @@ export function useDragAndDrop({
         destContainer &&
         originContainer !== destContainer
       ) {
+        const line =
+          originalEmp && "line" in originalEmp ? originalEmp.line : undefined;
+        const machine =
+          originalEmp && "machine" in originalEmp
+            ? originalEmp.machine
+            : undefined;
         logMovementRef.current(
           employeeName,
           getLabelForContainer(originContainer),
           getLabelForContainer(destContainer),
-          originalEmp?.line,
-          originalEmp?.machine,
+          line,
+          machine,
         );
       }
 
