@@ -54,7 +54,7 @@ export const ManageAdminsModal: React.FC<{
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`rounded-[24px] shadow-2xl w-full max-w-[500px] flex flex-col text-center relative ${
+            className={`rounded-[24px] shadow-2xl w-full max-w-[700px] flex flex-col text-center relative ${
               isDarkMode
                 ? "bg-[#1E2029] border border-white/10 text-white"
                 : "bg-white border border-gray-100 text-[#1F2937]"

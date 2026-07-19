@@ -1,5 +1,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore/lite";
+import {
+  getFirestore,
+  doc,
+  collection,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore/lite";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Datas-âncora para cálculo de escala 2x2.
@@ -91,13 +97,12 @@ export async function onRequest(context) {
     );
 
     // Apenas limpar os campos de Linha e Loco dos maquinistas
-    const docRef = doc(db, `turma ${team.toLowerCase()}`, "estado_painel");
-    const docSnap = await getDoc(docRef);
+    const colRef = collection(db, `turma ${team.toLowerCase()}`);
+    const snapshot = await getDocs(colRef);
 
-    // C2 fix: Retorna status diferenciado se o documento não existir
-    if (!docSnap.exists()) {
+    if (snapshot.empty) {
       console.log(
-        `[limpar] Turma ${team} — documento não encontrado no Firestore.`,
+        `[limpar] Turma ${team} — coleção não encontrada ou vazia no Firestore.`,
       );
       return new Response(
         JSON.stringify({
@@ -111,45 +116,24 @@ export async function onRequest(context) {
       );
     }
 
-    const state = docSnap.data();
+    const batch = writeBatch(db);
+    let count = 0;
 
-    // Limpa linha e loco dos departamentos (maquinistas)
-    let newDepartmentsData = state.departmentsData;
-    if (Array.isArray(newDepartmentsData)) {
-      newDepartmentsData = newDepartmentsData.map((dept) => ({
-        ...dept,
-        data: (dept.data || []).map((emp) => ({
-          ...emp,
-          line: "",
-          machine: "",
-        })),
-      }));
-    }
+    snapshot.docs.forEach((document) => {
+      const docRef = doc(db, `turma ${team.toLowerCase()}`, document.id);
+      batch.update(docRef, { linha: "", loco: "" });
+      count++;
+    });
 
-    // Limpa linha e loco do turno especial (6H)
-    let newSpecialShiftData = state.specialShiftData;
-    if (Array.isArray(newSpecialShiftData)) {
-      newSpecialShiftData = newSpecialShiftData.map((emp) => ({
-        ...emp,
-        line: "",
-        machine: "",
-      }));
-    }
-
-    // I2 fix: checagem robusta com Array.isArray antes de incluir nos updates
-    const updates = { updatedAt: new Date().toISOString() };
-    if (Array.isArray(newDepartmentsData))
-      updates.departmentsData = newDepartmentsData;
-    if (Array.isArray(newSpecialShiftData))
-      updates.specialShiftData = newSpecialShiftData;
-
-    await updateDoc(docRef, updates);
-    console.log(`[limpar] Turma ${team} — limpeza concluída com sucesso.`);
+    await batch.commit();
+    console.log(
+      `[limpar] Turma ${team} — limpeza concluída com sucesso. ${count} registros limpos.`,
+    );
 
     return new Response(
       JSON.stringify({
         status: "success",
-        message: `Limpeza (Linha e Loco) da Turma ${team} concluída.`,
+        message: `Limpeza (Linha e Loco) da Turma ${team} concluída. ${count} registros atualizados.`,
       }),
       {
         status: 200,

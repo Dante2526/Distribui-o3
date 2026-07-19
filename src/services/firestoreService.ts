@@ -264,6 +264,33 @@ export const firestoreService = {
     }
   },
 
+  async clearAllEmployeeFieldsDSS(turma: string): Promise<void> {
+    if (!dbDSS) return;
+    try {
+      const collectionName = `turma ${turma.toLowerCase()}`;
+      const q = collection(dbDSS, collectionName);
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(dbDSS);
+
+      snapshot.docs.forEach((document) => {
+        if (
+          document.id.startsWith("emp-dept") ||
+          document.id.startsWith("emp-supp") ||
+          document.id.startsWith("emp-imp")
+        )
+          return; // Ignora mock IDs
+
+        const docRef = doc(dbDSS, collectionName, document.id);
+        batch.update(docRef, { linha: "", loco: "" });
+      });
+
+      await batch.commit();
+    } catch (e) {
+      console.error("Erro ao limpar dados no DSS:", e);
+      throw e;
+    }
+  },
+
   async updateEmployeeOrdersDSS(
     turma: string,
     updates: { id: string; ordem: string | number }[],

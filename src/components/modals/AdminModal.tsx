@@ -188,9 +188,7 @@ export function AdminModal({
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={`rounded-[24px] shadow-2xl w-full text-center relative flex flex-col transition-colors duration-300 ${
-              isAdmin
-                ? "max-w-[448px] max-h-[85vh]"
-                : "max-w-[370px]"
+              isAdmin ? "max-w-[600px] max-h-[85vh]" : "max-w-[370px]"
             } overflow-hidden ${
               isDarkMode
                 ? "bg-[#1E2029] border border-white/10 text-white"

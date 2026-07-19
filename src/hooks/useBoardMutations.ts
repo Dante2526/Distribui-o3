@@ -67,19 +67,36 @@ export function useBoardMutations({
     selectedTurmaRef.current = selectedTurma;
   }, [selectedTurma]);
 
-  const handleClearAll = useCallback(() => {
-    setDepartmentsData((prev) =>
-      prev.map((dept) => ({
-        ...dept,
-        data: dept.data.map((emp) => ({ ...emp, line: "", machine: "" })),
-      })),
-    );
-    setSpecialShiftData((prev) =>
-      prev.map((emp) => ({ ...emp, line: "", machine: "" })),
-    );
-    showToastMessage("Distribuição limpa com sucesso!", "success");
-    setIsAdminModalOpen(false);
-  }, [showToastMessage]);
+  const handleClearAll = useCallback(async () => {
+    try {
+      if (selectedTurmaRef.current) {
+        await firestoreService.clearAllEmployeeFieldsDSS(
+          selectedTurmaRef.current,
+        );
+      }
+      setDepartmentsData((prev) =>
+        prev.map((dept) => ({
+          ...dept,
+          data: dept.data.map((emp) => ({ ...emp, line: "", machine: "" })),
+        })),
+      );
+      setSpecialShiftData((prev) =>
+        prev.map((emp) => ({ ...emp, line: "", machine: "" })),
+      );
+      showToastMessage("Distribuição limpa com sucesso!", "success");
+      setIsAdminModalOpen(false);
+    } catch (error) {
+      showToastMessage(
+        "Erro ao limpar dados no servidor. Tente novamente.",
+        "error",
+      );
+    }
+  }, [
+    showToastMessage,
+    setIsAdminModalOpen,
+    setDepartmentsData,
+    setSpecialShiftData,
+  ]);
 
   const handleGenerateReport = useCallback(() => {
     const totalMaquinistas = departmentsData.reduce(
