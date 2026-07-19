@@ -204,6 +204,7 @@ export const firestoreService = {
     local: string,
     role: string,
     updates: { id: string; ordem: number }[],
+    options?: { clearLineFields?: boolean },
   ): Promise<void> {
     if (!dbDSS) return;
     try {
@@ -212,7 +213,12 @@ export const firestoreService = {
 
       // 1. Atualizar local e função do ativo
       const activeDocRef = doc(dbDSS, collectionName, employeeId);
-      batch.update(activeDocRef, { local, função: role });
+      const updateData: any = { local, função: role };
+      if (options?.clearLineFields) {
+        updateData.linha = "";
+        updateData.loco = "";
+      }
+      batch.update(activeDocRef, updateData);
 
       // 2. Atualizar todas as ordens
       updates.forEach((update) => {

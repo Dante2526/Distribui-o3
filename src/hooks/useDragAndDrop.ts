@@ -18,6 +18,34 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { Department, SupportRole, Employee, TurmaType } from "../types";
 import { firestoreService } from "../services/firestoreService";
 
+function resolveContainerId(
+  id: string,
+  departmentsData: Department[],
+  supportRolesData: SupportRole[][],
+  specialShiftData: Employee[],
+): string {
+  if (id === "recepcao" || id === "classificacao" || id === "formacao")
+    return id;
+  if (id.startsWith("support-group-")) return id;
+  if (id === "special-shift") return id;
+
+  const dept = departmentsData.find((d) => d.id === id);
+  if (dept) return dept.id;
+
+  for (const d of departmentsData) {
+    if (d.data.some((e) => e.id === id)) return d.id;
+  }
+
+  for (let i = 0; i < supportRolesData.length; i++) {
+    if (supportRolesData[i].some((e) => e.id === id))
+      return `support-group-${i}`;
+  }
+
+  if (specialShiftData.some((e) => e.id === id)) return "special-shift";
+
+  return "";
+}
+
 export interface UseDragAndDropProps {
   isAdmin: boolean;
   handleStartEditRef: React.MutableRefObject<(id: string) => void>;
@@ -837,6 +865,35 @@ export function useDragAndDrop({
         selfDropTargetLocal = currentLocal; // ex: "classificacao", "formacao", "support-group-1", "special-shift"
       }
 
+      const originContainer = dragSourceRef.current?.originalContainer ?? "";
+
+      const destContainer = selfDropTargetLocal
+        ? selfDropTargetLocal
+        : resolveContainerId(
+            overId,
+            departmentsDataRef.current,
+            supportRolesDataRef.current,
+            specialShiftDataRef.current,
+          );
+
+      const MAQUINISTA_CONTAINERS = new Set([
+        "recepcao",
+        "classificacao",
+        "formacao",
+      ]);
+      const isMaquinistaContainer = (id: string) =>
+        MAQUINISTA_CONTAINERS.has(id);
+      const isApoioContainer = (id: string) => id.startsWith("support-group-");
+
+      const clearLineFields = Boolean(
+        originContainer &&
+        destContainer &&
+        originContainer !== destContainer &&
+        isMaquinistaContainer(destContainer) &&
+        (isMaquinistaContainer(originContainer) ||
+          isApoioContainer(originContainer)),
+      );
+
       // Identificar a origem (para logging se necessário)
       let employeeName = "";
       const allEmployees = [
@@ -950,6 +1007,7 @@ export function useDragAndDrop({
               newLocal,
               newRole,
               updates,
+              { clearLineFields },
             );
             return prev;
           });
@@ -963,6 +1021,7 @@ export function useDragAndDrop({
               newLocal,
               newRole,
               updates,
+              { clearLineFields },
             );
             return prev;
           });
@@ -987,6 +1046,7 @@ export function useDragAndDrop({
                 newLocal,
                 newRole,
                 updates,
+                { clearLineFields },
               );
             }
             return prev;
@@ -999,6 +1059,7 @@ export function useDragAndDrop({
             newLocal,
             newRole,
             [],
+            { clearLineFields },
           );
         }
       } else {
