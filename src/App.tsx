@@ -38,6 +38,16 @@ import {
 const EMPTY_OBJECT = Object.freeze({});
 const NOOP = () => {};
 
+function mergeArray<T>(prev: T[], next: T[]): T[] {
+  if (
+    prev.length === next.length &&
+    prev.every((item, i) => item === next[i])
+  ) {
+    return prev;
+  }
+  return next;
+}
+
 import {
   initialDepartmentsData,
   initialSupportData,
@@ -323,6 +333,7 @@ function AppContent() {
   // Histórico de Movimentações
 
   const isReceivingSnapshotRef = useRef(false);
+  const isDragActiveRef = useRef(false);
   const isDemoModeRef = useRef(isDemoMode);
   const adminUserRef = useRef(adminUser);
 
@@ -416,28 +427,24 @@ function AppContent() {
     const unsubscribeDSS = firestoreService.subscribeToDSS(
       selectedTurma,
       (dssEmployees) => {
+        if (isDragActiveRef.current) return;
+
         dssEmployeesRef.current = dssEmployees;
 
-        const newDepts = JSON.parse(JSON.stringify(initialDepartmentsData)).map(
-          (d: any) => {
-            d.data = [];
-            d.count = 0;
-            return d;
-          },
-        );
+        const newDepts = initialDepartmentsData.map((d: any) => ({
+          ...d,
+          data: [],
+          count: 0,
+        }));
         const newSupport = initialSupportData.map(() => [] as any[]);
-        const newAnnotationsLeft = JSON.parse(
-          JSON.stringify(initialAnnotationsLeft),
-        ).map((g: any) => {
-          g.items = [];
-          return g;
-        });
-        const newAnnotationsRight = JSON.parse(
-          JSON.stringify(initialAnnotationsRight),
-        ).map((g: any) => {
-          g.items = [];
-          return g;
-        });
+        const newAnnotationsLeft = initialAnnotationsLeft.map((g: any) => ({
+          ...g,
+          items: [],
+        }));
+        const newAnnotationsRight = initialAnnotationsRight.map((g: any) => ({
+          ...g,
+          items: [],
+        }));
         const newSpecial: any[] = [];
 
         dssEmployees.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
@@ -537,12 +544,45 @@ function AppContent() {
           lastUpdateSourceRef.current = "dss_update";
         }
 
-        setDepartmentsData(newDepts);
-        setSupportRolesData(newSupport);
-        setAnnotationsLeft(newAnnotationsLeft);
-        setAnnotationsRight(newAnnotationsRight);
-        setSpecialShiftData(newSpecial);
-        // setBoardState({}); Removido
+        setDepartmentsData((prev) =>
+          prev.map((d, i) => {
+            const mergedData = mergeArray(d.data, newDepts[i].data);
+            return mergedData === d.data
+              ? d
+              : { ...newDepts[i], data: mergedData };
+          }),
+        );
+        setSupportRolesData((prev) => {
+          const merged = prev.map((group, i) =>
+            mergeArray(group, newSupport[i]),
+          );
+          return mergeArray(prev, merged);
+        });
+        setAnnotationsLeft((prev) => {
+          const merged = prev.map((group, i) => {
+            const mergedItems = mergeArray(
+              group.items,
+              newAnnotationsLeft[i].items,
+            );
+            return mergedItems === group.items
+              ? group
+              : { ...newAnnotationsLeft[i], items: mergedItems };
+          });
+          return mergeArray(prev, merged);
+        });
+        setAnnotationsRight((prev) => {
+          const merged = prev.map((group, i) => {
+            const mergedItems = mergeArray(
+              group.items,
+              newAnnotationsRight[i].items,
+            );
+            return mergedItems === group.items
+              ? group
+              : { ...newAnnotationsRight[i], items: mergedItems };
+          });
+          return mergeArray(prev, merged);
+        });
+        setSpecialShiftData((prev) => mergeArray(prev, newSpecial));
       },
     );
 
@@ -829,6 +869,33 @@ function AppContent() {
     setSpecialShiftData,
     selectedTurma,
   });
+
+  const wrappedHandleDragStart = useCallback(
+    (e: any) => {
+      isDragActiveRef.current = true;
+      handleDragStart(e);
+    },
+    [handleDragStart],
+  );
+
+  const wrappedHandleDragEnd = useCallback(
+    (e: any) => {
+      try {
+        handleDragEnd(e);
+      } finally {
+        isDragActiveRef.current = false;
+      }
+    },
+    [handleDragEnd],
+  );
+
+  const wrappedHandleDragCancel = useCallback(() => {
+    try {
+      handleDragCancel();
+    } finally {
+      isDragActiveRef.current = false;
+    }
+  }, [handleDragCancel]);
 
   const {
     activeEmployee,
@@ -1582,10 +1649,10 @@ function AppContent() {
                       sensors={sensors}
                       collisionDetection={customCollisionDetection}
                       modifiers={dndModifiers}
-                      onDragStart={handleDragStart}
+                      onDragStart={wrappedHandleDragStart}
                       onDragOver={handleDragOver}
-                      onDragEnd={handleDragEnd}
-                      onDragCancel={handleDragCancel}
+                      onDragEnd={wrappedHandleDragEnd}
+                      onDragCancel={wrappedHandleDragCancel}
                     >
                       {/* Special Shift Section */}
                       <SpecialShiftContainer

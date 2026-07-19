@@ -60,6 +60,15 @@ function getLabelForContainer(id: string): string {
   return id;
 }
 
+const MAQUINISTA_CONTAINERS = new Set([
+  "recepcao",
+  "classificacao",
+  "formacao",
+]);
+
+const isMaquinistaContainer = (id: string) => MAQUINISTA_CONTAINERS.has(id);
+const isApoioContainer = (id: string) => id.startsWith("support-group-");
+
 export interface UseDragAndDropProps {
   isAdmin: boolean;
   handleStartEditRef: React.MutableRefObject<(id: string) => void>;
@@ -899,15 +908,6 @@ export function useDragAndDrop({
             supportRolesDataRef.current,
             specialShiftDataRef.current,
           );
-
-      const MAQUINISTA_CONTAINERS = new Set([
-        "recepcao",
-        "classificacao",
-        "formacao",
-      ]);
-      const isMaquinistaContainer = (id: string) =>
-        MAQUINISTA_CONTAINERS.has(id);
-      const isApoioContainer = (id: string) => id.startsWith("support-group-");
 
       const clearLineFields = Boolean(
         originContainer &&

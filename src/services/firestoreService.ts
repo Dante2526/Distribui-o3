@@ -42,14 +42,19 @@ export const firestoreService = {
 
     const collectionName = `turma ${turma.toLowerCase()}`;
     const q = collection(dbDSS, collectionName);
+    const employeeCache = new Map<string, Employee & { _role?: string }>();
 
     return onSnapshot(
       q,
       (snapshot) => {
         const allEmployees: (Employee & { _role?: string })[] = [];
+        const seenIds = new Set<string>();
+
         snapshot.docs.forEach((doc) => {
           const data = doc.data();
-          const emp: Employee & { _role?: string } = {
+          const cached = employeeCache.get(doc.id);
+
+          const next: Employee & { _role?: string } = {
             id: doc.id,
             name: data.name || "",
             matricula: data.matricula || "",
@@ -70,9 +75,29 @@ export const firestoreService = {
             ordem: data.ordem || 0,
             local: data.local || "",
           };
-          emp._role = data["funcaoApoio"] || data.funcaoApoio || "";
+          next._role = data["funcaoApoio"] || data.funcaoApoio || "";
+
+          let changed = !cached;
+          if (cached) {
+            const keys = Object.keys(next) as Array<keyof typeof next>;
+            for (const k of keys) {
+              if (cached[k] !== next[k]) {
+                changed = true;
+                break;
+              }
+            }
+          }
+
+          const emp = changed ? next : cached!;
+          employeeCache.set(doc.id, emp);
+          seenIds.add(doc.id);
           allEmployees.push(emp);
         });
+
+        for (const id of employeeCache.keys()) {
+          if (!seenIds.has(id)) employeeCache.delete(id);
+        }
+
         callback(allEmployees);
       },
       (error) => {

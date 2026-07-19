@@ -175,14 +175,32 @@ export const SupportCard = React.memo(
     );
   },
   (prevProps, nextProps) => {
+    let activeEditsChanged = false;
+    if (prevProps.activeEdits !== nextProps.activeEdits) {
+      const roleIds = new Set<string>();
+      nextProps.roles.forEach((e) => {
+        if (e.id) roleIds.add(e.id);
+      });
+      prevProps.roles.forEach((e) => {
+        if (e.id) roleIds.add(e.id);
+      });
+
+      for (const id of roleIds) {
+        if (prevProps.activeEdits?.[id] !== nextProps.activeEdits?.[id]) {
+          activeEditsChanged = true;
+          break;
+        }
+      }
+    }
+
     return (
       prevProps.roles === nextProps.roles &&
       prevProps.isDarkMode === nextProps.isDarkMode &&
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.isDragActive === nextProps.isDragActive &&
       prevProps.groupIndex === nextProps.groupIndex &&
-      prevProps.activeEdits === nextProps.activeEdits &&
-      prevProps.isAdmin === nextProps.isAdmin
+      prevProps.isAdmin === nextProps.isAdmin &&
+      !activeEditsChanged
     );
   },
 );

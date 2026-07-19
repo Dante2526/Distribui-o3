@@ -152,14 +152,32 @@ export const DepartmentCard = React.memo(
     );
   },
   (prevProps, nextProps) => {
+    let activeEditsChanged = false;
+    if (prevProps.activeEdits !== nextProps.activeEdits) {
+      const empIds = new Set<string>();
+      nextProps.department.data.forEach((e) => {
+        if (e.id) empIds.add(e.id);
+      });
+      prevProps.department.data.forEach((e) => {
+        if (e.id) empIds.add(e.id);
+      });
+
+      for (const id of empIds) {
+        if (prevProps.activeEdits?.[id] !== nextProps.activeEdits?.[id]) {
+          activeEditsChanged = true;
+          break;
+        }
+      }
+    }
+
     return (
       prevProps.department === nextProps.department &&
       prevProps.maxCount === nextProps.maxCount &&
       prevProps.isDarkMode === nextProps.isDarkMode &&
       prevProps.is6HActive === nextProps.is6HActive &&
       prevProps.isDragActive === nextProps.isDragActive &&
-      prevProps.activeEdits === nextProps.activeEdits &&
-      prevProps.isAdmin === nextProps.isAdmin
+      prevProps.isAdmin === nextProps.isAdmin &&
+      !activeEditsChanged
     );
   },
 );
