@@ -1172,14 +1172,13 @@ function AppContent() {
       if (
         !item ||
         !item.name.trim() ||
-        (!item.localOriginal &&
-          (item as any).originalSupportGroupIndex === undefined)
+        (!item.localOriginal && (item as any).grupoApoioOriginal === undefined)
       )
         return;
 
-      if ((item as any).originalSupportGroupIndex !== undefined) {
-        const targetGroupIdx = (item as any).originalSupportGroupIndex;
-        const roleStr = (item as any).originalSupportRole || "VIRADOR";
+      if ((item as any).grupoApoioOriginal !== undefined) {
+        const targetGroupIdx = (item as any).grupoApoioOriginal;
+        const roleStr = (item as any).funcaoApoioOriginal || "VIRADOR";
 
         const supportTitles = ["Recepção", "Classificação", "Formação"];
         const groupName = `Apoio - ${supportTitles[targetGroupIdx] || `Grupo ${targetGroupIdx + 1}`}`;

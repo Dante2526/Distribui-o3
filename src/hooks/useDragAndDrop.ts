@@ -706,7 +706,7 @@ export function useDragAndDrop({
           const adaptedSupport: SupportRole = {
             id: activeItem.id,
             name: activeItem.name,
-            role: activeItem.originalSupportRole || "VIRADOR",
+            role: activeItem.funcaoApoioOriginal || "VIRADOR",
             matricula: activeItem.matricula || "",
           };
 
@@ -740,7 +740,7 @@ export function useDragAndDrop({
           localOriginal: isOriginallyApoio
             ? undefined
             : dragSourceRef.current?.originalContainer || activeContainer,
-          originalSupportGroupIndex: isOriginallyApoio
+          grupoApoioOriginal: isOriginallyApoio
             ? parseInt(
                 dragSourceRef.current?.originalContainer.replace(
                   "support-group-",
@@ -749,7 +749,7 @@ export function useDragAndDrop({
                 10,
               )
             : undefined,
-          originalSupportRole: isOriginallyApoio
+          funcaoApoioOriginal: isOriginallyApoio
             ? dragSourceRef.current?.originalRole || "VIRADOR"
             : undefined,
         };
@@ -798,8 +798,8 @@ export function useDragAndDrop({
             line: "",
             machine: activeItem.machine || "",
             tagType: "OOF",
-            originalSupportGroupIndex: activeGroupIdx,
-            originalSupportRole: activeItem.role,
+            grupoApoioOriginal: activeGroupIdx,
+            funcaoApoioOriginal: activeItem.role,
           };
 
           setSupportRolesData((prev) =>

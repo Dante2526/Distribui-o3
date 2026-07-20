@@ -68,8 +68,10 @@ export const firestoreService = {
             machine: data.loco || data.machine || "",
             error: data.error || false,
             localOriginal: data.localOriginal,
-            originalSupportGroupIndex: data.originalSupportGroupIndex,
-            originalSupportRole: data.originalSupportRole,
+            grupoApoioOriginal:
+              data.grupoApoioOriginal ?? data.originalSupportGroupIndex,
+            funcaoApoioOriginal:
+              data.funcaoApoioOriginal ?? data.originalSupportRole,
             status: data.status,
             ausente: data.ausente || false,
             ordem: data.ordem || 0,
@@ -202,8 +204,8 @@ export const firestoreService = {
     ausente: boolean,
     status: string,
     localOriginal?: string,
-    originalSupportGroupIndex?: number,
-    originalSupportRole?: string,
+    grupoApoioOriginal?: number,
+    funcaoApoioOriginal?: string,
   ): Promise<void> {
     if (!dbDSS) return;
     try {
@@ -212,10 +214,10 @@ export const firestoreService = {
 
       const updateData: any = { ausente, status };
       if (localOriginal !== undefined) updateData.localOriginal = localOriginal;
-      if (originalSupportGroupIndex !== undefined)
-        updateData.originalSupportGroupIndex = originalSupportGroupIndex;
-      if (originalSupportRole !== undefined)
-        updateData.originalSupportRole = originalSupportRole;
+      if (grupoApoioOriginal !== undefined)
+        updateData.grupoApoioOriginal = grupoApoioOriginal;
+      if (funcaoApoioOriginal !== undefined)
+        updateData.funcaoApoioOriginal = funcaoApoioOriginal;
 
       await updateDoc(docRef, updateData);
     } catch (e) {

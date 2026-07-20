@@ -65,8 +65,8 @@ const AnnotationItemRow = React.memo(
         </div>
 
         {item.name.trim() &&
-        (item.localOriginal ||
-          (item as any).originalSupportGroupIndex !== undefined) ? (
+        (item.localOriginal !== undefined ||
+          (item as any).grupoApoioOriginal !== undefined) ? (
           <button
             onClick={() => {
               if (!isAdmin) return;
@@ -75,7 +75,7 @@ const AnnotationItemRow = React.memo(
             title={
               item.localOriginal
                 ? `Retornar para ${item.localOriginal === "recepcao" ? "Recepção" : item.localOriginal === "classificacao" ? "Classificação" : "Formação"}`
-                : `Retornar para Apoio ${["Recepção", "Classificação", "Formação"][(item as any).originalSupportGroupIndex] || "Apoio"}`
+                : `Retornar para Apoio ${["Recepção", "Classificação", "Formação"][(item as any).grupoApoioOriginal] || "Apoio"}`
             }
             className="p-1 rounded bg-[#FF9F0A]/10 text-[#FF9F0A] transition-all border-none shrink-0 relative z-10 md:hover:bg-[#FF9F0A]/20 cursor-pointer"
           >

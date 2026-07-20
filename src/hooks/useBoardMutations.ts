@@ -381,8 +381,8 @@ export function useBoardMutations({
           matricula: movedRole.matricula || "",
           line: "",
           machine: "",
-          originalSupportGroupIndex: sourceGroupIndex,
-          originalSupportRole: movedRole.role,
+          grupoApoioOriginal: sourceGroupIndex,
+          funcaoApoioOriginal: movedRole.role,
           tagType: "OOF",
         },
       ]);
@@ -410,9 +410,9 @@ export function useBoardMutations({
         return newSpecial;
       });
 
-      if (movedEmployee.originalSupportGroupIndex !== undefined) {
-        const groupIdx = movedEmployee.originalSupportGroupIndex;
-        const roleStr = movedEmployee.originalSupportRole || "VIRADOR";
+      if (movedEmployee.grupoApoioOriginal !== undefined) {
+        const groupIdx = movedEmployee.grupoApoioOriginal;
+        const roleStr = movedEmployee.funcaoApoioOriginal || "VIRADOR";
         setSupportRolesData((prev) => {
           const newSupport = prev.map((group) => [...group]);
           newSupport[groupIdx].push({
@@ -984,8 +984,8 @@ export function useBoardMutations({
         targetLeftGroupIndex = 0;
       else if (absenceType === "ESTÁGIO") targetRightGroupIndex = 0;
 
-      const originalSupportGroupIndex = groupIndex;
-      const originalSupportRole = emp.role;
+      const grupoApoioOriginal = groupIndex;
+      const funcaoApoioOriginal = emp.role;
 
       if (targetLeftGroupIndex !== -1) {
         setAnnotationsLeft((prev) => {
@@ -1008,8 +1008,8 @@ export function useBoardMutations({
             status: absenceType,
             matricula: empMatricula,
             localOriginal: undefined,
-            originalSupportGroupIndex,
-            originalSupportRole,
+            grupoApoioOriginal,
+            funcaoApoioOriginal,
           };
           if (emptyIdx !== -1) items[emptyIdx] = newItem;
           else items.push(newItem);
@@ -1037,8 +1037,8 @@ export function useBoardMutations({
             status: absenceType,
             matricula: empMatricula,
             localOriginal: undefined,
-            originalSupportGroupIndex,
-            originalSupportRole,
+            grupoApoioOriginal,
+            funcaoApoioOriginal,
           };
           if (emptyIdx !== -1) items[emptyIdx] = newItem;
           else items.push(newItem);

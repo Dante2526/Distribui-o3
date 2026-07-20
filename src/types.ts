@@ -101,8 +101,8 @@ export type Employee = {
   machine: string;
   error?: boolean;
   localOriginal?: string;
-  originalSupportGroupIndex?: number;
-  originalSupportRole?: string;
+  grupoApoioOriginal?: number;
+  funcaoApoioOriginal?: string;
   tagType?: "MAQUINISTA" | "OOF";
   status?: string;
   ausente?: boolean;
