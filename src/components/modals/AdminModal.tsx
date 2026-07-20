@@ -210,7 +210,7 @@ export function AdminModal({
 
             {/* Icon */}
             {!isAdmin && (
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#FF9F0A] to-[#FF6B00] rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-[#FF6B00]/30">
+              <div className="mx-auto mt-8 w-16 h-16 bg-gradient-to-br from-[#FF9F0A] to-[#FF6B00] rounded-2xl flex items-center justify-center mb-0 shadow-lg shadow-[#FF6B00]/30">
                 <svg
                   className="w-8 h-8 text-white"
                   viewBox="0 0 24 24"

@@ -368,7 +368,9 @@ a {
 .light-mode
   .text-white:not(button):not(input):not(svg):not(button *):not(
     .bg-\[\#FF6B00\]
-  ):not(.bg-\[\#10B981\]):not(.bg-gradient-to-r):not(.input-emp-name) {
+  ):not(.bg-\[\#10B981\]):not(.bg-\[\#30D158\]):not(.bg-\[\#FF453A\]):not(
+    .bg-\[\#5E5CE6\]
+  ):not(.bg-gradient-to-r):not(.input-emp-name) {
   color: var(--text-main) !important;
 }
 .light-mode .text-\[\#a0aec0\],
@@ -382,6 +384,9 @@ a {
 .light-mode .hover\:bg-\[\#FF6B00\]:hover,
 .light-mode .bg-\[\#FF6B00\],
 .light-mode .bg-\[\#10B981\],
+.light-mode .bg-\[\#30D158\],
+.light-mode .bg-\[\#FF453A\],
+.light-mode .bg-\[\#5E5CE6\],
 .light-mode button.text-white {
   color: #ffffff !important;
 }
