@@ -396,7 +396,8 @@ export const SupportRoleRow = React.memo(
       prevProps.groupIndex === nextProps.groupIndex &&
       prevProps.activeEdit === nextProps.activeEdit &&
       prevProps.isAdmin === nextProps.isAdmin &&
-      prevProps.currentAdminName === nextProps.currentAdminName
+      prevProps.currentAdminName === nextProps.currentAdminName &&
+      prevProps.isDarkMode === nextProps.isDarkMode
     );
   },
 );
