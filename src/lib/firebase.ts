@@ -40,9 +40,16 @@ const dssConfig = {
 const appDSS = safeInitializeApp(dssConfig, "dss");
 
 // Ativando o cache persistente (IndexedDB) para economizar leituras do Firebase
-export const dbDSS = appDSS
-  ? initializeFirestore(appDSS, { localCache: persistentLocalCache() })
-  : null;
+let db = null;
+if (appDSS) {
+  try {
+    db = initializeFirestore(appDSS, { localCache: persistentLocalCache() });
+  } catch (error) {
+    // Captura o erro no HMR do Vite (Firestore já inicializado na sessão anterior)
+    db = getFirestore(appDSS);
+  }
+}
+export const dbDSS = db;
 export const authDSS = appDSS ? getAuth(appDSS) : null;
 
 // Função para logar anonimamente
