@@ -258,52 +258,65 @@ export const RowPortalsProvider: React.FC<{ children: React.ReactNode }> = ({
               onMouseDown={closePortal}
               onTouchStart={closePortal}
             />
-            <div
-              style={{
-                position: "fixed",
-                top: activeRect.bottom + 6,
-                left: activeRect.right - 140,
-                transformOrigin: "top right",
-                transform: "scale(var(--app-scale, 1))",
-                zIndex: 1000,
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                transition={{ duration: 0.15 }}
-                className={`w-[140px] backdrop-blur-md border rounded-[12px] shadow-xl overflow-y-auto max-h-[300px] flex flex-col p-1.5 gap-1 custom-scrollbar ${
-                  isDarkMode
-                    ? "bg-[#1E2029]/80 border-white/10"
-                    : "bg-white/90 border-slate-200"
-                }`}
-              >
-                {(Object.entries(STATUS_METADATA) as [StatusType, any][]).map(
-                  ([status, meta]) => (
-                    <button
-                      key={status}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        payload.actionsRef?.current?.onAbsent?.(status);
-                        closePortal();
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[11px] font-bold tracking-wider w-full transition-all text-left uppercase hover:bg-white/5 group"
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${meta.dotColor}`}
-                      />
-                      <span
-                        className={isDarkMode ? "text-white" : "text-slate-800"}
+            {(() => {
+              const maxAvailableHeight =
+                window.innerHeight - activeRect.bottom - 16;
+              const safeMaxHeight = Math.min(
+                320,
+                Math.max(120, maxAvailableHeight),
+              );
+              return (
+                <div
+                  style={{
+                    position: "fixed",
+                    top: activeRect.bottom + 6,
+                    left: activeRect.right - 140,
+                    transformOrigin: "top right",
+                    transform: "scale(var(--app-scale, 1))",
+                    zIndex: 1000,
+                  }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                    transition={{ duration: 0.15 }}
+                    className={`w-[140px] backdrop-blur-md border rounded-[12px] shadow-xl overflow-y-auto flex flex-col p-1.5 gap-1 custom-scrollbar ${
+                      isDarkMode
+                        ? "bg-[#1E2029]/80 border-white/10"
+                        : "bg-white/90 border-slate-200"
+                    }`}
+                    style={{ maxHeight: safeMaxHeight }}
+                  >
+                    {(
+                      Object.entries(STATUS_METADATA) as [StatusType, any][]
+                    ).map(([status, meta]) => (
+                      <button
+                        key={status}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          payload.actionsRef?.current?.onAbsent?.(status);
+                          closePortal();
+                        }}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[11px] font-bold tracking-wider w-full transition-all text-left uppercase hover:bg-white/5 group"
                       >
-                        {meta.label}
-                      </span>
-                    </button>
-                  ),
-                )}
-              </motion.div>
-            </div>
+                        <div
+                          className={`w-2 h-2 rounded-full ${meta.dotColor}`}
+                        />
+                        <span
+                          className={
+                            isDarkMode ? "text-white" : "text-slate-800"
+                          }
+                        >
+                          {meta.label}
+                        </span>
+                      </button>
+                    ))}
+                  </motion.div>
+                </div>
+              );
+            })()}
           </PortalMenu>
         )}
 
