@@ -259,34 +259,40 @@ export const RowPortalsProvider: React.FC<{ children: React.ReactNode }> = ({
               onTouchStart={closePortal}
             />
             {(() => {
-              const maxAvailableHeight =
-                window.innerHeight - activeRect.bottom - 16;
-              const safeMaxHeight = Math.min(
-                320,
-                Math.max(120, maxAvailableHeight),
-              );
               return (
                 <div
                   style={{
-                    position: "fixed",
-                    top: activeRect.bottom + 6,
-                    left: activeRect.right - 140,
+                    position: "absolute",
+                    top: activeRect.bottom + window.scrollY + 6,
+                    left: activeRect.right + window.scrollX - 140,
                     transformOrigin: "top right",
                     transform: "scale(var(--app-scale, 1))",
                     zIndex: 1000,
                   }}
                 >
                   <motion.div
+                    ref={(el) => {
+                      if (el && !el.dataset.scrolled) {
+                        el.dataset.scrolled = "true";
+                        setTimeout(
+                          () =>
+                            el.scrollIntoView({
+                              behavior: "smooth",
+                              block: "end",
+                            }),
+                          50,
+                        );
+                      }
+                    }}
                     initial={{ opacity: 0, scale: 0.95, y: -5 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -5 }}
                     transition={{ duration: 0.15 }}
-                    className={`w-[140px] backdrop-blur-md border rounded-[12px] shadow-xl overflow-y-auto flex flex-col p-1.5 gap-1 custom-scrollbar ${
+                    className={`w-[140px] backdrop-blur-md border rounded-[12px] shadow-xl flex flex-col p-1.5 gap-1 ${
                       isDarkMode
                         ? "bg-[#1E2029]/80 border-white/10"
                         : "bg-white/90 border-slate-200"
                     }`}
-                    style={{ maxHeight: safeMaxHeight }}
                   >
                     {(
                       Object.entries(STATUS_METADATA) as [StatusType, any][]
