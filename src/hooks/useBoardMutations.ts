@@ -859,7 +859,7 @@ export function useBoardMutations({
 
       if (!empName || !empName.trim()) return;
 
-      logMovement(empName, dept.title, absenceType, emp.line, empMatricula);
+      logMovement(empName, dept.title, absenceType, emp.line, emp.machine);
       firestoreService.updateEmployeeAbsentDSS(
         selectedTurma,
         emp.id,
@@ -981,7 +981,7 @@ export function useBoardMutations({
 
       const supportTitles = ["Recepção", "Classificação", "Formação"];
       const groupName = `Apoio - ${supportTitles[groupIndex] || `Grupo ${groupIndex + 1}`}`;
-      logMovement(empName, groupName, absenceType, undefined, empMatricula);
+      logMovement(empName, groupName, absenceType, undefined, undefined);
       firestoreService.updateEmployeeAbsentDSS(
         selectedTurma,
         emp.id,
