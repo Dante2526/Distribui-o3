@@ -62,8 +62,8 @@ export function useMovementLog({
           employeeName,
           from,
           to,
-          linha,
-          loco,
+          linha: linha || "",
+          loco: loco || "",
           timestamp: new Date(),
         });
       }

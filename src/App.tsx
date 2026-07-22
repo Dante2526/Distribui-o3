@@ -1211,7 +1211,7 @@ function AppContent() {
         const dept = departmentsData?.find((d) => d.id === item.localOriginal);
         if (dept) deptName = dept.title;
 
-        logMovement(item.name, item.status, deptName, undefined, item.machine);
+        logMovement(item.name, item.status, deptName, undefined, undefined);
         firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, "");
 
         setDepartmentsData((prev) => {
