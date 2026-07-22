@@ -69,15 +69,7 @@ export const firestoreService = {
             error: data.error || false,
             localOriginal: data.localOriginal,
             grupoApoioOriginal:
-              data.grupoApoioOriginal ??
-              data.originalSupportGroupIndex ??
-              (data.local?.toLowerCase().includes("recepcao")
-                ? 0
-                : data.local?.toLowerCase().includes("classificacao")
-                  ? 1
-                  : data.local?.toLowerCase().includes("formacao")
-                    ? 2
-                    : undefined),
+              data.grupoApoioOriginal ?? data.originalSupportGroupIndex,
             funcaoApoioOriginal:
               data.funcaoApoioOriginal ?? data.originalSupportRole,
             status: data.status,

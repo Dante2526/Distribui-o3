@@ -1169,12 +1169,8 @@ function AppContent() {
         ? annotationsLeftRef.current
         : annotationsRightRef.current;
       const item = groups[groupIdx].items[itemIdx];
-      if (
-        !item ||
-        !item.name.trim() ||
-        (!item.localOriginal && (item as any).grupoApoioOriginal === undefined)
-      )
-        return;
+
+      if (!item || !item.name.trim()) return;
 
       if ((item as any).grupoApoioOriginal !== undefined) {
         const targetGroupIdx = (item as any).grupoApoioOriginal;
@@ -1206,9 +1202,10 @@ function AppContent() {
           });
           return newSupport;
         });
-      } else if (item.localOriginal) {
-        let deptName = item.localOriginal;
-        const dept = departmentsData?.find((d) => d.id === item.localOriginal);
+      } else {
+        const fallbackLocal = item.localOriginal || "recepcao";
+        let deptName = fallbackLocal;
+        const dept = departmentsData?.find((d) => d.id === fallbackLocal);
         if (dept) deptName = dept.title;
 
         logMovement(item.name, item.status, deptName, undefined, undefined);
@@ -1217,7 +1214,7 @@ function AppContent() {
         setDepartmentsData((prev) => {
           const newDepts = [...prev];
           const targetDeptIdx = newDepts.findIndex(
-            (d) => d.id === item.localOriginal,
+            (d) => d.id === fallbackLocal,
           );
           if (targetDeptIdx === -1) return prev;
           if (
