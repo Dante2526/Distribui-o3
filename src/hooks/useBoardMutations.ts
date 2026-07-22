@@ -262,65 +262,72 @@ export function useBoardMutations({
 
   const handleUpdateSpecialShiftEmployee = useCallback(
     (empIndex: number, field: keyof Employee, value: any) => {
+      let capturedEmpName = "";
+      let capturedOldValue: any = undefined;
+      let capturedOldEmpId = "";
+
       setSpecialShiftData((prev) => {
         const newData = [...prev];
         const oldEmp = newData[empIndex];
-        const oldValue = oldEmp ? oldEmp[field] : undefined;
-        const empName = oldEmp ? oldEmp.name : "";
+
+        if (oldEmp) {
+          capturedOldValue = oldEmp[field];
+          capturedEmpName = oldEmp.name;
+          capturedOldEmpId = oldEmp.id;
+        }
 
         newData[empIndex] = { ...oldEmp, [field]: value };
         if (field === "name" && value.trim() && !newData[empIndex].tagType) {
           newData[empIndex].tagType = "MAQUINISTA";
         }
-
-        if (
-          (field === "line" || field === "machine") &&
-          empName &&
-          oldValue !== value
-        ) {
-          const fieldName = field === "line" ? "Linha" : "Loco";
-          const logKey = `special-${empIndex}-${field}`;
-
-          if (!pendingFieldLogsRef.current[logKey]) {
-            pendingFieldLogsRef.current[logKey] = {
-              oldValue: oldValue || "",
-              timeoutId: null,
-            };
-          }
-
-          const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
-
-          if (pendingFieldLogsRef.current[logKey].timeoutId) {
-            clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
-          }
-
-          pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
-            const fromStr = `${fieldName}: ${originalOldValue || "(vazio)"}`;
-            const toStr = `${fieldName}: ${value || "(vazio)"}`;
-            if (originalOldValue !== value) {
-              logMovement(
-                empName,
-                fromStr,
-                toStr,
-                field === "line" ? value : undefined,
-                field === "machine" ? value : undefined,
-              );
-            }
-            delete pendingFieldLogsRef.current[logKey];
-          }, 1500);
-        }
-
-        if (selectedTurma && oldEmp && oldEmp.id) {
-          firestoreService.updateEmployeeFieldDSS(
-            selectedTurma,
-            oldEmp.id,
-            field,
-            value,
-          );
-        }
-
         return newData;
       });
+
+      if (
+        (field === "line" || field === "machine") &&
+        capturedEmpName &&
+        capturedOldValue !== value
+      ) {
+        const fieldName = field === "line" ? "Linha" : "Loco";
+        const logKey = `special-${empIndex}-${field}`;
+
+        if (!pendingFieldLogsRef.current[logKey]) {
+          pendingFieldLogsRef.current[logKey] = {
+            oldValue: capturedOldValue || "",
+            timeoutId: null,
+          };
+        }
+
+        const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
+
+        if (pendingFieldLogsRef.current[logKey].timeoutId) {
+          clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
+        }
+
+        pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
+          const fromStr = `${fieldName}: ${originalOldValue || "(vazio)"}`;
+          const toStr = `${fieldName}: ${value || "(vazio)"}`;
+          if (originalOldValue !== value) {
+            logMovement(
+              capturedEmpName,
+              fromStr,
+              toStr,
+              field === "line" ? value : undefined,
+              field === "machine" ? value : undefined,
+            );
+          }
+          delete pendingFieldLogsRef.current[logKey];
+        }, 1500);
+      }
+
+      if (selectedTurma && capturedOldEmpId) {
+        firestoreService.updateEmployeeFieldDSS(
+          selectedTurma,
+          capturedOldEmpId,
+          field,
+          value,
+        );
+      }
     },
     [logMovement],
   );
@@ -546,53 +553,66 @@ export function useBoardMutations({
 
   const handleUpdateSupportMatricula = useCallback(
     (groupIndex: number, empIndex: number, newMatricula: string) => {
+      let capturedEmpName = "";
+      let capturedOldValue: string | undefined = undefined;
+      let capturedOldEmpId = "";
+
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const newGroup = [...newGroups[groupIndex]];
         const oldEmp = newGroup[empIndex];
-        const oldValue = oldEmp ? oldEmp.matricula : undefined;
-        const empName = oldEmp ? oldEmp.name : "";
+
+        if (oldEmp) {
+          capturedOldValue = oldEmp.matricula;
+          capturedEmpName = oldEmp.name;
+          capturedOldEmpId = oldEmp.id;
+        }
 
         newGroup[empIndex] = { ...oldEmp, matricula: newMatricula };
         newGroups[groupIndex] = newGroup;
-
-        if (empName && oldValue !== newMatricula) {
-          const logKey = `support-${groupIndex}-${empIndex}-matricula`;
-
-          if (!pendingFieldLogsRef.current[logKey]) {
-            pendingFieldLogsRef.current[logKey] = {
-              oldValue: oldValue || "",
-              timeoutId: null,
-            };
-          }
-
-          const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
-
-          if (pendingFieldLogsRef.current[logKey].timeoutId) {
-            clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
-          }
-
-          pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
-            const fromStr = `Matrícula: ${originalOldValue || "(vazio)"}`;
-            const toStr = `Matrícula: ${newMatricula || "(vazio)"}`;
-            if (originalOldValue !== newMatricula) {
-              logMovement(empName, fromStr, toStr, undefined, newMatricula);
-            }
-            delete pendingFieldLogsRef.current[logKey];
-          }, 1500);
-        }
-
-        if (selectedTurma && oldEmp && oldEmp.id) {
-          firestoreService.updateEmployeeFieldDSS(
-            selectedTurma,
-            oldEmp.id,
-            "matricula",
-            newMatricula,
-          );
-        }
-
         return newGroups;
       });
+
+      if (capturedEmpName && capturedOldValue !== newMatricula) {
+        const logKey = `support-${groupIndex}-${empIndex}-matricula`;
+
+        if (!pendingFieldLogsRef.current[logKey]) {
+          pendingFieldLogsRef.current[logKey] = {
+            oldValue: capturedOldValue || "",
+            timeoutId: null,
+          };
+        }
+
+        const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
+
+        if (pendingFieldLogsRef.current[logKey].timeoutId) {
+          clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
+        }
+
+        pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
+          const fromStr = `Matrícula: ${originalOldValue || "(vazio)"}`;
+          const toStr = `Matrícula: ${newMatricula || "(vazio)"}`;
+          if (originalOldValue !== newMatricula) {
+            logMovement(
+              capturedEmpName,
+              fromStr,
+              toStr,
+              undefined,
+              newMatricula,
+            );
+          }
+          delete pendingFieldLogsRef.current[logKey];
+        }, 1500);
+      }
+
+      if (selectedTurma && capturedOldEmpId) {
+        firestoreService.updateEmployeeFieldDSS(
+          selectedTurma,
+          capturedOldEmpId,
+          "matricula",
+          newMatricula,
+        );
+      }
     },
     [logMovement],
   );
@@ -730,6 +750,10 @@ export function useBoardMutations({
       field: keyof Employee,
       value: string,
     ) => {
+      let capturedEmpName = "";
+      let capturedOldValue: any = undefined;
+      let capturedOldEmpId = "";
+
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
         const deptIndex = newDepts.findIndex((d) => d.id === deptId);
@@ -737,60 +761,63 @@ export function useBoardMutations({
 
         const newEmployees = [...newDepts[deptIndex].data];
         const oldEmp = newEmployees[empIndex];
-        const oldValue = oldEmp ? oldEmp[field] : undefined;
-        const empName = oldEmp ? oldEmp.name : "";
+
+        if (oldEmp) {
+          capturedOldValue = oldEmp[field];
+          capturedEmpName = oldEmp.name;
+          capturedOldEmpId = oldEmp.id;
+        }
 
         newEmployees[empIndex] = { ...oldEmp, [field]: value };
         newDepts[deptIndex] = { ...newDepts[deptIndex], data: newEmployees };
-
-        if (
-          (field === "line" || field === "machine") &&
-          empName &&
-          oldValue !== value
-        ) {
-          const fieldName = field === "line" ? "Linha" : "Loco";
-          const logKey = `${deptId}-${empIndex}-${field}`;
-
-          if (!pendingFieldLogsRef.current[logKey]) {
-            pendingFieldLogsRef.current[logKey] = {
-              oldValue: oldValue || "",
-              timeoutId: null,
-            };
-          }
-
-          const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
-
-          if (pendingFieldLogsRef.current[logKey].timeoutId) {
-            clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
-          }
-
-          pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
-            const fromStr = `${fieldName}: ${originalOldValue || "(vazio)"}`;
-            const toStr = `${fieldName}: ${value || "(vazio)"}`;
-            if (originalOldValue !== value) {
-              logMovement(
-                empName,
-                fromStr,
-                toStr,
-                field === "line" ? value : undefined,
-                field === "machine" ? value : undefined,
-              );
-            }
-            delete pendingFieldLogsRef.current[logKey];
-          }, 1500);
-        }
-
-        if (selectedTurma && oldEmp && oldEmp.id) {
-          firestoreService.updateEmployeeFieldDSS(
-            selectedTurma,
-            oldEmp.id,
-            field,
-            value,
-          );
-        }
-
         return newDepts;
       });
+
+      if (
+        (field === "line" || field === "machine") &&
+        capturedEmpName &&
+        capturedOldValue !== value
+      ) {
+        const fieldName = field === "line" ? "Linha" : "Loco";
+        const logKey = `${deptId}-${empIndex}-${field}`;
+
+        if (!pendingFieldLogsRef.current[logKey]) {
+          pendingFieldLogsRef.current[logKey] = {
+            oldValue: capturedOldValue || "",
+            timeoutId: null,
+          };
+        }
+
+        const originalOldValue = pendingFieldLogsRef.current[logKey].oldValue;
+
+        if (pendingFieldLogsRef.current[logKey].timeoutId) {
+          clearTimeout(pendingFieldLogsRef.current[logKey].timeoutId!);
+        }
+
+        pendingFieldLogsRef.current[logKey].timeoutId = setTimeout(() => {
+          const fromStr = `${fieldName}: ${originalOldValue || "(vazio)"}`;
+          const toStr = `${fieldName}: ${value || "(vazio)"}`;
+          if (originalOldValue !== value) {
+            logMovement(
+              capturedEmpName,
+              fromStr,
+              toStr,
+              field === "line" ? value : undefined,
+              field === "machine" ? value : undefined,
+            );
+          }
+          delete pendingFieldLogsRef.current[logKey];
+        }, 1500);
+      }
+
+      if (selectedTurma && capturedOldEmpId) {
+        firestoreService.updateEmployeeFieldDSS(
+          selectedTurma,
+          capturedOldEmpId,
+          field,
+          value,
+        );
+      }
     },
     [logMovement],
   );
@@ -836,7 +863,6 @@ export function useBoardMutations({
       firestoreService.updateEmployeeAbsentDSS(
         selectedTurma,
         emp.id,
-        true,
         absenceType,
         dept.id,
       );
@@ -959,7 +985,6 @@ export function useBoardMutations({
       firestoreService.updateEmployeeAbsentDSS(
         selectedTurma,
         emp.id,
-        true,
         absenceType,
         undefined,
         groupIndex,

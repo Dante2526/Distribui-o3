@@ -81,7 +81,6 @@ export const firestoreService = {
             funcaoApoioOriginal:
               data.funcaoApoioOriginal ?? data.originalSupportRole,
             status: data.status,
-            ausente: data.ausente || false,
             ordem: data.ordem || 0,
             local: data.local || "",
           };
@@ -132,7 +131,6 @@ export const firestoreService = {
         assDss: false,
         bem: false,
         mal: false,
-        ausente: false,
         time: null,
         turno: "7H",
         senha: matricula,
@@ -209,7 +207,6 @@ export const firestoreService = {
   async updateEmployeeAbsentDSS(
     turma: string,
     employeeId: string,
-    ausente: boolean,
     status: string,
     localOriginal?: string,
     grupoApoioOriginal?: number,
@@ -220,7 +217,7 @@ export const firestoreService = {
       const collectionName = `turma ${turma.toLowerCase()}`;
       const docRef = doc(dbDSS, collectionName, employeeId);
 
-      const updateData: any = { ausente, status };
+      const updateData: any = { status };
       if (localOriginal !== undefined) updateData.localOriginal = localOriginal;
       if (grupoApoioOriginal !== undefined)
         updateData.grupoApoioOriginal = grupoApoioOriginal;

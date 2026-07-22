@@ -475,7 +475,7 @@ function AppContent() {
         dssEmployees.forEach((emp) => {
           const rawLocal = emp.local || "";
 
-          if (emp.ausente) {
+          if (emp.status && emp.status.trim() !== "") {
             const statusNormal = emp.status
               ? emp.status
                   .normalize("NFD")
@@ -1189,12 +1189,7 @@ function AppContent() {
           undefined,
           item.matricula,
         );
-        firestoreService.updateEmployeeAbsentDSS(
-          selectedTurma,
-          item.id,
-          false,
-          "",
-        );
+        firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, "");
 
         setSupportRolesData((prev) => {
           const newSupport = prev.map((group) => [...group]);
@@ -1229,12 +1224,7 @@ function AppContent() {
           undefined,
           item.matricula,
         );
-        firestoreService.updateEmployeeAbsentDSS(
-          selectedTurma,
-          item.id,
-          false,
-          "",
-        );
+        firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, "");
 
         setDepartmentsData((prev) => {
           const newDepts = [...prev];
