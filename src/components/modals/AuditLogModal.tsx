@@ -338,20 +338,20 @@ export function AuditLogModal({
                                           </span>
 
                                           {!isLocationMovement &&
-                                            (log.line || log.machine) && (
+                                            (log.linha || log.loco) && (
                                               <div className="flex items-center gap-1.5 w-full mt-1">
-                                                {log.line && (
+                                                {log.linha && (
                                                   <span
                                                     className={`flex-1 text-center whitespace-nowrap text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-gray-100 text-gray-500"}`}
                                                   >
-                                                    L: {log.line}
+                                                    L: {log.linha}
                                                   </span>
                                                 )}
-                                                {log.machine && (
+                                                {log.loco && (
                                                   <span
                                                     className={`flex-1 text-center whitespace-nowrap text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded ${isDarkMode ? "bg-white/5 text-gray-400" : "bg-gray-100 text-gray-500"}`}
                                                   >
-                                                    LOCO: {log.machine}
+                                                    LOCO: {log.loco}
                                                   </span>
                                                 )}
                                               </div>

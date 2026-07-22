@@ -639,6 +639,8 @@ export const firestoreService = {
         const data = doc.data();
         return {
           ...data,
+          linha: data.linha || data.line,
+          loco: data.loco || data.machine,
           id: doc.id,
           timestamp: new Date(data.timestamp),
         } as MovementLog;

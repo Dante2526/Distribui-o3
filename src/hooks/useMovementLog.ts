@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
-import { MovementLog, TurmaType } from '../types';
-import { firestoreService } from '../services/firestoreService';
+import React, { useCallback } from "react";
+import { MovementLog, TurmaType } from "../types";
+import { firestoreService } from "../services/firestoreService";
 
 interface UseMovementLogProps {
   adminUser: { name: string; funcao?: string; email?: string } | null;
@@ -20,18 +20,18 @@ export function useMovementLog({
       employeeName: string,
       from: string,
       to: string,
-      line?: string,
-      machine?: string,
+      linha?: string,
+      loco?: string,
     ) => {
       const logId =
         Date.now().toString() + Math.random().toString(36).substring(2, 7);
-        
+
       const currentAdmin = adminUser
         ? adminUser.funcao
           ? `${adminUser.name} (${adminUser.funcao})`
           : adminUser.name
         : "Sistema";
-        
+
       const adminName = isDemoMode
         ? [
             "Lucas (Admin)",
@@ -48,8 +48,8 @@ export function useMovementLog({
           employeeName,
           from,
           to,
-          line,
-          machine,
+          linha,
+          loco,
           timestamp: new Date(),
         };
         return [newLog, ...prev].slice(0, 500);
@@ -62,8 +62,8 @@ export function useMovementLog({
           employeeName,
           from,
           to,
-          line,
-          machine,
+          linha,
+          loco,
           timestamp: new Date(),
         });
       }

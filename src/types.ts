@@ -172,8 +172,8 @@ export interface MovementLog {
   employeeName: string;
   from: string;
   to: string;
-  line?: string;
-  machine?: string;
+  linha?: string;
+  loco?: string;
   timestamp: Date;
 }
 export type HistoryStatus = "BEM" | "MAL" | "AUS" | "PEN";
