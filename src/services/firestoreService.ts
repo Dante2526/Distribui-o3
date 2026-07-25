@@ -47,6 +47,12 @@ export const firestoreService = {
     return onSnapshot(
       q,
       (snapshot) => {
+        if (
+          snapshot.metadata.fromCache &&
+          !snapshot.metadata.hasPendingWrites
+        ) {
+          return;
+        }
         const allEmployees: (Employee & { _role?: string })[] = [];
         const seenIds = new Set<string>();
 
@@ -140,7 +146,6 @@ export const firestoreService = {
     try {
       const collectionName = `turma ${turma.toLowerCase()}`;
       await deleteDoc(doc(dbDSS, collectionName, employeeId));
-      console.log(`[DEBUG] Funcionário ${employeeId} deletado do DSS.`);
     } catch (error) {
       console.error("[DEBUG] Erro ao deletar funcionário no DSS:", error);
     }
@@ -170,9 +175,6 @@ export const firestoreService = {
         allEmployees.push(emp);
       });
 
-      console.log(
-        `[DEBUG] fetchEmployeesDSS: Encontrou ${allEmployees.length} funcionários na coleção '${collectionName}'`,
-      );
       return allEmployees;
     } catch (error) {
       console.error("[DEBUG] Erro ao buscar funcionários do DSS:", error);
@@ -236,13 +238,19 @@ export const firestoreService = {
       const batch = writeBatch(dbDSS);
 
       // 1. Atualizar local e função do ativo
-      const activeDocRef = doc(dbDSS, collectionName, employeeId);
-      const updateData: any = { local, função: role };
-      if (options?.clearLineFields) {
-        updateData.linha = "";
-        updateData.loco = "";
+      if (
+        !employeeId.startsWith("emp-dept") &&
+        !employeeId.startsWith("emp-supp") &&
+        !employeeId.startsWith("emp-imp")
+      ) {
+        const activeDocRef = doc(dbDSS, collectionName, employeeId);
+        const updateData: any = { local, função: role };
+        if (options?.clearLineFields) {
+          updateData.linha = "";
+          updateData.loco = "";
+        }
+        batch.update(activeDocRef, updateData);
       }
-      batch.update(activeDocRef, updateData);
 
       // 2. Atualizar todas as ordens
       updates.forEach((update) => {
@@ -372,9 +380,6 @@ export const firestoreService = {
       }
 
       await updateDoc(docRef, updates);
-      console.log(
-        `[DEBUG] Função do colaborador ${employeeId} atualizada para ${newRole} no DSS.`,
-      );
     } catch (error) {
       console.error(
         "[DEBUG] Erro ao atualizar função do colaborador no DSS:",
@@ -399,6 +404,12 @@ export const firestoreService = {
     return onSnapshot(
       boardDocRef,
       (docSnapshot) => {
+        if (
+          docSnapshot.metadata.fromCache &&
+          !docSnapshot.metadata.hasPendingWrites
+        ) {
+          return;
+        }
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
           // Fazer parser de JSON string (caso seja guardado como string) ou dados diretos
@@ -512,6 +523,9 @@ export const firestoreService = {
     );
 
     return onSnapshot(colRef, (snapshot) => {
+      if (snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
+        return;
+      }
       const edits: Record<string, any> = {};
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -627,6 +641,9 @@ export const firestoreService = {
     );
 
     return onSnapshot(historyQuery, (snapshot) => {
+      if (snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
+        return;
+      }
       const logs = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {

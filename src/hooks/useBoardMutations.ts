@@ -915,6 +915,8 @@ export function useBoardMutations({
               status: absenceType,
               matricula: empMatricula,
               localOriginal: deptId,
+              line: emp.line,
+              machine: emp.machine,
             };
           } else {
             items.push({
@@ -923,6 +925,8 @@ export function useBoardMutations({
               status: absenceType,
               matricula: empMatricula,
               localOriginal: deptId,
+              line: emp.line,
+              machine: emp.machine,
             });
           }
           newGroups[targetLeftGroupIndex] = { ...group, items };
@@ -950,6 +954,8 @@ export function useBoardMutations({
               status: absenceType,
               matricula: empMatricula,
               localOriginal: deptId,
+              line: emp.line,
+              machine: emp.machine,
             };
           } else {
             items.push({
@@ -958,6 +964,8 @@ export function useBoardMutations({
               status: absenceType,
               matricula: empMatricula,
               localOriginal: deptId,
+              line: emp.line,
+              machine: emp.machine,
             });
           }
           newGroups[targetRightGroupIndex] = { ...group, items };

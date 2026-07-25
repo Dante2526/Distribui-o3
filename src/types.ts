@@ -134,6 +134,8 @@ export type AnnotationItem = {
   status: string;
   matricula?: string;
   localOriginal?: string;
+  line?: string;
+  machine?: string;
 };
 
 export type AnnotationGroup = {

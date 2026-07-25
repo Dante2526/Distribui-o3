@@ -1178,7 +1178,7 @@ function AppContent() {
 
         const supportTitles = ["Recepção", "Classificação", "Formação"];
         const groupName = `Apoio - ${supportTitles[targetGroupIdx] || `Grupo ${targetGroupIdx + 1}`}`;
-        logMovement(item.name, item.status, groupName, undefined, undefined);
+        logMovement(item.name, item.status, groupName, item.line, item.machine);
         firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, "");
 
         setSupportRolesData((prev) => {
@@ -1208,7 +1208,7 @@ function AppContent() {
         const dept = departmentsData?.find((d) => d.id === fallbackLocal);
         if (dept) deptName = dept.title;
 
-        logMovement(item.name, item.status, deptName, undefined, undefined);
+        logMovement(item.name, item.status, deptName, item.line, item.machine);
         firestoreService.updateEmployeeAbsentDSS(selectedTurma, item.id, "");
 
         setDepartmentsData((prev) => {
