@@ -47,12 +47,6 @@ export const firestoreService = {
     return onSnapshot(
       q,
       (snapshot) => {
-        if (
-          snapshot.metadata.fromCache &&
-          !snapshot.metadata.hasPendingWrites
-        ) {
-          return;
-        }
         const allEmployees: (Employee & { _role?: string })[] = [];
         const seenIds = new Set<string>();
 
@@ -404,12 +398,6 @@ export const firestoreService = {
     return onSnapshot(
       boardDocRef,
       (docSnapshot) => {
-        if (
-          docSnapshot.metadata.fromCache &&
-          !docSnapshot.metadata.hasPendingWrites
-        ) {
-          return;
-        }
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
           // Fazer parser de JSON string (caso seja guardado como string) ou dados diretos
@@ -523,9 +511,6 @@ export const firestoreService = {
     );
 
     return onSnapshot(colRef, (snapshot) => {
-      if (snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
-        return;
-      }
       const edits: Record<string, any> = {};
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -641,9 +626,6 @@ export const firestoreService = {
     );
 
     return onSnapshot(historyQuery, (snapshot) => {
-      if (snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
-        return;
-      }
       const logs = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
