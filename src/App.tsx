@@ -1228,8 +1228,8 @@ function AppContent() {
             id: item.id || "emp-" + Math.floor(Math.random() * 100000),
             name: item.name,
             matricula: item.matricula || "",
-            line: "",
-            machine: "",
+            line: item.line || "",
+            machine: item.machine || "",
             error: false,
           };
 

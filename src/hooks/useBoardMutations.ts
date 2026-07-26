@@ -9,6 +9,7 @@ import type {
   TurmaType,
 } from "../types";
 import { firestoreService } from "../services/firestoreService";
+import { generateKeyBetween } from "fractional-indexing";
 
 export interface UseBoardMutationsProps {
   departmentsData: Department[];
@@ -60,7 +61,12 @@ export function useBoardMutations({
   setIsReportModalOpen,
   setIsAdminModalOpen,
 }: UseBoardMutationsProps) {
-  const pendingFieldLogsRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const pendingFieldLogsRef = useRef<
+    Record<
+      string,
+      { oldValue: string; timeoutId: ReturnType<typeof setTimeout> | null }
+    >
+  >({});
   const selectedTurmaRef = useRef(selectedTurma);
 
   useEffect(() => {
@@ -431,7 +437,6 @@ export function useBoardMutations({
                 Math.random().toString(36).substring(2, 9),
             name: movedEmployee.name,
             role: roleStr,
-            // Bug 12: usa matricula (não machine)
             matricula: movedEmployee.matricula || "",
           });
           return newSupport;
@@ -505,50 +510,64 @@ export function useBoardMutations({
 
   const handleUpdateSupportRole = useCallback(
     (groupIndex: number, empIndex: number, newRole: string) => {
+      let capturedOldEmpId = "";
+
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const newGroup = [...newGroups[groupIndex]];
         const oldEmp = newGroup[empIndex];
+
+        if (oldEmp) {
+          capturedOldEmpId = oldEmp.id;
+        }
+
         newGroup[empIndex] = { ...oldEmp, role: newRole };
         newGroups[groupIndex] = newGroup;
 
-        if (selectedTurma && oldEmp && oldEmp.id) {
-          firestoreService.updateEmployeeFieldDSS(
-            selectedTurma,
-            oldEmp.id,
-            "funcaoApoio",
-            newRole,
-          );
-        }
-
         return newGroups;
       });
+
+      if (selectedTurma && capturedOldEmpId) {
+        firestoreService.updateEmployeeFieldDSS(
+          selectedTurma,
+          capturedOldEmpId,
+          "funcaoApoio",
+          newRole,
+        );
+      }
     },
-    [],
+    [selectedTurma],
   );
 
   const handleUpdateSupportName = useCallback(
     (groupIndex: number, empIndex: number, newName: string) => {
+      let capturedOldEmpId = "";
+
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const newGroup = [...newGroups[groupIndex]];
         const oldEmp = newGroup[empIndex];
+
+        if (oldEmp) {
+          capturedOldEmpId = oldEmp.id;
+        }
+
         newGroup[empIndex] = { ...oldEmp, name: newName };
         newGroups[groupIndex] = newGroup;
 
-        if (selectedTurma && oldEmp && oldEmp.id) {
-          firestoreService.updateEmployeeFieldDSS(
-            selectedTurma,
-            oldEmp.id,
-            "name",
-            newName,
-          );
-        }
-
         return newGroups;
       });
+
+      if (selectedTurma && capturedOldEmpId) {
+        firestoreService.updateEmployeeFieldDSS(
+          selectedTurma,
+          capturedOldEmpId,
+          "name",
+          newName,
+        );
+      }
     },
-    [],
+    [selectedTurma],
   );
 
   const handleUpdateSupportMatricula = useCallback(
@@ -620,16 +639,18 @@ export function useBoardMutations({
   const handleDeleteSupport = useCallback(
     (groupIndex: number, empIndex: number) => {
       const empId = supportRolesData[groupIndex]?.[empIndex]?.id;
-      if (empId) {
-        firestoreService
-          .deleteEmployeeDSS(selectedTurma, empId)
-          .catch(console.error);
-      }
+
       setSupportRolesData((prev) => {
         const newSupport = prev.map((g) => [...g]);
         newSupport[groupIndex].splice(empIndex, 1);
         return newSupport;
       });
+
+      if (empId) {
+        firestoreService
+          .deleteEmployeeDSS(selectedTurma, empId)
+          .catch(console.error);
+      }
     },
     [selectedTurma],
   );
@@ -640,37 +661,52 @@ export function useBoardMutations({
       targetGroupIndex: number,
       sourceEmpIndex: number,
     ) => {
+      let movedEmpId = "";
+      let capturedTargetGroup: SupportRole[] = [];
+
       setSupportRolesData((prev) => {
         const newGroups = [...prev];
         const sourceGroup = [...newGroups[sourceGroupIndex]];
         const targetGroup = [...newGroups[targetGroupIndex]];
         const [movedEmployee] = sourceGroup.splice(sourceEmpIndex, 1);
+
+        if (movedEmployee) {
+          movedEmpId = movedEmployee.id;
+        }
+
         targetGroup.push(movedEmployee);
         newGroups[sourceGroupIndex] = sourceGroup;
         newGroups[targetGroupIndex] = targetGroup;
 
-        if (selectedTurma && movedEmployee && movedEmployee.id) {
-          const names = ["Recepcao", "Classificacao", "Formacao"];
-          const newLocal = `Apoio ${names[targetGroupIndex] || targetGroupIndex}`;
-
-          firestoreService.updateEmployeeLocationAndRoleDSS(
-            selectedTurma,
-            movedEmployee.id,
-            newLocal,
-            "OOF",
-          );
-
-          const updates = targetGroup.map((emp, i) => ({
-            id: emp.id,
-            ordem: i,
-          }));
-          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
-        }
+        capturedTargetGroup = targetGroup;
 
         return newGroups;
       });
+
+      if (selectedTurma && movedEmpId) {
+        const names = ["Recepcao", "Classificacao", "Formacao"];
+        const newLocal = `Apoio ${names[targetGroupIndex] || targetGroupIndex}`;
+
+        firestoreService.updateEmployeeLocationAndRoleDSS(
+          selectedTurma,
+          movedEmpId,
+          newLocal,
+          "OOF",
+        );
+
+        let prevKey: string | null = null;
+        const updates = capturedTargetGroup.map((emp) => {
+          const newKey = generateKeyBetween(prevKey, null);
+          prevKey = newKey;
+          return {
+            id: emp.id,
+            ordem: newKey,
+          };
+        });
+        firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+      }
     },
-    [],
+    [selectedTurma],
   );
 
   const handleMove = useCallback(
@@ -696,6 +732,8 @@ export function useBoardMutations({
       }
 
       // 3) Atualiza estado local (Optimistic UI)
+      let capturedTargetData: Employee[] = [];
+
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
         const sourceDeptIndex = newDepts.findIndex(
@@ -729,16 +767,23 @@ export function useBoardMutations({
           count: targetData.length,
         };
 
-        if (selectedTurma) {
-          const updates = targetData.map((emp, i) => ({
-            id: emp.id,
-            ordem: i,
-          }));
-          firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
-        }
+        capturedTargetData = targetData;
 
         return newDepts;
       });
+
+      if (selectedTurma && capturedTargetData.length > 0) {
+        let prevKey: string | null = null;
+        const updates = capturedTargetData.map((emp) => {
+          const newKey = generateKeyBetween(prevKey, null);
+          prevKey = newKey;
+          return {
+            id: emp.id,
+            ordem: newKey,
+          };
+        });
+        firestoreService.updateEmployeeOrdersDSS(selectedTurma, updates);
+      }
     },
     [selectedTurma],
   );
@@ -825,12 +870,8 @@ export function useBoardMutations({
   const handleDelete = useCallback(
     (deptId: string, empIndex: number) => {
       const dept = departmentsData.find((d) => d.id === deptId);
-      if (dept && dept.data[empIndex]) {
-        const empId = dept.data[empIndex].id;
-        firestoreService
-          .deleteEmployeeDSS(selectedTurma, empId)
-          .catch(console.error);
-      }
+      const empId = dept?.data[empIndex]?.id;
+
       setDepartmentsData((prev) => {
         const newDepts = [...prev];
         const deptIndex = newDepts.findIndex((d) => d.id === deptId);
@@ -844,6 +885,12 @@ export function useBoardMutations({
         };
         return newDepts;
       });
+
+      if (empId) {
+        firestoreService
+          .deleteEmployeeDSS(selectedTurma, empId)
+          .catch(console.error);
+      }
     },
     [selectedTurma],
   );
@@ -898,13 +945,7 @@ export function useBoardMutations({
           const newGroups = [...prev];
           const group = newGroups[targetLeftGroupIndex];
           const items = [...group.items];
-          if (
-            items.some(
-              (item) =>
-                item.matricula === empMatricula && item.name === empName,
-            )
-          )
-            return prev;
+          if (items.some((item) => item.id === emp.id)) return prev;
           const emptyIdx = items.findIndex(
             (item) => !item.name || !item.name.trim(),
           );
@@ -937,13 +978,7 @@ export function useBoardMutations({
           const newGroups = [...prev];
           const group = newGroups[targetRightGroupIndex];
           const items = [...group.items];
-          if (
-            items.some(
-              (item) =>
-                item.matricula === empMatricula && item.name === empName,
-            )
-          )
-            return prev;
+          if (items.some((item) => item.id === emp.id)) return prev;
           const emptyIdx = items.findIndex(
             (item) => !item.name || !item.name.trim(),
           );
@@ -1025,13 +1060,7 @@ export function useBoardMutations({
           const newGroups = [...prev];
           const g = newGroups[targetLeftGroupIndex];
           const items = [...g.items];
-          if (
-            items.some(
-              (item) =>
-                item.matricula === empMatricula && item.name === empName,
-            )
-          )
-            return prev;
+          if (items.some((item) => item.id === emp.id)) return prev;
           const emptyIdx = items.findIndex(
             (item) => !item.name || !item.name.trim(),
           );
@@ -1054,13 +1083,7 @@ export function useBoardMutations({
           const newGroups = [...prev];
           const g = newGroups[targetRightGroupIndex];
           const items = [...g.items];
-          if (
-            items.some(
-              (item) =>
-                item.matricula === empMatricula && item.name === empName,
-            )
-          )
-            return prev;
+          if (items.some((item) => item.id === emp.id)) return prev;
           const emptyIdx = items.findIndex(
             (item) => !item.name || !item.name.trim(),
           );

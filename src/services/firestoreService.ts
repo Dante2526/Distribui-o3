@@ -102,7 +102,7 @@ export const firestoreService = {
         callback(allEmployees);
       },
       (error) => {
-        console.error("[DEBUG] Erro ao escutar DSS:", error);
+        console.error("Erro ao escutar DSS:", error);
       },
     );
   },
@@ -130,7 +130,7 @@ export const firestoreService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error("[DEBUG] Erro ao adicionar funcionário no DSS:", error);
+      console.error("Erro ao adicionar funcionário no DSS:", error);
       return null;
     }
   },
@@ -141,7 +141,7 @@ export const firestoreService = {
       const collectionName = `turma ${turma.toLowerCase()}`;
       await deleteDoc(doc(dbDSS, collectionName, employeeId));
     } catch (error) {
-      console.error("[DEBUG] Erro ao deletar funcionário no DSS:", error);
+      console.error("Erro ao deletar funcionário no DSS:", error);
     }
   },
 
@@ -171,7 +171,7 @@ export const firestoreService = {
 
       return allEmployees;
     } catch (error) {
-      console.error("[DEBUG] Erro ao buscar funcionários do DSS:", error);
+      console.error("Erro ao buscar funcionários do DSS:", error);
       return [];
     }
   },
