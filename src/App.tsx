@@ -469,7 +469,9 @@ function AppContent() {
           const aO = a.ordem ?? 0;
           const bO = b.ordem ?? 0;
           if (typeof aO === "number" && typeof bO === "number") return aO - bO;
-          return String(aO).localeCompare(String(bO));
+          const aStr = String(aO);
+          const bStr = String(bO);
+          return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
         });
 
         dssEmployees.forEach((emp) => {
